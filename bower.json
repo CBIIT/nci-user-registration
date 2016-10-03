@@ -1,0 +1,29 @@
+{
+  "name": "registration-portal",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "Svetoslav Yankov <svetoslav.yankov@nih.gov>"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7"
+  },
+    "overrides": {
+      "bootstrap": {
+        "main": [
+         "less/bootstrap.less",
+         "dist/js/bootstrap.js",
+         "dist/css/bootstrap.min.css"
+        ]
+      }
+    }
+}
