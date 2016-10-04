@@ -11,7 +11,6 @@ module.exports = {
         confirmTimeout = config.confirm.timeout;
         loggerRef = logger;
         usersCollection = config.db.users_collection;
-        console.log('collection: ' + usersCollection);
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
                 throw err;

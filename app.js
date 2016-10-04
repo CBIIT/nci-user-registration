@@ -1,6 +1,5 @@
 var express = require( 'express' );
-var configHome =  process.env.HOME || process.env.USERPROFILE;
-var config = require( configHome + '/dev/config/config' );
+var config = require( process.env.NODE_CONFIG_FILE );
 var logger = require( './src/config/log' );
 var db = require( './src/model/db' );
 var bodyParser = require( 'body-parser' );

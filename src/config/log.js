@@ -1,19 +1,26 @@
 var winston = require('winston');
 
-var logFile = process.env.LOG_FILE;
 var rotationSize = 100000000; // Bytes
+var logLevel;
+
+if (process.env.NODE_ENV === 'development') {
+    logLevel = 'debug';
+} else {
+    logLevel = 'info';
+}
 
 var logger = new(winston.Logger)({
-    level: process.env.LOG_LEVEL || 'info',
+    level: logLevel,
     transports: [
         new(winston.transports.Console)(),
         new(winston.transports.File)({
-            filename: logFile,
+            filename: process.env.NODE_LOG_FILE,
             maxsize: rotationSize
         })
     ]
 });
 
+logger.info('Log file: ' + process.env.NODE_LOG_FILE);
 logger.info('Log level: ' + logger.level);
 
 module.exports = logger;
