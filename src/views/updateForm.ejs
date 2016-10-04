@@ -39,22 +39,14 @@
 
       <div class="col-sm-5 col-sm-offset-4 main-content bg-info">
         <form action="/auth/logout" method="post">
+
           <div class="form-group">
-            <label for="password1">Password</label>
-            <input type="password1" class="form-control" id="password1" name="password1" placeholder="password">
-          </div>
-          <div class="form-group">
-            <label for="password2">Repreat Password</label>
-            <input type="passwor2" class="form-control" id="password2" name="password2" placeholder="password">
-          </div>
-          <div class="form-group">
-            <label for="certificate">Certificate</label>
+            <label for="certificate">Public Key</label>
             <textarea class="form-control" rows="3" id="certificate" name="certificate" placeholder="Paste certificate text here"></textarea>
           </div>
 
-
           <div class="form-group">
-            <p class="help-block">Use this form to reset your password and/or to update your certificate.</p>
+            <p class="help-block">Use this form to update your public key.</p>
           </div>
 
           <button type="submit" class="btn btn-default">Submit</button>
@@ -66,9 +58,17 @@
 
   <footer class="footer">
     <div class="container">
-      <div class="col-sm-offset-4">
-        <p class="text-muted">
-          <a href="/">Home</a> | <a href="http://www.cancer.gov/global/web/policies">Policies</a> | <a href="http://www.nih.gov">National Institutes of Health</a> | <a href="http://www.cancer.gov">National Cancer Institute</a></p>
+      <div>
+        <p>
+          <a href="/">Home</a> | <a href="http://www.cancer.gov/global/web/policies">Policies</a> | <a href="http://www.cancer.gov/global/web/policies/accessibility">Accessibility</a>          |
+
+          <a href="http://cancer.gov/global/viewing-files">Viewing Files</a> | <a href="http://www.cancer.gov/global/web/policies/foia">FOIA</a>          </p>
+        <p>
+          <a href="http://www.hhs.gov/">U.S. Department of Health and Human Services</a> | <a href="http://www.nih.gov">National Institutes of Health</a>          |
+          <a href="http://www.cancer.gov">National Cancer Institute</a> | <a href="http://usa.gov/">USA.gov</a> </p>
+        <p>
+          NIH ... Turning Discovery Into Health®
+        </p>
       </div>
     </div>
   </footer>
