@@ -28,7 +28,7 @@ var router = function (logger, db) {
                 res.redirect('/auth/logout?mappingerror=true');
             } else {
                 logger.info('Mapped ' + userObject.username + ' to samaccountname ' + sm_samaccountname);
-                db.log(userObject, 'Mapped to sm_samaccountname' + sm_samaccountname);
+                db.log(userObject, 'Mapped to sm_samaccountname ' + sm_samaccountname);
                 res.redirect('/auth/logout?mapped=true');
             }
         });

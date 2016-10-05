@@ -12,6 +12,7 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "connect-mongo": "^1.3.2",
+    "dateformat": "^1.0.12",
     "ejs": "^2.5.2",
     "express": "^4.14.0",
     "express-session": "^1.14.1",

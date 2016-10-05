@@ -91,7 +91,7 @@ module.exports = {
         var collection = db.collection(usersCollection);
         collection.updateOne({
             'uuid.uuid': userObject.uuid,
-            'extracted_dn_username' : userObject.username,
+            'extracted_dn_username': userObject.username,
             'mail': userObject.email
         }, {
             $set: {
@@ -99,7 +99,7 @@ module.exports = {
             }
         }, function (err) {
             if (err) {
-                loggerRef.error('Failed to persist itrustinfo for uuid ' + uuid);
+                loggerRef.error('Failed to persist itrustinfo for ' + userObject.username);
             }
             cb(err);
         });

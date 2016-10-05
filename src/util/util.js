@@ -1,5 +1,9 @@
+
+var dateFormat = require('dateformat');
+
 module.exports = {
     ts: function ( ) {
-        return 'TS(UTC):' + Date.now() + ' ### ' + new Date( Date.now() )  + ' ### '; 
+        var now = new Date();
+        return 'TS(UTC):' + now.getTime() + ' ### ' + dateFormat(now, 'isoDateTime') + ' ### '; 
     }  
 };
