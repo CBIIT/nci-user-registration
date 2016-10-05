@@ -4,12 +4,14 @@ var db;
 var confirmTimeout;
 var loggerRef;
 var usersCollection;
+var utilRef;
 
 module.exports = {
-    connect: function (logger, config, cb) {
+    connect: function (logger, config, util, cb) {
         logger.info('Connecting to database...');
         confirmTimeout = config.confirm.timeout;
         loggerRef = logger;
+        utilRef = util;
         usersCollection = config.db.users_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
@@ -57,7 +59,7 @@ module.exports = {
             extracted_dn_username: username
         }, {
             $push: {
-                logs: message
+                logs: utilRef.ts() + message
             }
         });
     },
@@ -85,10 +87,12 @@ module.exports = {
         });
     },
 
-    addMapping: function (uuid, itrustInfo, cb) {
+    addMapping: function (userObject, itrustInfo, cb) {
         var collection = db.collection(usersCollection);
         collection.updateOne({
-            'uuid.uuid': uuid
+            'uuid.uuid': userObject.uuid,
+            'extracted_dn_username' : userObject.username,
+            'mail': userObject.email
         }, {
             $set: {
                 itrustinfo: itrustInfo

@@ -24,7 +24,7 @@ var router = function (logger, config, db) {
                     req.session.email = userObject.email;
                     req.session.username = userObject.username;
 
-                    db.log(userObject, 'Login with username and email on ' + new Date(Date.now()) + ' ### TS(UTC):' + Date.now());
+                    db.log(userObject, 'Login with username and email');
 
                     var subject, message;
 
@@ -32,7 +32,7 @@ var router = function (logger, config, db) {
 
                     if (document.itrustinfo) {
                         // user has previously registered. Notify user that no further action is needed.
-                        db.log(userObject, 'Registration requested, but user was previously registered. ' + new Date(Date.now()) + ' ### TS(UTC):' + Date.now());
+                        db.log(userObject, 'Registration requested. Not proceeding: user was previously registered.');
                         logger.info('User was previously registered. cn: ' + userObject.username + ', email: ' + userObject.email);
                         subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
                         message = 'Your account has already been registered. No further action is required.';
@@ -42,7 +42,7 @@ var router = function (logger, config, db) {
                         confirmationLink = '<a href="' + config.mail.confirmURLPrefix + '/' + newUUID + '">here</a>';
                         subject = config.mail.subjectPrefix + ' ### Confirm your account';
                         message = 'Click ' + confirmationLink + ' to confirm your account.';
-                        db.log(userObject, 'Sending registration URL with UUID ' + newUUID + ' on ' + new Date(Date.now()) + ' ### TS(UTC):' + Date.now());
+                        db.log(userObject, 'Sending registration URL with UUID ' + newUUID);
                         logger.info('Sending registration URL to cn: ' + userObject.username + ', email: ' + userObject.email);
 
                         db.updateUUID(userObject, newUUID, function (err) {
@@ -135,21 +135,20 @@ var router = function (logger, config, db) {
                     logger.info('UUID confirmed: ' + id);
                     if (document.itrustinfo) {
                         logger.info('User with uuid ' + id + ' and email ' + document.mail + ' already mapped.');
-                        db.log(userObject, 'Mapping requested, but user was already mapped. ' + new Date(Date.now()) + ' ### TS(UTC):' + Date.now());
+                        db.log(userObject, 'UUID confirmed. User already mapped: Not proceeding with user mapping');
                         res.redirect('/auth/logout?previouslymapped=true');
                     } else if (expired) {
                         logger.info('UUID ' + id + ' sent for conirmation. UUID found, but it has expired!');
-                        db.log(userObject, 'UUID ' + id + ' has expired ' + new Date(Date.now()) + ' ### TS(UTC):' + Date.now());
+                        db.log(userObject, 'UUID confirmed. UUID has expired: Not proceeding with user mapping');
                         res.redirect('/auth/logout?exp=true');
                     } else {
                         req.session.email = document.mail;
                         req.session.username = document.extracted_dn_username;
-                        db.log(userObject, 'Proceeding to user mapping.');
+                        db.log(userObject, 'UUID confirmed. Proceeding with user mapping.');
                         res.redirect('/protected/itrust/map/' + id);
                     }
                 } else {
-
-                    logger.info('UUID ' + id + ' sent for confirmation. No document found!');
+                    logger.warn('UUID ' + id + ' sent for confirmation. No document found!');
                     res.redirect('/auth/logout?invalid=true');
                 }
 

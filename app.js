@@ -5,8 +5,9 @@ var db = require( './src/model/db' );
 var bodyParser = require( 'body-parser' );
 var session = require( 'express-session' );
 var mongoStore = require( 'connect-mongo' )( session );
+var util = require ('./src/util/util');
 
-db.connect( logger, config, function ( err ) {
+db.connect( logger, config, util, function ( err ) {
     if ( err ) {
         logger.error( 'Error: Could not connect to database: ' + err );
         process.exit();
