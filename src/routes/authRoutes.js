@@ -53,7 +53,7 @@ var router = function (logger, config, db) {
                     }
 
                     var mailOptions = {
-                        from: config.mail.defaultFromName,
+                        from: config.mail.defaultFromAddress,
                         to: req.body.email,
                         subject: subject,
                         html: message
