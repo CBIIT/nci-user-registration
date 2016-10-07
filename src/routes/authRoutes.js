@@ -133,14 +133,14 @@ var router = function (logger, config, db) {
                     };
                     // UUID confirmed.                    
                     logger.info('UUID confirmed: ' + id);
-                    if (document.itrustinfo) {
-                        logger.info('User with uuid ' + id + ' and email ' + document.mail + ' already mapped.');
-                        db.log(userObject, 'UUID confirmed. User already mapped: Not proceeding with user mapping');
-                        res.redirect('/auth/logout?previouslymapped=true');
-                    } else if (expired) {
+                    if (expired) {
                         logger.info('UUID ' + id + ' sent for conirmation. UUID found, but it has expired!');
                         db.log(userObject, 'UUID confirmed. UUID has expired: Not proceeding with user mapping');
                         res.redirect('/auth/logout?exp=true');
+                    } else if (document.itrustinfo) {
+                        logger.info('User with uuid ' + id + ' and email ' + document.mail + ' already mapped.');
+                        db.log(userObject, 'UUID confirmed. User already mapped: Not proceeding with user mapping');
+                        res.redirect('/auth/logout?previouslymapped=true');
                     } else {
                         req.session.email = document.mail;
                         req.session.username = document.extracted_dn_username;
