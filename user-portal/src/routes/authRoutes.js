@@ -109,6 +109,11 @@ var router = function (logger, config, db) {
             } else if (req.query.mappingerror) {
                 message = 'Account registration was unsuccessful. Please contact help desk.';
                 bg_class = 'bg-error';
+            } else if (req.query.updateerror) {
+                message = 'Account update was unsuccessful. Please contact help desk.';
+                bg_class = 'bg-error';
+            } else if (req.query.updatesuccess) {
+                message = 'Account update successful.';
             }
 
             res.render('logout', {

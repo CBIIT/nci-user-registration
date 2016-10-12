@@ -136,5 +136,25 @@ module.exports = {
                 cb();
             }
         });
+    },
+
+    updateCertificate: function (smUserId, certificate, cb) {
+        var collection = db.collection(usersCollection);
+
+        collection.updateOne({
+            'sm_userid': smUserId
+        }, {
+            $set: {
+                certificate: certificate,
+                certificate_updated: true
+            }
+        }, function (err, document) {
+            if (err) {
+                loggerRef.error('Failed to persist itrustinfo for sm_userid' + smUserId );
+            }
+            cb(err, document);
+        });
+
     }
+
 };
