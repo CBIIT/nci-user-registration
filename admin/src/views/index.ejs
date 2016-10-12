@@ -243,7 +243,14 @@
                                                     sm_userdn:
                                                     <%=user.itrustinfo.sm_userdn%>
                                                 </li>
-                                        </ul>
+                                            </ul>
+                                        <%}%>
+
+                                         <% if (user.process_mapping) {%>
+                                            <li>
+                                                <b>process_mapping:</b>
+                                                <%=user.process_mapping%>
+                                            </li>
                                         <%}%>
                                         
                                 </ul>
