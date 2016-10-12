@@ -47,14 +47,15 @@ var router = function (logger, db) {
                     logger.error('Failed to update certificate of user with sm_userdn: ' + smUserDN);
                     res.redirect('/auth/logout?updateerror=true');
                 } else if (document) {
-                    var userObject = {
-                        username: document.extracted_dn_username,
-                        email: document.mail
-                    };
 
-                    logger.info('Updated public key record for user ' + document.extracted_dn_username);
-                    db.log(userObject, 'Certificate uploaded by user. ' + smUserDN);
-                    res.redirect('/auth/logout?updatesuccess=true');
+                    if (document.modifiedCount === 1) {
+                        logger.info('Updated public key certificate for sm_userdn' + smUserDN);
+                        res.redirect('/auth/logout?updatesuccess=true');
+                    } else {
+                        logger.error('Failed to update certificate of user with sm_userdn: ' + smUserDN + '. Modified count is 0');
+                        res.redirect('/auth/logout?updateerror=true');
+                    }
+
                 }
             });
 
