@@ -8,7 +8,7 @@ var router = function (logger, db) {
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
 
-        var sm_userdn = req.get('headers.sm_userdn');
+        var sm_userdn = req.get('smuserdn');
         console.log('sm_userdn: ' + sm_userdn);
         
         var itrustInfo = {};
@@ -26,7 +26,7 @@ var router = function (logger, db) {
                 res.redirect('/auth/logout?mappingerror=true');
             } else {
                 logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
-                db.log(userObject, 'Mapped to sm_samaccountname ' + sm_userdn);
+                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
                 res.redirect('/auth/logout?mapped=true');
             }
         });
