@@ -30,10 +30,11 @@ var router = function (logger, config, db) {
 
                     var newUUID, confirmationLink;
 
+                    // if ((document.groupMembership.indexOf(config.edir.externalGroup) < 0) || document.itrustinfo) {
                     if (document.itrustinfo) {
                         // user has previously registered. Notify user that no further action is needed.
-                        db.log(userObject, 'Registration requested. Not proceeding: user was previously registered.');
-                        logger.info('User was previously registered. cn: ' + userObject.username + ', email: ' + userObject.email);
+                        db.log(userObject, 'Registration requested. Not proceeding: user is either internal or was previously registered.');
+                        logger.info('User is an internal user or was previously registered. cn: ' + userObject.username + ', email: ' + userObject.email);
                         subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
                         message = 'Your account has already been registered. No further action is required.';
                     } else {
