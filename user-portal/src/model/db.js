@@ -146,7 +146,7 @@ module.exports = {
         }, {
             $set: {
                 certificate: certificate,
-                certificate_updated: true
+                certificate_updated: true 
             }
         }, function (err, document) {
             if (err) {
