@@ -54,6 +54,7 @@ db.connect( logger, config, util, function ( err ) {
         res.render( 'updateForm' );
     } );
     app.use( '/auth', authRouter );
+    app.use( '/protected/itrust', protectedRouter );
 
     // Enable auth check. Protected routes have to be defined after this!
     app.use( authChecker );
@@ -65,8 +66,8 @@ db.connect( logger, config, util, function ( err ) {
         }
     } );
 
-    // Protected routes
-    app.use( '/protected/itrust', protectedRouter );
+    // Routes protected with express session
+    
 
 
 } );

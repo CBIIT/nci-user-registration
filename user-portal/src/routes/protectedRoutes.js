@@ -40,11 +40,11 @@ var router = function (logger, db) {
     protectedRouter.route('/update')
         .post(function (req, res) {
             var certificate = req.body.certificate.trim();
-            var sm_userdn = req.get('smuserdn').toLowerCase();
+            var smUserDN = req.get('smuserdn').toLowerCase();
 
-            db.updateCertificate(sm_userdn, certificate, function (err, document) {
+            db.updateCertificate(smUserDN, certificate, function (err, document) {
                 if (err) {
-                    logger.error('Failed to update certificate of user with sm_userdn: ' + sm_userdn);
+                    logger.error('Failed to update certificate of user with sm_userdn: ' + smUserDN);
                     res.redirect('/auth/logout?updateerror=true');
                 } else if (document) {
                     var userObject = {
@@ -53,7 +53,7 @@ var router = function (logger, db) {
                     };
 
                     logger.info('Updated public key record for user ' + document.extracted_dn_username);
-                    db.log(userObject, 'Certificate uploaded by user. ' + sm_userdn);
+                    db.log(userObject, 'Certificate uploaded by user. ' + smUserDN);
                     res.redirect('/auth/logout?updatesuccess=true');
                 }
             });

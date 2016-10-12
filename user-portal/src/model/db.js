@@ -138,11 +138,11 @@ module.exports = {
         });
     },
 
-    updateCertificate: function (smUserId, certificate, cb) {
+    updateCertificate: function (smUserDN, certificate, cb) {
         var collection = db.collection(usersCollection);
 
         collection.updateOne({
-            'sm_userid': smUserId
+            'itrustinfo.sm_userdn': smUserDN
         }, {
             $set: {
                 certificate: certificate,
@@ -150,7 +150,7 @@ module.exports = {
             }
         }, function (err, document) {
             if (err) {
-                loggerRef.error('Failed to persist itrustinfo for sm_userid' + smUserId );
+                loggerRef.error('Failed to persist itrustinfo for sm_userid' + smUserDN );
             }
             cb(err, document);
         });
