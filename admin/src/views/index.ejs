@@ -252,6 +252,13 @@
                                                 <%=user.process_mapping%>
                                             </li>
                                         <%}%>
+
+                                          <% if (user.certificate_updated) {%>
+                                            <li>
+                                                <b>certificate_updated:</b>
+                                                <%=user.certificate_updated%>
+                                            </li>
+                                        <%}%>
                                         
                                 </ul>
 
