@@ -8,13 +8,16 @@ var router = function (logger, db) {
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
 
-        var sm_userdn = 'CN=test,OU=Users';
-        var sm_universalid = 'test@test.com';
-        var sm_samaccountname = 'test';
+        var sm_userdn = req.get('sm_userdn');
+        var sm_universalid = req.get('sm_universalid');
+        var sm_samaccountname = req.get('sm_samaccountname');
+        console.log('samaccountname: ' + sm_samaccountname);
+
         var itrustInfo = {};
         itrustInfo.sm_userdn = sm_userdn;
         itrustInfo.sm_universalid = sm_universalid;
         itrustInfo.sm_samaccountname = sm_samaccountname;
+
 
         var userObject = {
             uuid: req.params.id,
