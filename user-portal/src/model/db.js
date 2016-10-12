@@ -95,7 +95,8 @@ module.exports = {
             'mail': userObject.email
         }, {
             $set: {
-                itrustinfo: itrustInfo
+                itrustinfo: itrustInfo,
+                process_mapping: true
             }
         }, function (err) {
             if (err) {
