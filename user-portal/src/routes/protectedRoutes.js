@@ -8,16 +8,11 @@ var router = function (logger, db) {
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
 
-        var sm_userdn = req.get('sm_userdn');
-        var sm_universalid = req.get('sm_universalid');
-        var sm_samaccountname = req.get('sm_samaccountname');
-        console.log('samaccountname: ' + sm_samaccountname);
-
+        var sm_userdn = req.get('headers.sm_userdn');
+        console.log('sm_userdn: ' + sm_userdn);
+        
         var itrustInfo = {};
         itrustInfo.sm_userdn = sm_userdn;
-        itrustInfo.sm_universalid = sm_universalid;
-        itrustInfo.sm_samaccountname = sm_samaccountname;
-
 
         var userObject = {
             uuid: req.params.id,
@@ -27,11 +22,11 @@ var router = function (logger, db) {
 
         db.addMapping(userObject, itrustInfo, function (err) {
             if (err) {
-                logger.error('Failed to map ' + userObject.username + ' to samaccountname ' + sm_samaccountname);
+                logger.error('Failed to map ' + userObject.username + ' to userdn ' + sm_userdn);
                 res.redirect('/auth/logout?mappingerror=true');
             } else {
-                logger.info('Mapped ' + userObject.username + ' to samaccountname ' + sm_samaccountname);
-                db.log(userObject, 'Mapped to sm_samaccountname ' + sm_samaccountname);
+                logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
+                db.log(userObject, 'Mapped to sm_samaccountname ' + sm_userdn);
                 res.redirect('/auth/logout?mapped=true');
             }
         });
