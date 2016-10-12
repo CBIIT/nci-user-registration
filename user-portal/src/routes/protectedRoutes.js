@@ -37,7 +37,7 @@ var router = function (logger, db) {
         res.render('updateForm');
     });
 
-    protectedRouter.rout('/update')
+    protectedRouter.route('/update')
         .post(function (req, res) {
             var certificate = req.body.certificate.trim();
             var sm_userdn = req.get('smuserdn').toLowerCase();
