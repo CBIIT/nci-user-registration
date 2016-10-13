@@ -221,50 +221,52 @@
                                             <%=user.uuid.uuid%> ### expires <%= new Date(user.uuid.expires)%>
                                         </li>
                                     <%}%>
+                                       
+
+                                    <% if (user.itrustinfo) {%>
                                         <li>
-                                            <b>Logs</b>
+                                            <b>Mapping</b>
                                         </li>
                                         <ul>
-                                            <% if (user.logs) {%>
-                                                <% for(var j=0; j <user.logs.length; j++) {%>
-                                                    <li>
-                                                        <%=user.logs[j]%>
-                                                    </li>
-                                                <%}%>
-                                            <%}%>
+                                            <li>
+                                                <b>sm_userdn:</b>
+                                                <%=user.itrustinfo.sm_userdn%>
+                                            </li>
+                                            <li>
+                                                <b>updated:</b>
+                                                <%=user.itrustinfo.updated%>
+                                            </li>
                                         </ul>
+                                    <%}%>
 
-                                        <% if (user.itrustinfo) {%>
+                                    <% if (user.pubkeyinfo) {%>
+                                        <li>
+                                            <b>SSH Public Key</b>
+                                        </li>
+                                        <ul>
                                             <li>
-                                                <b>Mapping</b>
+                                                <b>text:</b>
+                                                <%=user.pubkeyinfo.key%>
                                             </li>
-                                            <ul>
-                                                <li>
-                                                    <b>sm_userdn:</b>
-                                                    <%=user.itrustinfo.sm_userdn%>
-                                                </li>
-                                                <li>
-                                                    <b>updated:</b>
-                                                    <%=user.itrustinfo.updated%>
-                                                </li>
-                                            </ul>
-                                        <%}%>
+                                            <li>
+                                                <b>updated:</b>
+                                                <%=user.pubkeyinfo.updated%>
+                                            </li>
+                                        </ul>
+                                    <%}%>
 
-                                        <% if (user.pubkeyinfo) {%>
-                                            <li>
-                                                <b>SSH Public Key</b>
-                                            </li>
-                                            <ul>
+                                    <li>
+                                        <b>Logs</b>
+                                    </li>
+                                    <ul>
+                                        <% if (user.logs) {%>
+                                            <% for(var j=0; j <user.logs.length; j++) {%>
                                                 <li>
-                                                    <b>text:</b>
-                                                    <%=user.pubkeyinfo.key%>
+                                                    <%=user.logs[j]%>
                                                 </li>
-                                                <li>
-                                                    <b>updated:</b>
-                                                    <%=user.pubkeyinfo.updated%>
-                                                </li>
-                                            </ul>
+                                            <%}%>
                                         <%}%>
+                                    </ul>
                                         
                                 </ul>
 
