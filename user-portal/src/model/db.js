@@ -137,18 +137,18 @@ module.exports = {
         });
     },
 
-    updateCertificate: function (smUserDN, certificateInfo, cb) {
+    updateCertificate: function (smUserDN, pubkeyInfo, cb) {
         var collection = db.collection(usersCollection);
 
         collection.updateOne({
             'itrustinfo.sm_userdn': smUserDN
         }, {
             $set: {
-                certificate: certificateInfo
+                pubkeyinfo: pubkeyInfo
             }
         }, function (err, document) {
             if (err) {
-                loggerRef.error('Failed to persist itrustinfo for sm_userid' + smUserDN);
+                loggerRef.error('Failed to persist public key info for sm_userid' + smUserDN);
             }
             cb(err, document);
         });

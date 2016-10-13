@@ -12,7 +12,7 @@ var router = function (logger, db) {
 
         var itrustInfo = {};
         itrustInfo.sm_userdn = sm_userdn;
-        itrustInfo.process_mapping = true;
+        itrustInfo.updated = true;
 
         var userObject = {
             uuid: req.params.id,
@@ -40,22 +40,22 @@ var router = function (logger, db) {
 
     protectedRouter.route('/update')
         .post(function (req, res) {
-            var certificateInfo = {};
-            certificateInfo.text = req.body.certificate.trim();
-            certificateInfo.certificate_updated = true;
+            var pubkeyInfo = {};
+            pubkeyInfo.key = req.body.pubkey.trim();
+            pubkeyInfo.updated = true;
             var smUserDN = req.get('smuserdn').toLowerCase();
 
-            db.updateCertificate(smUserDN, certificateInfo, function (err, document) {
+            db.updateCertificate(smUserDN, pubkeyInfo, function (err, document) {
                 if (err) {
-                    logger.error('Failed to update certificate of user with sm_userdn: ' + smUserDN);
+                    logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN);
                     res.redirect('/auth/logout?updateerror=true');
                 } else if (document) {
 
                     if (document.modifiedCount === 1) {
-                        logger.info('Updated public key certificate for sm_userdn' + smUserDN);
+                        logger.info('Updated public key for sm_userdn' + smUserDN);
                         res.redirect('/auth/logout?updatesuccess=true');
                     } else {
-                        logger.error('Failed to update certificate of user with sm_userdn: ' + smUserDN + '. Modified count is 0');
+                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count is 0');
                         res.redirect('/auth/logout?updateerror=true');
                     }
 

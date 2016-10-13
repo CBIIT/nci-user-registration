@@ -245,23 +245,23 @@
                                                 </li>
                                                 <li>
                                                     process_mapping:
-                                                    <%=user.itrustinfo.process_mapping%>
+                                                    <%=user.itrustinfo.updated%>
                                                 </li>
                                             </ul>
                                         <%}%>
 
-                                        <% if (user.certificate) {%>
+                                        <% if (user.pubkeyinfo) {%>
                                             <li>
-                                                <b>Certificate</b>
+                                                <b>SSH Public Key</b>
                                             </li>
                                             <ul>
                                                 <li>
                                                     text:
-                                                    <%=user.certificate.text%>
+                                                    <%=user.pubkeyinfo.key%>
                                                 </li>
                                                 <li>
-                                                    certificate updated:
-                                                    <%=user.certificate.certificate_updated%>
+                                                    key updated:
+                                                    <%=user.pubkeyinfo.updated%>
                                                 </li>
                                             </ul>
                                         <%}%>

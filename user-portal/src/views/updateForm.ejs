@@ -41,13 +41,13 @@
         <form action="/protected/itrust/update" method="post" data-toggle="validator">
 
           <div class="form-group">
-            <label for="certificate">Public Key</label>
-            <textarea class="form-control" rows="12" id="certificate" name="certificate" placeholder="Paste certificate text here" data-error="Certificate text is required."
-              required></textarea>
+            <label for="pubkey">Public Key</label>
+            <textarea class="form-control" rows="12" id="pubkey" name="pubkey" placeholder="Paste public key in SSH-2 RSA format or leave blank if you wish to remove your existing key from the system." data-error="Invalid format: Public key needs to be in SSH-2 RSA format."
+              pattern="^ssh-rsa\s+[A-Za-z0-9+/](={0,2})(\s+.*)?$"></textarea>
             <div class="help-block with-errors"></div>
           </div>
           <div class="form-group">
-            <p class="help-block">Use this form to update your public key.</p>
+            <p class="help-block">Use this form to update your SSH public key.</p>
           </div>
 
           <button type="submit" class="btn btn-default">Submit</button>
