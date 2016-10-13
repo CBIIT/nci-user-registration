@@ -243,21 +243,27 @@
                                                     sm_userdn:
                                                     <%=user.itrustinfo.sm_userdn%>
                                                 </li>
+                                                <li>
+                                                    process_mapping:
+                                                    <%=user.itrustinfo.process_mapping%>
+                                                </li>
                                             </ul>
                                         <%}%>
 
-                                         <% if (user.process_mapping) {%>
+                                        <% if (user.certificate) {%>
                                             <li>
-                                                <b>process_mapping:</b>
-                                                <%=user.process_mapping%>
+                                                <b>Certificate</b>
                                             </li>
-                                        <%}%>
-
-                                          <% if (user.certificate_updated) {%>
-                                            <li>
-                                                <b>certificate_updated:</b>
-                                                <%=user.certificate_updated%>
-                                            </li>
+                                            <ul>
+                                                <li>
+                                                    text:
+                                                    <%=user.certificate.text%>
+                                                </li>
+                                                <li>
+                                                    certificate updated:
+                                                    <%=user.certificate.certificate_updated%>
+                                                </li>
+                                            </ul>
                                         <%}%>
                                         
                                 </ul>
