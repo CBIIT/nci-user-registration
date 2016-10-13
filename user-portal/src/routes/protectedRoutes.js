@@ -52,7 +52,7 @@ var router = function (logger, db) {
                 } else if (document) {
 
                     if (document.modifiedCount === 1) {
-                        logger.info('Updated public key for sm_userdn' + smUserDN);
+                        logger.info('Updated public key for sm_userdn: ' + smUserDN);
                         db.logWithDN(smUserDN, 'Updated public key: ' + pubkeyInfo.key);
                         res.redirect('/auth/logout?updatesuccess=true');
                     } else {

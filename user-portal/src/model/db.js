@@ -64,7 +64,7 @@ module.exports = {
         });
     },
 
-    logWithDN(smUserDN, message) {
+    logWithDN: function (smUserDN, message) {
         var collection = db.collection(usersCollection);
         collection.updateOne({
             itrustinfo: {
