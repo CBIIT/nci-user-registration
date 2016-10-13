@@ -23,14 +23,6 @@ module.exports = {
 
     },
 
-    getAllUsers: function (cb) {
-        var collection = db.collection(usersCollection);
-        collection.find({}).toArray(
-            function (err, results) {
-                cb(err, results);
-            });
-    },
-
     getUser: function (id, cb) {
         var collection = db.collection(usersCollection);
         collection.findOne({
@@ -67,9 +59,7 @@ module.exports = {
     logWithDN: function (smUserDN, message) {
         var collection = db.collection(usersCollection);
         collection.updateOne({
-            itrustinfo: {
-                sm_userdn: smUserDN
-            }
+            'itrustinfo.sm_userdn': smUserDN
         }, {
             $push: {
                 logs: utilRef.ts() + message
