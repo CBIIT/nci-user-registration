@@ -45,7 +45,7 @@ var router = function (logger, db) {
             pubkeyInfo.updated = true;
             var smUserDN = req.get('smuserdn').toLowerCase();
 
-            db.updateCertificate(smUserDN, pubkeyInfo, function (err, document) {
+            db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
                 if (err) {
                     logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN);
                     res.redirect('/auth/logout?updateerror=true');
@@ -53,9 +53,10 @@ var router = function (logger, db) {
 
                     if (document.modifiedCount === 1) {
                         logger.info('Updated public key for sm_userdn' + smUserDN);
+                        db.logWithDN(smUserDN, 'Updated public key: ' + pubkeyInfo.key);
                         res.redirect('/auth/logout?updatesuccess=true');
                     } else {
-                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count is 0');
+                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count != 1');
                         res.redirect('/auth/logout?updateerror=true');
                     }
 

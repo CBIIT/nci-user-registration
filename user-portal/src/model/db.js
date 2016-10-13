@@ -64,6 +64,19 @@ module.exports = {
         });
     },
 
+    logWithDN(smUserDN, message) {
+        var collection = db.collection(usersCollection);
+        collection.updateOne({
+            itrustinfo: {
+                sm_userdn: smUserDN
+            }
+        }, {
+            $push: {
+                logs: utilRef.ts() + message
+            }
+        });
+    },
+
     updateUUID: function (userObject, uuid, cb) {
         var collection = db.collection(usersCollection);
         collection.updateOne({
@@ -137,7 +150,7 @@ module.exports = {
         });
     },
 
-    updateCertificate: function (smUserDN, pubkeyInfo, cb) {
+    updateSSHPublicKey: function (smUserDN, pubkeyInfo, cb) {
         var collection = db.collection(usersCollection);
 
         collection.updateOne({
