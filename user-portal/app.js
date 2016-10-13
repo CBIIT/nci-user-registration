@@ -67,9 +67,6 @@ db.connect( logger, config, util, function ( err ) {
     } );
 
     // Routes protected with express session
-    
-
-
 } );
 
 // Helper functions
