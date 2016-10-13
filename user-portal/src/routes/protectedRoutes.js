@@ -12,6 +12,7 @@ var router = function (logger, db) {
 
         var itrustInfo = {};
         itrustInfo.sm_userdn = sm_userdn;
+        itrustInfo.process_mapping = true;
 
         var userObject = {
             uuid: req.params.id,
@@ -39,10 +40,12 @@ var router = function (logger, db) {
 
     protectedRouter.route('/update')
         .post(function (req, res) {
-            var certificate = req.body.certificate.trim();
+            var certificateInfo = {};
+            certificateInfo.text = req.body.certificate.trim();
+            certificateInfo.certificate_updated = true;
             var smUserDN = req.get('smuserdn').toLowerCase();
 
-            db.updateCertificate(smUserDN, certificate, function (err, document) {
+            db.updateCertificate(smUserDN, certificateInfo, function (err, document) {
                 if (err) {
                     logger.error('Failed to update certificate of user with sm_userdn: ' + smUserDN);
                     res.redirect('/auth/logout?updateerror=true');

@@ -95,8 +95,7 @@ module.exports = {
             'mail': userObject.email
         }, {
             $set: {
-                itrustinfo: itrustInfo,
-                process_mapping: true
+                itrustinfo: itrustInfo
             }
         }, function (err) {
             if (err) {
@@ -138,19 +137,18 @@ module.exports = {
         });
     },
 
-    updateCertificate: function (smUserDN, certificate, cb) {
+    updateCertificate: function (smUserDN, certificateInfo, cb) {
         var collection = db.collection(usersCollection);
 
         collection.updateOne({
             'itrustinfo.sm_userdn': smUserDN
         }, {
             $set: {
-                certificate: certificate,
-                certificate_updated: true 
+                certificate: certificateInfo
             }
         }, function (err, document) {
             if (err) {
-                loggerRef.error('Failed to persist itrustinfo for sm_userid' + smUserDN );
+                loggerRef.error('Failed to persist itrustinfo for sm_userid' + smUserDN);
             }
             cb(err, document);
         });
