@@ -8,28 +8,38 @@ var router = function (logger, db) {
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
 
-        var sm_userdn = req.get('smuserdn').toLowerCase();
+        // do we still have an active session 
+        var username = req.session.username;
+        var email = req.session.email;
+        var uuid = req.params.id;
 
-        var itrustInfo = {};
-        itrustInfo.sm_userdn = sm_userdn;
-        itrustInfo.updated = true;
+        if (!(username && email)) {
+            logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
+            res.redirect('/auth/logout?mappingerror=true');
+        } else {
+            var sm_userdn = req.get('smuserdn').toLowerCase();
 
-        var userObject = {
-            uuid: req.params.id,
-            username: req.session.username,
-            email: req.session.email
-        };
+            var itrustInfo = {};
+            itrustInfo.sm_userdn = sm_userdn;
+            itrustInfo.updated = true;
 
-        db.addMapping(userObject, itrustInfo, function (err) {
-            if (err) {
-                logger.error('Failed to map ' + userObject.username + ' to userdn ' + sm_userdn);
-                res.redirect('/auth/logout?mappingerror=true');
-            } else {
-                logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
-                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
-                res.redirect('/auth/logout?mapped=true');
-            }
-        });
+            var userObject = {
+                uuid: uuid,
+                username: username,
+                email: email
+            };
+
+            db.addMapping(userObject, itrustInfo, function (err) {
+                if (err) {
+                    logger.error('Failed to map ' + userObject.username + ' to userdn ' + sm_userdn);
+                    res.redirect('/auth/logout?mappingerror=true');
+                } else {
+                    logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
+                    db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
+                    res.redirect('/auth/logout?mapped=true');
+                }
+            });
+        }
     });
 
     protectedRouter.route('/update')
