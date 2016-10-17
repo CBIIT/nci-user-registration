@@ -27,8 +27,6 @@ var router = function (logger, config, db) {
 
                     db.log(userObject, 'Login with username and email');
 
-
-
                     var newUUID, confirmationLink;
 
                     // if ((document.groupMembership.indexOf(config.edir.externalGroup) < 0) || document.itrustinfo) {
