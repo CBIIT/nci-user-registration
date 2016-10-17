@@ -18,6 +18,7 @@ var router = function (logger, config, db) {
                 username: req.body.username.toLowerCase().trim()
             };
             var sendEmail = true;
+            var subject, message;
 
             db.findUserByEmailAndCn(userObject, function (err, document) {
                 if (document) {
@@ -26,7 +27,7 @@ var router = function (logger, config, db) {
 
                     db.log(userObject, 'Login with username and email');
 
-                    var subject, message;
+
 
                     var newUUID, confirmationLink;
 
@@ -53,27 +54,34 @@ var router = function (logger, config, db) {
                         });
                     }
 
-                    var mailOptions = {
-                        from: config.mail.defaultFromAddress,
-                        to: req.body.email,
-                        subject: subject,
-                        html: message
-                    };
-
-                    if (sendEmail) {
-                        transporter.sendMail(mailOptions, function (error, info) {
-                            if (error) {
-                                logger.error(error);
-                            }
-                            logger.info(info);
-                        });
-                    }
 
                 } else {
                     logger.warn('Failed login. email: ' + userObject.email + ', username: ' + userObject.username);
+                    subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
+                    message = '<p>A NCI registration request was submitted for this email account. Unfortunately, the user name and email combination could not be found.</p>' +
+                        '<p>If you need assistance please contact NCI help desk at helpdesk@nci.nih.gov or call 555-555-5555.</p>' +
+                        '<p>If you want to re-attempt registration please click <a href="' + config.web.protocol + '://' + config.web.host + ':' + config.web.port + '">here</a> to return to the registration page.</p>';
                 }
+
+                var mailOptions = {
+                    from: config.mail.defaultFromAddress,
+                    to: req.body.email,
+                    subject: subject,
+                    html: message
+                };
+
                 if (sendEmail) {
-                    res.redirect('/auth/logout?mailsent=true');
+                    transporter.sendMail(mailOptions, function (error, info) {
+                        if (error) {
+                            logger.error(error);
+                        }
+                        logger.info(info);
+                    });
+                }
+
+
+                if (sendEmail) {
+                    res.redirect('/auth/logout?mailsent=true&mail=' + req.body.email);
                 } else {
                     // Something failed and no email was sent out
                     res.render('error', {
@@ -98,8 +106,8 @@ var router = function (logger, config, db) {
             } else if (req.query.previouslymapped) {
                 message = 'Your account has already been registered. No further action is required.';
             } else if (req.query.mailsent) {
-                message = 'An email was sent to the email address which you provided. ' +
-                    'Please check your email and follow the instructions.';
+                message = 'An email was sent to ' + req.query.mail +
+                    '. Please check your email and follow the instructions to register your account.';
             } else if (req.query.exp) {
                 message = 'The confirmation URL has expired. Please go back to the main page and submit your information to receive a new confirmation link.';
                 bg_class = 'bg-warning';
@@ -107,13 +115,13 @@ var router = function (logger, config, db) {
                 message = 'The confirmation URL is invalid. Please go back to the main page and submit your information to receive a new confirmation link.';
                 bg_class = 'bg-warning';
             } else if (req.query.mappingerror) {
-                message = 'Account registration was unsuccessful. Please contact help desk.';
+                message = 'Account registration was unsuccessful. Please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555-555-5555.';
                 bg_class = 'bg-error';
             } else if (req.query.updateerror) {
-                message = 'Account update was unsuccessful. Please contact help desk.';
+                message = 'Public key update was unsuccessful. Please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555-555-5555.';
                 bg_class = 'bg-error';
             } else if (req.query.updatesuccess) {
-                message = 'Account update successful.';
+                message = 'Public key update was successful.';
             }
 
             res.render('logout', {
