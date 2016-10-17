@@ -155,7 +155,5 @@ module.exports = {
             }
             cb(err, document);
         });
-
     }
-
 };
