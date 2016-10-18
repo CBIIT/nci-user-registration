@@ -52,7 +52,6 @@ var router = function (logger, config, db) {
                         });
                     }
 
-
                 } else {
                     logger.warn('Failed login. email: ' + userObject.email + ', username: ' + userObject.username);
                     subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
