@@ -95,6 +95,13 @@
                                         </li>
                                     <%}%>
 
+                                    <% if (user.extracted_dn_username) {%>
+                                        <li>
+                                            <b>extracted username (from DN):</b>
+                                            <%=user.extracted_dn_username%>
+                                        </li>
+                                    <%}%>
+
                                     <% if (user.nciNihIC) {%>
                                         <li>
                                             <b>nciNihIC:</b>
@@ -254,20 +261,20 @@
                                             </li>
                                         </ul>
                                     <%}%>
-
+                                    <% if (user.logs) {%>
                                     <li>
                                         <b>Logs</b>
                                     </li>
                                     <ul>
-                                        <% if (user.logs) {%>
+                                       
                                             <% for(var j=0; j <user.logs.length; j++) {%>
                                                 <li>
                                                     <%=user.logs[j]%>
                                                 </li>
                                             <%}%>
-                                        <%}%>
-                                    </ul>
                                         
+                                    </ul>
+                                    <%}%>   
                                 </ul>
 
                                     </div>

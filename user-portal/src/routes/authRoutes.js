@@ -33,7 +33,7 @@ var router = function (logger, config, db) {
                     if (document.itrustinfo) {
                         // user has previously registered. Notify user that no further action is needed.
                         db.log(userObject, 'Registration requested. Not proceeding: user is either internal or was previously registered.');
-                        logger.info('User is an internal user or was previously registered. cn: ' + userObject.username + ', email: ' + userObject.email);
+                        logger.info('Prepring an email to user to notify that they were previously registered. cn: ' + userObject.username + ', email: ' + userObject.email);
                         subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
                         message = 'Your account has already been registered. No further action is required.';
                     } else {
@@ -43,10 +43,11 @@ var router = function (logger, config, db) {
                         subject = config.mail.subjectPrefix + ' ### Confirm your account';
                         message = 'Click ' + confirmationLink + ' to confirm your account.';
                         db.log(userObject, 'Sending registration URL with UUID ' + newUUID);
-                        logger.info('Sending registration URL to cn: ' + userObject.username + ', email: ' + userObject.email);
+                        logger.info('Preparing an email with registration URL for cn: ' + userObject.username + ', email: ' + userObject.email);
 
                         db.updateUUID(userObject, newUUID, function (err) {
                             if (err) {
+                                logger.error('UUID could not be updated for cn: ' + userObject.username + ', email: ' + userObject.email);
                                 sendEmail = false;
                             }
                         });
@@ -54,6 +55,7 @@ var router = function (logger, config, db) {
 
                 } else {
                     logger.warn('Failed login. email: ' + userObject.email + ', username: ' + userObject.username);
+                    logger.info('Preparing an email for email ' + userObject.email + ' to notify that user name / email combination was not found');
                     subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
                     message = '<p>A NCI registration request was submitted for this email account. Unfortunately, the user name and email combination could not be found.</p>' +
                         '<p>If you need assistance please contact NCI help desk at helpdesk@nci.nih.gov or call 555-555-5555.</p>' +
@@ -81,6 +83,7 @@ var router = function (logger, config, db) {
                     res.redirect('/auth/logout?mailsent=true&mail=' + req.body.email);
                 } else {
                     // Something failed and no email was sent out
+                    logger.error('Something failed and no email was sent to ' + req.body.email);
                     res.render('error', {
                         message: 'An error occurred while registering your account. Please try again later.',
                         bg_class: 'bg-error'
