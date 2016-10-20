@@ -1,7 +1,7 @@
 var express = require('express');
 var protectedRouter = express.Router();
 
-var router = function (logger, db) {
+var router = function (logger, db, mailer, config) {
 
     protectedRouter.route('/map/:id')
 
@@ -36,6 +36,12 @@ var router = function (logger, db) {
                 } else {
                     logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
                     db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
+                    var subject = config.mail.subjectPrefix + ' ### Your account was registered';
+                    var message = '<p>Your account was registered successfully. .</p>' +
+                    '<p>Your NCI account ' + userObject.username + ' was linked to your new NIH External account ' + ' itrustInfo.sm_userdn.</p>' +
+                    '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
+                    mailer.send(userObject.email, subject, message);
+
                     res.redirect('/auth/logout?mapped=true');
                 }
             });

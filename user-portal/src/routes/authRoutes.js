@@ -2,13 +2,13 @@ var express = require('express');
 var authRouter = express.Router();
 
 var uuid = require('node-uuid');
-var mailer = require('nodemailer');
+// var mailer = require('nodemailer');
 
-var router = function (logger, config, db) {
-    var smtpConfig = {};
-    smtpConfig.host = config.mail.host;
-    smtpConfig.secure = config.mail.smtp_starttls_enable;
-    var transporter = mailer.createTransport(smtpConfig);
+var router = function (logger, config, db, mailer) {
+    // var smtpConfig = {};
+    // smtpConfig.host = config.mail.host;
+    // smtpConfig.secure = config.mail.smtp_starttls_enable;
+    // var transporter = mailer.createTransport(smtpConfig);
 
 
     authRouter.route('/lookup')
@@ -62,20 +62,21 @@ var router = function (logger, config, db) {
                         '<p>If you want to re-attempt registration please click <a href="' + config.web.protocol + '://' + config.web.host + ':' + config.web.port + '">here</a> to return to the registration page.</p>';
                 }
 
-                var mailOptions = {
-                    from: config.mail.defaultFromAddress,
-                    to: req.body.email,
-                    subject: subject,
-                    html: message
-                };
+                // var mailOptions = {
+                //     from: config.mail.defaultFromAddress,
+                //     to: req.body.email,
+                //     subject: subject,
+                //     html: message
+                // };
 
                 if (sendEmail) {
-                    transporter.sendMail(mailOptions, function (error, info) {
-                        if (error) {
-                            logger.error(error);
-                        }
-                        logger.info(info);
-                    });
+                    mailer.send(req.body.email, subject, message);
+                    // transporter.sendMail(mailOptions, function (error, info) {
+                    //     if (error) {
+                    //         logger.error(error);
+                    //     }
+                    //     logger.info(info);
+                    // });
                 }
 
 
@@ -86,7 +87,7 @@ var router = function (logger, config, db) {
                     logger.error('Something failed and no email was sent to ' + req.body.email);
                     res.render('error', {
                         message: 'An error occurred while registering your account. Please try again later.',
-                        bg_class: 'bg-error'
+                        bg_class: 'bg-danger'
                     });
                 }
             });
@@ -116,10 +117,10 @@ var router = function (logger, config, db) {
                 bg_class = 'bg-warning';
             } else if (req.query.mappingerror) {
                 message = 'Account registration was unsuccessful. Please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555-555-5555.';
-                bg_class = 'bg-error';
+                bg_class = 'bg-danger';
             } else if (req.query.updateerror) {
                 message = 'Public key update was unsuccessful. Please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555-555-5555.';
-                bg_class = 'bg-error';
+                bg_class = 'bg-danger';
             } else if (req.query.updatesuccess) {
                 message = 'Public key update was successful.';
             }
