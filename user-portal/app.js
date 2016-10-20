@@ -10,7 +10,7 @@ var mailer = require('./src/config/mailer');
 
 mailer.init(logger, config, function () {
     logger.info('Mailer initialized...');
-    
+
     db.connect(logger, config, util, function (err) {
         if (err) {
             logger.error('Error: Could not connect to database: ' + err);
@@ -45,7 +45,7 @@ mailer.init(logger, config, function () {
         app.set('view engine', 'ejs');
 
         var authRouter = require('./src/routes/authRoutes')(logger, config, db, mailer);
-        var protectedRouter = require('./src/routes/protectedRoutes')(logger, db, mailer);
+        var protectedRouter = require('./src/routes/protectedRoutes')(logger, config, db, mailer);
 
         // Unprotected routes
         app.get('/', function (req, res) {

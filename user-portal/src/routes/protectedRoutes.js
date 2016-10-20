@@ -1,7 +1,7 @@
 var express = require('express');
 var protectedRouter = express.Router();
 
-var router = function (logger, db, mailer, config) {
+var router = function (logger, config, db, mailer) {
 
     protectedRouter.route('/map/:id')
 
