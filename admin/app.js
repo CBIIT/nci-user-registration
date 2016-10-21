@@ -41,9 +41,10 @@ db.connect(logger, config, util, function (err) {
 
     // Unprotected routes
     app.get('/', function (req, res) {
-        res.render('index', {
-            users: []
-        });
+        res.redirect('/users/init');
+        // res.render('index', {
+        //     users: []
+        // });
     });
 
     app.get('/test', function (req, res) {

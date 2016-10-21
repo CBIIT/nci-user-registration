@@ -32,19 +32,60 @@ var router = function (logger, config, db) {
                 email: req.body.email.toLowerCase().trim()
             };
 
-            //at least one search value
-            if (!searchObject.cn && !searchObject.email) {
-                res.render('index', {
-                    users: []
-                });
-            } else {
-                db.search(searchObject, function (err, results) {
-                    res.render('index', {
-                        users: results
-                    });
+            var users = [];
+            var stats = {};
 
+            db.userCount(function (err, count) {
+                stats.totalUsers = count;
+                db.externalUserCount(function (err, count) {
+                    stats.externalUserCount = count;
+                    db.selfRegisteredCount(function (err, count) {
+                        stats.selfRegisteredCount = count;
+                        db.processedCount(function (err, count) {
+                            stats.processedCount = count;
+                            //at least one search value
+                            if (!searchObject.cn && !searchObject.email) {
+                                res.render('index', {
+                                    users: users,
+                                    stats: stats
+                                });
+                            } else {
+                                db.search(searchObject, function (err, results) {
+                                    users = results;
+                                    res.render('index', {
+                                        users: users,
+                                        stats: stats
+                                    });
+                                });
+                            }
+                        });
+                    });
                 });
-            }
+            });
+        });
+
+    adminRouter.route('/init')
+        .get(function (req, res) {
+            db.userCount(function (err, count) {
+                var users = [];
+                var stats = {};
+                db.userCount(function (err, count) {
+                    stats.totalUsers = count;
+                    db.externalUserCount(function (err, count) {
+                        stats.externalUserCount = count;
+                        db.selfRegisteredCount(function (err, count) {
+                            stats.selfRegisteredCount = count;
+                            db.processedCount(function (err, count) {
+                                stats.processedCount = count;
+                                res.render('index', {
+                                    users: users,
+                                    stats: stats
+                                });
+                            });
+                        });
+                    });
+                });
+            });
         });
 
     // one time use to populate an empty collection

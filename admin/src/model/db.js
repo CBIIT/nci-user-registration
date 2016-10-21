@@ -120,14 +120,6 @@ module.exports = {
         });
     },
 
-    userCount: function (cb) {
-        var collection = db.collection(usersCollection);
-
-        collection.count(function (err, count) {
-            return cb(err, count);
-        });
-    },
-
     insertUsers: function (users, cb) {
         var collection = db.collection(usersCollection);
         collection.insertMany(users, function (err, results) {
@@ -157,6 +149,41 @@ module.exports = {
                 // UUID not found
                 cb();
             }
+        });
+    },
+
+    userCount: function (cb) {
+        var collection = db.collection(usersCollection);
+
+        collection.count(function (err, count) {
+            return cb(err, count);
+        });
+    },
+    externalUserCount: function (cb) {
+        var collection = db.collection(usersCollection);
+
+        collection.count({
+            groupMembership: 'cn=eDir Migration Federated Users,ou=SVCS,o=NIH'
+        }, function (err, count) {
+            return cb(err, count);
+        });
+    },
+    selfRegisteredCount: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.count({
+            itrustinfo: 1
+        }, function (err, count) {
+            return cb(err, count);
+        });
+    },
+    processedCount: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.count({
+            itrustinfo: {
+                updated: true
+            }
+        }, function (err, count) {
+            return cb(err, count);
         });
     }
 };
