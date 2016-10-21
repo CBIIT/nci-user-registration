@@ -29,37 +29,63 @@
 
 	<div class="container-fluid">
 		<div class="row top-20">
-
 			<div class="col-sm-6 col-sm-offset-3">
-				<a href="/edir">
-					<img class="img-responsive" src="/images/nci-logo-full.svg"></a>
+				<a href="/edir"> <img class="img-responsive" src="/images/nci-logo-full.svg"></a>
 			</div>
 		</div>
+
 		<div class="row">
-
-			<div class="col-sm-6 col-sm-offset-3 main-content bg-info">
-				<form action="/protected/itrust/update" id="update-form" name="update-form" method="post" data-toggle="validator">
-
-					<div class="form-group">
-						<label for="pubkey">Public Key</label>
-						<textarea class="form-control" rows="12" id="pubkey" name="pubkey" placeholder="Paste public key in SSH-2 RSA format or leave blank if you wish to remove your existing key from the system."
-							data-pmatch-error="Invalid format: Public key needs to be in SSH-2 RSA format." data-pmatch="pmatch"></textarea>
-						<div class="help-block with-errors"></div>
+			<div class="col-sm-6 col-sm-offset-3 main-content">
+				<div class="row">
+					<div class="col-sm-offset-1">
+						<h4>Welcome to the NCI registration page. </h4>
 					</div>
-					<div class="form-group">
-						<p class="help-block">Use this form to update your SSH public key.</p>
-					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-offset-1">
+						<p class="help-block">You can use this site to transfer your existing NCI account to the new NIH External Active Directory (<a href="https://external.cit.nih.gov/">https://external.cit.nih.gov/</a>).
+							The current NCI directory will be discontinued on December 16, 2016. The account transfer is necessary in order to
+							assure that you will continue to have access to NCI applications.
+						</p>
+						<p><b>Who should use this?</b></p>
+						<ul>
+							<li>
+								<p class="help-block">Non-NIH users who have a NCI account and intend to use it for the current services.</p>
+							</li>
+						</ul>
+						<p><b>Who should NOT use this?</b></p>
+						<ul>
+							<li>
+								NIH users who have a NCI account and intend to use it for the current services.
+							</li>
+							<li>
+								Non-NIH users who do not have a NCI account.
+							</li>
+						</ul>
 
-					<button type="submit" class="btn btn-primary">Submit</button>
-					<a href="/" class="btn btn-default">Cancel</a>
-				</form>
+						<p><b>Choose one of the options below to begin.</b></p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-offset-1">
+						<p>
+							<a class="btn btn-primary" href="/authForm">Register My Account</a>
+							<a class="btn btn-secondary" href="/protected/itrust/update">My Account is registered. I need to update my information.</a>
+						</p>
+					</div>
+				</div>
+				<div class="form-group">
+
+				</div>
 			</div>
+
 		</div>
 		<div class="row">
 			<div class="main-content-no-fill">
-			
-            </div>
+				<h4 align="center">If you have any questions please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555.555.5555</h4>
+			</div>
 		</div>
+
 	</div>
 
 	<footer class="footer">
@@ -78,22 +104,7 @@
 			</div>
 		</div>
 	</footer>
-	<script>
 
-	$('#update-form').validator({
-    	custom: {
-        	pmatch: function($el) {
-				var exp = /^ssh-rsa\s+[A-Za-z0-9\+\/]+(={0,2})(\s+.*)?$/;
-				var value = $el.val().trim();
-				var result = exp.test(value);
-				
-				// has to return true to fail validation !?
-				return !result;
-    		}
-		}
-	});
-
-  </script>
 </body>
 
 </html>

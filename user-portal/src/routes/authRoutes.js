@@ -1,15 +1,7 @@
 var express = require('express');
 var authRouter = express.Router();
-
 var uuid = require('node-uuid');
-// var mailer = require('nodemailer');
-
 var router = function (logger, config, db, mailer) {
-    // var smtpConfig = {};
-    // smtpConfig.host = config.mail.host;
-    // smtpConfig.secure = config.mail.smtp_starttls_enable;
-    // var transporter = mailer.createTransport(smtpConfig);
-
 
     authRouter.route('/lookup')
         .post(function (req, res) {
@@ -18,6 +10,8 @@ var router = function (logger, config, db, mailer) {
                 username: req.body.username.toLowerCase().trim()
             };
             var sendEmail = true;
+            var loginSuccess = true;
+            var alreadyRegistered = false;
             var subject, message;
 
             db.findUserByEmailAndCn(userObject, function (err, document) {
@@ -32,16 +26,21 @@ var router = function (logger, config, db, mailer) {
                     // if ((document.groupMembership.indexOf(config.edir.externalGroup) < 0) || document.itrustinfo) {
                     if (document.itrustinfo) {
                         // user has previously registered. Notify user that no further action is needed.
+                        sendEmail = false;
                         db.log(userObject, 'Registration requested. Not proceeding: user is either internal or was previously registered.');
-                        logger.info('Prepring an email to user to notify that they were previously registered. cn: ' + userObject.username + ', email: ' + userObject.email);
-                        subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
-                        message = 'Your account has already been registered. No further action is required.';
+                        logger.info('User already registered or internal. cn: ' + userObject.username + ', email: ' + userObject.email);
                     } else {
                         // User hasn't registered. Produce a unique URL for verification'
                         newUUID = uuid.v4();
                         confirmationLink = '<a href="' + config.mail.confirmURLPrefix + '/' + newUUID + '">here</a>';
-                        subject = config.mail.subjectPrefix + ' ### Confirm your account';
-                        message = 'Click ' + confirmationLink + ' to confirm your account.';
+                        subject = config.mail.subjectPrefix + ' ### Confirm Your New Account';
+                        message = '<p>You have successfully applied for a new account at the National Cancer Institute. ' +
+                            'You must confirm your e-mail address to proceed with registration. ' +
+                            'The link below is a unique confirmation link for your account, and it will expire in xx hours if not clicked.</p>' +
+                            '<p>Click ' + confirmationLink + ' to confirm your account. If you are having trouble clicking the link, please copy and paste the following URL into your web browser: </p>' +
+                            '<p>' + config.mail.confirmURLPrefix + '/' + newUUID + '</p>' +
+                            '<p>If you have any questions please contact the NCI Help Desk at <a href="https://service.cancer.gov/">https://service.cancer.gov/</a>. If you have received this e-mail by accident, you do not need to take any further action.';
+
                         db.log(userObject, 'Sending registration URL with UUID ' + newUUID);
                         logger.info('Preparing an email with registration URL for cn: ' + userObject.username + ', email: ' + userObject.email);
 
@@ -52,43 +51,27 @@ var router = function (logger, config, db, mailer) {
                             }
                         });
                     }
-
                 } else {
+                    sendEmail = false;
+                    loginSuccess = false;
                     logger.warn('Failed login. email: ' + userObject.email + ', username: ' + userObject.username);
-                    logger.info('Preparing an email for email ' + userObject.email + ' to notify that user name / email combination was not found');
-                    subject = config.mail.subjectPrefix + ' ### Thanks for submitting your information.';
-                    message = '<p>A NCI registration request was submitted for this email account. Unfortunately, the user name and email combination could not be found.</p>' +
-                        '<p>If you need assistance please contact NCI help desk at helpdesk@nci.nih.gov or call 555-555-5555.</p>' +
-                        '<p>If you want to re-attempt registration please click <a href="' + config.web.protocol + '://' + config.web.host + ':' + config.web.port + '">here</a> to return to the registration page.</p>';
                 }
-
-                // var mailOptions = {
-                //     from: config.mail.defaultFromAddress,
-                //     to: req.body.email,
-                //     subject: subject,
-                //     html: message
-                // };
-
-                if (sendEmail) {
-                    mailer.send(req.body.email, subject, message);
-                    // transporter.sendMail(mailOptions, function (error, info) {
-                    //     if (error) {
-                    //         logger.error(error);
-                    //     }
-                    //     logger.info(info);
-                    // });
-                }
-
-
-                if (sendEmail) {
-                    res.redirect('/auth/logout?mailsent=true&mail=' + req.body.email);
+                if (loginSuccess) {
+                    if (sendEmail) {
+                        mailer.send(req.body.email, subject, message);
+                        res.redirect('/auth/logout?mailsent=true&mail=' + req.body.email);
+                    } else if (alreadyRegistered) {
+                        res.redirect('/auth/logout?prevregistration=true');
+                    } else {
+                        // Something failed and no email was sent out. Shouldn't be here'
+                        logger.error('Something failed and no email was sent to ' + req.body.email);
+                        res.render('error', {
+                            message: 'An error occurred while registering your account. Please try again later.',
+                            bg_class: 'bg-danger'
+                        });
+                    }
                 } else {
-                    // Something failed and no email was sent out
-                    logger.error('Something failed and no email was sent to ' + req.body.email);
-                    res.render('error', {
-                        message: 'An error occurred while registering your account. Please try again later.',
-                        bg_class: 'bg-danger'
-                    });
+                    res.redirect('/auth/logout?notfound=true');
                 }
             });
         });
@@ -102,10 +85,14 @@ var router = function (logger, config, db, mailer) {
             });
             var message = 'Thanks and Goodbye.';
             var bg_class = 'bg-success';
-            if (req.query.mapped) {
+            if (req.query.notfound) {
+                message = 'User name and email combination not found. Please try again. If you need assistance please contact help desk at helpdesk@nci.nih.gov or call 555-555-5555.';
+                bg_class = 'bg-danger';
+            } else if (req.query.mapped) {
                 message = 'Your account was registered successfully. It will take up to 3 hours to transfer all your information.';
             } else if (req.query.previouslymapped) {
-                message = 'Your account has already been registered. No further action is required.';
+                message = '<p>Our records show that you are already registered and do not need to complete this process again. No further information is required from you at this time.</p>' +
+                    '<p>If you have any questions please contact the NCI Help Desk at <a href="https://service.cancer.gov/">https://service.cancer.gov/</a></p>';
             } else if (req.query.mailsent) {
                 message = 'An email was sent to ' + req.query.mail +
                     '. Please check your email and follow the instructions to register your account.';
@@ -123,8 +110,9 @@ var router = function (logger, config, db, mailer) {
                 bg_class = 'bg-danger';
             } else if (req.query.updatesuccess) {
                 message = 'Public key update was successful.';
+            } else if (req.query.prevregistration) {
+                message = 'Your account has already been registered. No further action is required.';
             }
-
             res.render('logout', {
                 message: message,
                 bg_class: bg_class
@@ -160,7 +148,9 @@ var router = function (logger, config, db, mailer) {
                         req.session.email = document.mail;
                         req.session.username = document.extracted_dn_username;
                         db.log(userObject, 'UUID confirmed. Proceeding with user mapping.');
-                        res.redirect('/protected/itrust/map/' + id);
+                        res.render('jump', {
+                            uuid: id
+                        });
                     }
                 } else {
                     logger.warn('UUID ' + id + ' sent for confirmation. No document found!');

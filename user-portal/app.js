@@ -48,8 +48,8 @@ mailer.init(logger, config, function () {
         var protectedRouter = require('./src/routes/protectedRoutes')(logger, config, db, mailer);
 
         // Unprotected routes
-        app.get('/', function (req, res) {
-            res.render('index');
+        app.get('/edir', function (req, res) {
+            res.render('edir');
         });
         app.get('/authForm', function (req, res) {
             res.render('authForm');
@@ -58,7 +58,7 @@ mailer.init(logger, config, function () {
             res.render('updateForm');
         });
         app.use('/auth', authRouter);
-        app.use('/protected/itrust', protectedRouter);
+        
 
         // Enable auth check. Protected routes have to be defined after this!
         app.use(authChecker);
@@ -71,6 +71,7 @@ mailer.init(logger, config, function () {
         });
 
         // Routes protected with express session
+        app.use('/protected/itrust', protectedRouter);
     });
 
 });
@@ -87,6 +88,6 @@ function authChecker(req, res, next) {
     if (req.session.email && req.session.username) {
         next();
     } else {
-        res.redirect('/');
+        res.redirect('/edir');
     }
 }

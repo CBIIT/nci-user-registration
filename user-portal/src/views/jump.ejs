@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta http-equiv="content-type" content="application/json; charset=UTF-8">
 	<meta charset="utf-8">
-	<title>NCI Registration Portal</title>
+	<title>Logout</title>
 	<meta name="generator" content="Bootply" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<!-- bower:css -->
@@ -26,7 +26,6 @@
 </head>
 
 <body>
-
 	<div class="container-fluid">
 		<div class="row top-20">
 
@@ -35,30 +34,26 @@
 					<img class="img-responsive" src="/images/nci-logo-full.svg"></a>
 			</div>
 		</div>
+
 		<div class="row">
+			<div class="col-sm-6 col-sm-offset-3 main-content-no-fill bg-success">
+				<h4>
+					Thanks for confirming your account. In the next step you will be guided to register in the NIH External directory.
 
-			<div class="col-sm-6 col-sm-offset-3 main-content bg-info">
-				<form action="/protected/itrust/update" id="update-form" name="update-form" method="post" data-toggle="validator">
-
-					<div class="form-group">
-						<label for="pubkey">Public Key</label>
-						<textarea class="form-control" rows="12" id="pubkey" name="pubkey" placeholder="Paste public key in SSH-2 RSA format or leave blank if you wish to remove your existing key from the system."
-							data-pmatch-error="Invalid format: Public key needs to be in SSH-2 RSA format." data-pmatch="pmatch"></textarea>
-						<div class="help-block with-errors"></div>
-					</div>
-					<div class="form-group">
-						<p class="help-block">Use this form to update your SSH public key.</p>
+					<div class="row">
+						<div class="col-sm-12 top-20">
+							<p><a class="btn btn-primary" href="/protected/itrust/map/<%=uuid%>">Proceed</a></p>
+						</div>
 					</div>
 
-					<button type="submit" class="btn btn-primary">Submit</button>
-					<a href="/" class="btn btn-default">Cancel</a>
-				</form>
+				</h4>
 			</div>
 		</div>
+
 		<div class="row">
 			<div class="main-content-no-fill">
-			
-            </div>
+
+			</div>
 		</div>
 	</div>
 
@@ -78,22 +73,7 @@
 			</div>
 		</div>
 	</footer>
-	<script>
 
-	$('#update-form').validator({
-    	custom: {
-        	pmatch: function($el) {
-				var exp = /^ssh-rsa\s+[A-Za-z0-9\+\/]+(={0,2})(\s+.*)?$/;
-				var value = $el.val().trim();
-				var result = exp.test(value);
-				
-				// has to return true to fail validation !?
-				return !result;
-    		}
-		}
-	});
-
-  </script>
 </body>
 
 </html>

@@ -35,6 +35,7 @@ var router = function (logger, config, db, mailer) {
                     res.redirect('/auth/logout?mappingerror=true');
                 } else {
                     logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
+                    logger.info('Praparing successful resistration email to ' + userObject.username);
                     db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
                     var subject = config.mail.subjectPrefix + ' ### Your account was registered';
                     var message = '<p>Your account was registered successfully.</p>' +

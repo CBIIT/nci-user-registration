@@ -45,6 +45,12 @@ db.connect(logger, config, util, function (err) {
             users: []
         });
     });
+
+    app.get('/test', function (req, res) {
+        res.render('index-test', {
+            users: []
+        });
+    });
     app.use('/users', adminRouter);
 
     // Enable auth check, protected routes have to be defined after this!
