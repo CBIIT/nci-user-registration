@@ -95,6 +95,12 @@
                                     <div class="panel-body">
                                       
                                         <ul>
+                                    <% if (user.entrustuser) {%>
+                                        <li>
+                                            <b>entrustuser:</b>
+                                            <%=user.entrustuser%>
+                                        </li>
+                                    <%}%>
                                     <% if (user.dn) {%>
                                         <li>
                                             <b>dn:</b>

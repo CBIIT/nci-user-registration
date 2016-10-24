@@ -3,6 +3,7 @@ var config = require(process.env.NODE_CONFIG_FILE_ADMIN);
 var logger = require('./src/config/log');
 var db = require('./src/model/db');
 var bodyParser = require('body-parser');
+require('body-parser-xml')(bodyParser);
 var session = require('express-session');
 var mongoStore = require('connect-mongo')(session);
 var util = require('./src/util/util');
@@ -22,6 +23,14 @@ db.connect(logger, config, util, function (err) {
     app.use(bodyParser.urlencoded({
         extended: true
     }));
+    app.use(bodyParser.xml({
+        xmlParseOptions: {
+            normalize: true, // Trim whitespace inside text nodes 
+            normalizeTags: true, // Transform tags to lowercase 
+            explicitArray: true // Put nodes in array even if length = 1
+        }
+    }));
+
     app.use(session({
         name: config.express.session.name,
         secret: config.express.session.secret,

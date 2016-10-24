@@ -5,6 +5,7 @@ var confirmTimeout;
 var loggerRef;
 var usersCollection;
 var utilRef;
+var configRef;
 
 module.exports = {
     connect: function (logger, config, util, cb) {
@@ -12,6 +13,7 @@ module.exports = {
         confirmTimeout = config.confirm.timeout;
         loggerRef = logger;
         utilRef = util;
+        configRef = config;
         usersCollection = config.db.users_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
@@ -152,6 +154,43 @@ module.exports = {
         });
     },
 
+    getUnprocessedUsers: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.find({
+            'itrustinfo.processed': false
+        }, {
+            'entrustuser': 1,
+            'dn': 1,
+            'extracted_dn_username': 1,
+            'mail': 1,
+            'objectClass': 1,
+            'groupMembership': 1,
+            'uidnumber': 1,
+            'gidnumber': 1,
+            'homedirectory': 1,
+            'loginshell': 1,
+            'itrustinfo': 1
+        })
+        .toArray(function (err, results) {
+            return cb(err, results);
+        });
+    },
+
+    setItrustProcessed: function (userIds, cb) {
+        var collection = db.collection(usersCollection);
+        collection.update({
+            _id: {
+                $in: userIds
+            }
+        }, {
+            $set: {
+                'itrustinfo.processed': true
+            }
+        }, function (err, result) {
+            cb(result);
+        });
+    },
+
     userCount: function (cb) {
         var collection = db.collection(usersCollection);
 
@@ -159,29 +198,32 @@ module.exports = {
             return cb(err, count);
         });
     },
+
     externalUserCount: function (cb) {
         var collection = db.collection(usersCollection);
 
         collection.count({
-            groupMembership: 'cn=eDir Migration Federated Users,ou=SVCS,o=NIH'
+            groupMembership: configRef.edir.externaldn
         }, function (err, count) {
             return cb(err, count);
         });
     },
+
     selfRegisteredCount: function (cb) {
         var collection = db.collection(usersCollection);
         collection.count({
-            itrustinfo: 1
+            itrustinfo: {
+                $exists: true
+            }
         }, function (err, count) {
             return cb(err, count);
         });
     },
+
     processedCount: function (cb) {
         var collection = db.collection(usersCollection);
         collection.count({
-            itrustinfo: {
-                updated: true
-            }
+            'itrustinfo.processed': true
         }, function (err, count) {
             return cb(err, count);
         });

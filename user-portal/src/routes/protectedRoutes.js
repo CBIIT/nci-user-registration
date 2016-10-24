@@ -21,7 +21,7 @@ var router = function (logger, config, db, mailer) {
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
-            itrustInfo.updated = true;
+            itrustInfo.processed = false;
 
             var userObject = {
                 uuid: uuid,
@@ -59,7 +59,7 @@ var router = function (logger, config, db, mailer) {
         .post(function (req, res) {
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
-            pubkeyInfo.updated = true;
+            pubkeyInfo.processed = false;
             var smUserDN = req.get('smuserdn').toLowerCase();
 
             db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {

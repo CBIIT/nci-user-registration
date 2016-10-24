@@ -3,6 +3,13 @@ var ldap = require('ldapjs');
 var adminRouter = express.Router();
 var objectId = require('mongodb').ObjectID;
 var searchOptions;
+var js2xmlparser = require('js2xmlparser2');
+
+var parserOptions = {
+    wrapArray: {
+        enabled: true
+    }
+};
 
 var router = function (logger, config, db) {
 
@@ -128,6 +135,29 @@ var router = function (logger, config, db) {
                         });
                     });
                 }
+            });
+        });
+
+    adminRouter.route('/getItrustUpdates')
+        .get(function (req, res) {
+            db.getUnprocessedUsers(function (err, users) {
+                for (var i = 0; i < users.length; i++) {
+                    users[i]._id = users[i]._id.toString();
+                }
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('users', users, parserOptions));
+            });
+        });
+
+    adminRouter.route('/flagItrustUpdates')
+        .post(function (req, res) {
+
+            var data = req.body.userids.value;
+            var convertedUserIds = [];
+            for (var i = 0; i < data.length; i++) {
+                convertedUserIds.push(new objectId(data[i]));
+            }
+            db.setItrustProcessed(convertedUserIds, function (result) {
             });
         });
 
