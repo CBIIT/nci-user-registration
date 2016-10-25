@@ -124,7 +124,9 @@ module.exports = {
 
     insertUsers: function (users, cb) {
         var collection = db.collection(usersCollection);
-        collection.insertMany(users, function (err, results) {
+        collection.insertMany(users, {
+            ordered: false
+        }, function (err, results) {
             cb(err, results);
         });
     },
@@ -170,24 +172,25 @@ module.exports = {
             'homedirectory': 1,
             'loginshell': 1,
             'itrustinfo': 1
-        })
-        .toArray(function (err, results) {
+        }).toArray(function (err, results) {
             return cb(err, results);
         });
     },
 
     setItrustProcessed: function (userIds, cb) {
         var collection = db.collection(usersCollection);
-        collection.update({
+        var bulk = collection.initializeUnorderedBulkOp();
+        bulk.find({
             _id: {
                 $in: userIds
             }
-        }, {
+        }).update({
             $set: {
                 'itrustinfo.processed': true
             }
-        }, function (err, result) {
-            cb(result);
+        });
+        bulk.execute(function (err, result) {
+            return cb(err, result.toJSON());
         });
     },
 

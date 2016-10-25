@@ -98,6 +98,7 @@ var router = function (logger, config, db) {
     // one time use to populate an empty collection
     adminRouter.route('/addUsers')
         .get(function (req, res) {
+            logger.info('POpulating user database');
             db.userCount(function (err, userCount) {
                 if (userCount > 0) {
                     res.send('Collection not empty. Insert aborted!');
@@ -140,6 +141,7 @@ var router = function (logger, config, db) {
 
     adminRouter.route('/getItrustUpdates')
         .get(function (req, res) {
+            logger.info('Itrust updates requested');
             db.getUnprocessedUsers(function (err, users) {
                 for (var i = 0; i < users.length; i++) {
                     users[i]._id = users[i]._id.toString();
@@ -157,7 +159,11 @@ var router = function (logger, config, db) {
             for (var i = 0; i < data.length; i++) {
                 convertedUserIds.push(new objectId(data[i]));
             }
-            db.setItrustProcessed(convertedUserIds, function (result) {
+            logger.info('The following users have been reported as processed and will now be flagged: ' + convertedUserIds);
+            db.setItrustProcessed(convertedUserIds, function (err, result) {
+                logger.info('Flagging result: ' + JSON.stringify(result));
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('result', result, parserOptions));
             });
         });
 
