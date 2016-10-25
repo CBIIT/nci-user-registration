@@ -183,6 +183,7 @@ module.exports = {
             'pubkeyinfo.processed': false
         }, {
             'entrustuser': 1,
+            'itrustinfo': 1,
             'pubkeyinfo': 1
         }).toArray(function (err, results) {
             return cb(err, results);
