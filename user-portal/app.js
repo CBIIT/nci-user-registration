@@ -58,6 +58,7 @@ mailer.init(logger, config, function () {
             res.render('updateForm');
         });
         app.use('/auth', authRouter);
+        app.use('/protected/itrust', protectedRouter);
         
 
         // Enable auth check. Protected routes have to be defined after this!
@@ -71,7 +72,7 @@ mailer.init(logger, config, function () {
         });
 
         // Routes protected with express session
-        app.use('/protected/itrust', protectedRouter);
+        
     });
 
 });
