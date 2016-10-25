@@ -156,7 +156,7 @@ module.exports = {
         });
     },
 
-    getUnprocessedUsers: function (cb) {
+    getUnprocessedItrustUsers: function (cb) {
         var collection = db.collection(usersCollection);
         collection.find({
             'itrustinfo.processed': false
@@ -177,6 +177,18 @@ module.exports = {
         });
     },
 
+    getUnprocessedPubKeyUsers: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.find({
+            'pubkeyinfo.processed': false
+        }, {
+            'entrustuser': 1,
+            'pubkeyinfo': 1
+        }).toArray(function (err, results) {
+            return cb(err, results);
+        });
+    },
+
     setItrustProcessed: function (userIds, cb) {
         var collection = db.collection(usersCollection);
         var bulk = collection.initializeUnorderedBulkOp();
@@ -187,6 +199,23 @@ module.exports = {
         }).update({
             $set: {
                 'itrustinfo.processed': true
+            }
+        });
+        bulk.execute(function (err, result) {
+            return cb(err, result.toJSON());
+        });
+    },
+
+    setPubKeyProcessed: function (userIds, cb) {
+        var collection = db.collection(usersCollection);
+        var bulk = collection.initializeUnorderedBulkOp();
+        bulk.find({
+            _id: {
+                $in: userIds
+            }
+        }).update({
+            $set: {
+                'pubkeyinfo.processed': true
             }
         });
         bulk.execute(function (err, result) {

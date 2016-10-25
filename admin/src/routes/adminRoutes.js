@@ -141,8 +141,8 @@ var router = function (logger, config, db) {
 
     adminRouter.route('/getItrustUpdates')
         .get(function (req, res) {
-            logger.info('Itrust updates requested');
-            db.getUnprocessedUsers(function (err, users) {
+            logger.info('Itrust updates requested.');
+            db.getUnprocessedItrustUsers(function (err, users) {
                 for (var i = 0; i < users.length; i++) {
                     users[i]._id = users[i]._id.toString();
                 }
@@ -161,6 +161,34 @@ var router = function (logger, config, db) {
             }
             logger.info('The following users have been reported as processed and will now be flagged: ' + convertedUserIds);
             db.setItrustProcessed(convertedUserIds, function (err, result) {
+                logger.info('Flagging result: ' + JSON.stringify(result));
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('result', result, parserOptions));
+            });
+        });
+
+    adminRouter.route('/getPublicKeyUpdates')
+        .get(function (req, res) {
+            logger.info('Public Key updates requested.');
+            db.getUnprocessedPubKeyUsers(function (err, users) {
+                for (var i = 0; i < users.length; i++) {
+                    users[i]._id = users[i]._id.toString();
+                }
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('users', users, parserOptions));
+            });
+        });
+
+    adminRouter.route('/flagPublicKeyUpdates')
+        .post(function (req, res) {
+
+            var data = req.body.userids.value;
+            var convertedUserIds = [];
+            for (var i = 0; i < data.length; i++) {
+                convertedUserIds.push(new objectId(data[i]));
+            }
+            logger.info('The following users\' public keys have been reported as processed and will now be flagged: ' + convertedUserIds);
+            db.setPubKeyProcessed(convertedUserIds, function (err, result) {
                 logger.info('Flagging result: ' + JSON.stringify(result));
                 res.set('Content-Type', 'text/xml');
                 res.send(js2xmlparser('result', result, parserOptions));
