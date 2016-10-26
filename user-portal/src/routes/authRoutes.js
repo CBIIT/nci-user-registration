@@ -39,7 +39,9 @@ var router = function (logger, config, db, mailer) {
                             'The link below is a unique confirmation link for your account, and it will expire in xx hours if not clicked.</p>' +
                             '<p>Click ' + confirmationLink + ' to confirm your account. If you are having trouble clicking the link, please copy and paste the following URL into your web browser: </p>' +
                             '<p>' + config.mail.confirmURLPrefix + '/' + newUUID + '</p>' +
-                            '<p>If you have any questions please contact the NCI Help Desk at <a href="https://service.cancer.gov/">https://service.cancer.gov/</a>. If you have received this e-mail by accident, you do not need to take any further action.';
+                            '<p>If you have any questions please contact the NIH IT Service Desk at 301-496-4357 and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>' +
+                            '<p>If you have received this e-mail by accident, you do not need to take any further action.</p>';
+
 
                         db.log(userObject, 'Sending registration URL with UUID ' + newUUID);
                         logger.info('Preparing an email with registration URL for cn: ' + userObject.username + ', email: ' + userObject.email);
@@ -86,13 +88,14 @@ var router = function (logger, config, db, mailer) {
             var message = 'Thanks and Goodbye.';
             var bg_class = 'bg-success';
             if (req.query.notfound) {
-                message = 'User name and email combination not found. Please try again. If you need assistance please contact help desk at helpdesk@nci.nih.gov or call 555-555-5555.';
+                message = 'User name and email combination not found. Please try again.' +
+                    '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-danger';
             } else if (req.query.mapped) {
                 message = 'Your account was registered successfully. It will take up to 3 hours to transfer all your information.';
             } else if (req.query.previouslymapped) {
                 message = '<p>Our records show that you are already registered and do not need to complete this process again. No further information is required from you at this time.</p>' +
-                    '<p>If you have any questions please contact the NCI Help Desk at <a href="https://service.cancer.gov/">https://service.cancer.gov/</a></p>';
+                    '<p>If you have questions please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
             } else if (req.query.mailsent) {
                 message = 'An email was sent to ' + req.query.mail +
                     '. Please check your email and follow the instructions to register your account.';
@@ -103,10 +106,12 @@ var router = function (logger, config, db, mailer) {
                 message = 'The confirmation URL is invalid. Please go back to the main page and submit your information to receive a new confirmation link.';
                 bg_class = 'bg-warning';
             } else if (req.query.mappingerror) {
-                message = 'Account registration was unsuccessful. Please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555-555-5555.';
+                message = 'Account registration was unsuccessful.' +
+                    '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-danger';
             } else if (req.query.updateerror) {
-                message = 'Public key update was unsuccessful. Please contact NCI Help Desk at helpdesk@nci.nih.gov or call 555-555-5555.';
+                message = 'Public key update was unsuccessful.' +
+                    '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-danger';
             } else if (req.query.updatesuccess) {
                 message = 'Public key update was successful.';
