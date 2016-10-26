@@ -12,12 +12,16 @@ var router = function (logger, config, db, mailer) {
         var username = req.session.username;
         var email = req.session.email;
         var uuid = req.params.id;
+        var sm_userdn = req.get('smuserdn').toLowerCase();
 
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
             res.redirect('/auth/logout?mappingerror=true');
+        } else if (!sm_userdn) {
+            logger.error('Failed to map with uuid' + uuid + ': sm_userdn undefined!');
+            res.redirect('/auth/logout?mappingerror=true');
         } else {
-            var sm_userdn = req.get('smuserdn').toLowerCase();
+            
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
