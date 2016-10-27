@@ -1,9 +1,10 @@
 var express = require('express');
-var protectedRouter = express.Router();
+var protectedItrustRouter = express.Router();
+
 
 var router = function (logger, config, db, mailer) {
 
-    protectedRouter.route('/map/:id')
+    protectedItrustRouter.route('/map/:id')
 
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
@@ -21,7 +22,7 @@ var router = function (logger, config, db, mailer) {
             logger.error('Failed to map with uuid' + uuid + ': sm_userdn undefined!');
             res.redirect('/auth/logout?mappingerror=true');
         } else {
-            
+
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
@@ -43,8 +44,8 @@ var router = function (logger, config, db, mailer) {
                     db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
                     var subject = config.mail.subjectPrefix + ' ### Your account was registered';
                     var message = '<p>Your account was registered successfully.</p>' +
-                    '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account ' +  itrustInfo.sm_userdn +'</p>' +
-                    '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
+                        '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account ' + itrustInfo.sm_userdn + '</p>' +
+                        '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
                     mailer.send(userObject.email, subject, message);
 
                     res.redirect('/auth/logout?mapped=true');
@@ -53,41 +54,7 @@ var router = function (logger, config, db, mailer) {
         }
     });
 
-    protectedRouter.route('/update')
-
-    .get(function (req, res) {
-        res.render('updateForm');
-    });
-
-    protectedRouter.route('/update')
-        .post(function (req, res) {
-            var pubkeyInfo = {};
-            pubkeyInfo.key = req.body.pubkey.trim();
-            pubkeyInfo.processed = false;
-            var smUserDN = req.get('smuserdn').toLowerCase();
-
-            db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
-                if (err) {
-                    logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN);
-                    res.redirect('/auth/logout?updateerror=true');
-                } else if (document) {
-
-                    if (document.matchedCount === 1) {
-                        logger.info('Updated public key for sm_userdn: ' + smUserDN);
-                        db.logWithDN(smUserDN, 'Updated public key: ' + pubkeyInfo.key);
-                        res.redirect('/auth/logout?updatesuccess=true');
-                    } else {
-                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count != 1');
-                        res.redirect('/auth/logout?updateerror=true');
-                    }
-
-                }
-            });
-
-        });
-
-
-    return protectedRouter;
+    return protectedItrustRouter;
 };
 
 module.exports = router;
