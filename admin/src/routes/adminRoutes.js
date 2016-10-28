@@ -98,7 +98,7 @@ var router = function (logger, config, db) {
     // one time use to populate an empty collection
     adminRouter.route('/addUsers')
         .get(function (req, res) {
-            logger.info('POpulating user database');
+            logger.info('Populating user database');
             db.userCount(function (err, userCount) {
                 if (userCount > 0) {
                     res.send('Collection not empty. Insert aborted!');
