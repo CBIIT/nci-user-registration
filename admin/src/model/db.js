@@ -318,6 +318,7 @@ function updateSingle(user, flag, cb) {
         $set: {
             'entrustuser': user.entrustuser,
             'dn': user.dn,
+            'extracted_dn_username': user.extracted_dn_username,
             'nciNihIC': user.nciNihIC,
             'nciNihUID': user.nciNihUID,
             'workforceID': user.workforceID,

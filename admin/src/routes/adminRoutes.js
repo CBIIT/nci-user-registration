@@ -169,10 +169,9 @@ var router = function (logger, config, db) {
                     });
                     ldapRes.on('end', function () {
                         ldapClient.unbind();
-
                         db.updateUsers(users, true, function (err, results) {
-
-                            res.send('Matched: ' + results.matched + ' ### Modified: ' + results.modified + ' ### Newly created: ' + results.upserted);
+                            logger.info('Update results ---> ' + 'Matched: ' + results.matched + ' ### Modified: ' + results.modified + ' ### Newly Created: ' + results.upserted)
+                            res.send('Matched: ' + results.matched + ' ### Modified: ' + results.modified + ' ### Newly Created: ' + results.upserted);
                         });
                     });
                 });
