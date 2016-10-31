@@ -127,8 +127,54 @@ module.exports = {
         collection.insertMany(users, {
             ordered: false
         }, function (err, results) {
-            cb(err, results);
+            cb();
         });
+    },
+
+    updateUsers: function (users, flag, cb) {
+        var collection = db.collection(usersCollection);
+        var matched = 0;
+        var modified = 0;
+        var upserted = 0;
+        var processed = 0;
+        var user;
+        for (var i = 0; i < users.length; i++) {
+            user = users[i];
+            if (user.entrustuser) {
+                updateSingle(user, flag, function (err, result) {
+                    matched = matched + result.matchedCount;
+                    modified = modified + result.modifiedCount;
+                    upserted = upserted + result.upsertedCount;
+
+                    if (result.modifiedCount === 1) {
+                        collection.updateOne({
+                            'entrustuser': result.entrustuser
+                        }, {
+                            'updated': true
+                        }, function () {
+                            processed += 1;
+                            if (processed === users.length) {
+                                var results = {};
+                                results.matched = matched;
+                                results.modified = modified;
+                                results.upserted = upserted;
+                                cb(null, results);
+                            }
+                        });
+                    } else {
+                        processed += 1;
+                        if (processed === users.length) {
+                            var results = {};
+                            results.matched = matched;
+                            results.modified = modified;
+                            results.upserted = upserted;
+                            cb(null, results);
+                        }
+                    }
+
+                });
+            }
+        }
     },
 
     confirmUUID: function (uuid, cb) {
@@ -262,3 +308,57 @@ module.exports = {
         });
     }
 };
+
+
+function updateSingle(user, flag, cb) {
+    var collection = db.collection(usersCollection);
+    collection.updateOne({
+        'entrustuser': user.entrustuser
+    }, {
+        $set: {
+            'entrustuser': user.entrustuser,
+            'dn': user.dn,
+            'nciNihIC': user.nciNihIC,
+            'nciNihUID': user.nciNihUID,
+            'workforceID': user.workforceID,
+            'mail': user.mail,
+            'givenName': user.givenName,
+            'fullName': user.fullName,
+            'telephoneNumber': user.telephoneNumber,
+            'sn': user.sn,
+            'objectClass': user.objectClass,
+            'groupMembership': user.groupMembership,
+            'cn': user.cn,
+            'uid': user.uid,
+            'uidnumber': user.uidnumber,
+            'gidnumber': user.gidnumber,
+            'homedirectory': user.homedirectory,
+            'loginshell': user.loginshell
+        }
+    }, {
+        upsert: true
+    }, function (err, result) {
+        var newResult = {};
+        newResult.entrustuser = user.entrustuser;
+        newResult.matchedCount = result.matchedCount;
+        newResult.modifiedCount = result.modifiedCount;
+        newResult.upsertedCount = result.upsertedId ? 1 : 0;
+        if (flag && result.modifiedCount === 1) {
+            collection.updateOne({
+                'entrustuser': user.entrustuser
+            }, {
+                $set: {
+                    'updated': true
+                },
+                $push: {
+                    logs: utilRef.ts() + 'Document updated from eDir'
+                }
+            }, function () {
+                cb(err, result);
+            });
+
+        } else {
+            cb(err, result);
+        }
+    });
+}

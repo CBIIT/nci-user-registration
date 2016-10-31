@@ -130,12 +130,52 @@ var router = function (logger, config, db) {
                                 ldapClient.unbind();
 
                                 db.insertUsers(users, function (err, results) {
-                                    res.send('User load completed. ');
+                                    db.updateUsers(users,  false, function (err, results) {
+                                        res.send('User load completed. ');
+                                    });
                                 });
                             });
                         });
                     });
                 }
+            });
+        });
+
+    adminRouter.route('/updateUsers')
+        .get(function (req, res) {
+            logger.info('Updating user database');
+            var users = [];
+            var ldapClient = ldap.createClient({
+                url: config.edir.host
+            });
+
+            ldapClient.bind(config.edir.dn, config.edir.password, function (err) {
+                if (err) {
+                    logger.error(err);
+                    ldapClient.unbind();
+                    throw err;
+                }
+                ldapClient.search(config.edir.searchBase, searchOptions, function (err, ldapRes) {
+                    ldapRes.on('searchEntry', function (entry) {
+                        var user = DeepTrim(entry.object);
+                        user.extracted_dn_username = extractUsername(user.dn);
+                        users.push(user);
+                    });
+                    ldapRes.on('searchReference', function () {});
+                    ldapRes.on('error', function (err) {
+                        ldapClient.unbind();
+                        logger.error('error: ' + err.message);
+                        throw err;
+                    });
+                    ldapRes.on('end', function () {
+                        ldapClient.unbind();
+
+                        db.updateUsers(users, true, function (err, results) {
+
+                            res.send('Matched: ' + results.matched + ' ### Modified: ' + results.modified + ' ### Newly created: ' + results.upserted);
+                        });
+                    });
+                });
             });
         });
 
