@@ -142,36 +142,17 @@ module.exports = {
             user = users[i];
             if (user.entrustuser) {
                 updateSingle(user, flag, function (err, result) {
-                    matched = matched + result.matchedCount;
-                    modified = modified + result.modifiedCount;
-                    upserted = upserted + result.upsertedCount;
-
-                    if (result.modifiedCount === 1) {
-                        collection.updateOne({
-                            'entrustuser': result.entrustuser
-                        }, {
-                            'updated': true
-                        }, function () {
-                            processed += 1;
-                            if (processed === users.length) {
-                                var results = {};
-                                results.matched = matched;
-                                results.modified = modified;
-                                results.upserted = upserted;
-                                cb(null, results);
-                            }
-                        });
-                    } else {
-                        processed += 1;
-                        if (processed === users.length) {
-                            var results = {};
-                            results.matched = matched;
-                            results.modified = modified;
-                            results.upserted = upserted;
-                            cb(null, results);
-                        }
+                    matched += result.matchedCount;
+                    modified += result.modifiedCount;
+                    upserted += result.upsertedCount;
+                    processed += 1;
+                    if (processed === users.length) {
+                        var results = {};
+                        results.matched = matched;
+                        results.modified = modified;
+                        results.upserted = upserted;
+                        cb(null, results);
                     }
-
                 });
             }
         }
@@ -335,7 +316,8 @@ function updateSingle(user, flag, cb) {
             'gidnumber': user.gidnumber,
             'homedirectory': user.homedirectory,
             'loginshell': user.loginshell
-        }
+        },
+
     }, {
         upsert: true
     }, function (err, result) {
@@ -346,16 +328,27 @@ function updateSingle(user, flag, cb) {
         newResult.upsertedCount = result.upsertedId ? 1 : 0;
         if (flag && result.modifiedCount === 1) {
             collection.updateOne({
-                'entrustuser': user.entrustuser
+                'entrustuser': user.entrustuser,
+                'itrustinfo.processed': {
+                    $exists: true
+                }
             }, {
                 $set: {
-                    'updated': true
+                    'itrustinfo.processed': false
                 },
                 $push: {
                     logs: utilRef.ts() + 'Document updated from eDir'
                 }
             }, function () {
-                cb(err, result);
+                collection.updateOne({
+                    'entrustuser': user.entrustuser
+                }, {
+                    $push: {
+                        logs: utilRef.ts() + 'Document updated from eDir'
+                    }
+                }, function () {
+                    cb(err, result);
+                });
             });
 
         } else {

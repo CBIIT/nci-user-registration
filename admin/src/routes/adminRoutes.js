@@ -95,52 +95,6 @@ var router = function (logger, config, db) {
             });
         });
 
-    // one time use to populate an empty collection
-    adminRouter.route('/addUsers')
-        .get(function (req, res) {
-            logger.info('Populating user database');
-            db.userCount(function (err, userCount) {
-                if (userCount > 0) {
-                    res.send('Collection not empty. Insert aborted!');
-                } else {
-                    var users = [];
-                    var ldapClient = ldap.createClient({
-                        url: config.edir.host
-                    });
-
-                    ldapClient.bind(config.edir.dn, config.edir.password, function (err) {
-                        if (err) {
-                            logger.error(err);
-                            ldapClient.unbind();
-                            throw err;
-                        }
-                        ldapClient.search(config.edir.searchBase, searchOptions, function (err, ldapRes) {
-                            ldapRes.on('searchEntry', function (entry) {
-                                var user = DeepTrim(entry.object);
-                                user.extracted_dn_username = extractUsername(user.dn);
-                                users.push(user);
-                            });
-                            ldapRes.on('searchReference', function () {});
-                            ldapRes.on('error', function (err) {
-                                ldapClient.unbind();
-                                logger.error('error: ' + err.message);
-                                throw err;
-                            });
-                            ldapRes.on('end', function () {
-                                ldapClient.unbind();
-
-                                db.insertUsers(users, function (err, results) {
-                                    db.updateUsers(users,  false, function (err, results) {
-                                        res.send('User load completed. ');
-                                    });
-                                });
-                            });
-                        });
-                    });
-                }
-            });
-        });
-
     adminRouter.route('/updateUsers')
         .get(function (req, res) {
             logger.info('Updating user database');
