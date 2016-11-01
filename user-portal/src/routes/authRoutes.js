@@ -153,9 +153,10 @@ var router = function (logger, config, db, mailer) {
                         req.session.email = document.mail;
                         req.session.username = document.extracted_dn_username;
                         db.log(userObject, 'UUID confirmed. Proceeding with user mapping.');
-                        res.render('jump', {
-                            uuid: id
-                        });
+                        res.redirect('/protected/itrust/map/' + id);
+                        // res.render('jump', {
+                        //     uuid: id
+                        // });
                     }
                 } else {
                     logger.warn('UUID ' + id + ' sent for confirmation. No document found!');
