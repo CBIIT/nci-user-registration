@@ -42,7 +42,7 @@ var router = function (logger, config, db, mailer) {
                     db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
                     var subject = config.mail.subjectPrefix + ' ### Your account was registered';
                     var message = '<p>Your account was registered successfully.</p>' +
-                        '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account ' + itrustInfo.sm_userdn + '</p>' +
+                        '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
                         '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
                     mailer.send(userObject.email, subject, message);
 
