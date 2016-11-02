@@ -10,13 +10,7 @@ var router = function (logger) {
                     logger.error('Failed to destroy session: ' + err);
                 }
             });
-
-            // res.cookie('NIHSMSESSION', 'LOGGEDOFF', {
-            //     domain: '.nih.gov',
-            //     path: '/',
-            //     httpOnly: true,
-            //     secure: true
-            // });
+         
             res.clearCookie('NIHSMSESSION', { domain: '.nih.gov', path: '/' });
             res.clearCookie('REGSESSION', { domain: '.nih.gov', path: '/' });
 
@@ -36,6 +30,9 @@ var router = function (logger) {
                     '. Please check your email and follow the instructions to register your account.';
             } else if (req.query.exp) {
                 message = 'The confirmation URL has expired. Please go back to the main page and submit your information to receive a new confirmation link.';
+                bg_class = 'bg-warning';
+            } else if (req.query.sessionexp) {
+                message = 'Your session has expired and your account could not be registered. Please go back to the main page and resubmit your information to receive a new confirmation link and complete the registration.';
                 bg_class = 'bg-warning';
             } else if (req.query.invalid) {
                 message = 'The confirmation URL is invalid. Please go back to the main page and submit your information to receive a new confirmation link.';

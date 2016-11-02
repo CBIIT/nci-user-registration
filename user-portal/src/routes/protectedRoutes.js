@@ -11,7 +11,8 @@ var router = function (logger, config, db, mailer) {
         // do we still have an active session 
         var username = req.session.username;
         var email = req.session.email;
-        var uuid = req.params.id;
+        var uuid = req.params.id;   
+        console.log(req.headers);
         var sm_userdn = req.get('smuserdn').toLowerCase();
 
         if (!(username && email)) {
