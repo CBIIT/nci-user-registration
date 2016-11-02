@@ -61,9 +61,9 @@ var router = function (logger, config, db, mailer) {
                 if (loginSuccess) {
                     if (sendEmail) {
                         mailer.send(req.body.email, subject, message);
-                        res.redirect('/auth/logout?mailsent=true&mail=' + req.body.email);
+                        res.redirect('/logoff?mailsent=true&mail=' + req.body.email);
                     } else if (alreadyRegistered) {
-                        res.redirect('/auth/logout?prevregistration=true');
+                        res.redirect('/logoff?prevregistration=true');
                     } else {
                         // Something failed and no email was sent out. Shouldn't be here'
                         logger.error('Something failed and no email was sent to ' + req.body.email);
@@ -73,54 +73,8 @@ var router = function (logger, config, db, mailer) {
                         });
                     }
                 } else {
-                    res.redirect('/auth/logout?notfound=true');
+                    res.redirect('/logoff?notfound=true');
                 }
-            });
-        });
-
-    authRouter.route('/logout')
-        .get(function (req, res) {
-            req.session.destroy(function (err) {
-                if (err) {
-                    logger.error('Failed to destroy session: ' + err);
-                }
-            });
-            var message = 'Thanks and Goodbye.';
-            var bg_class = 'bg-success';
-            if (req.query.notfound) {
-                message = 'User name and email combination not found. Please try again.' +
-                    '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
-                bg_class = 'bg-danger';
-            } else if (req.query.mapped) {
-                message = 'Your account was registered successfully. It will take up to 3 hours to transfer all your information.';
-            } else if (req.query.previouslymapped) {
-                message = '<p>Our records show that you are already registered and do not need to complete this process again. No further information is required from you at this time.</p>' +
-                    '<p>If you have questions please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
-            } else if (req.query.mailsent) {
-                message = 'An email was sent to ' + req.query.mail +
-                    '. Please check your email and follow the instructions to register your account.';
-            } else if (req.query.exp) {
-                message = 'The confirmation URL has expired. Please go back to the main page and submit your information to receive a new confirmation link.';
-                bg_class = 'bg-warning';
-            } else if (req.query.invalid) {
-                message = 'The confirmation URL is invalid. Please go back to the main page and submit your information to receive a new confirmation link.';
-                bg_class = 'bg-warning';
-            } else if (req.query.mappingerror) {
-                message = 'Account registration was unsuccessful.' +
-                    '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
-                bg_class = 'bg-danger';
-            } else if (req.query.updateerror) {
-                message = 'Public key update was unsuccessful.' +
-                    '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
-                bg_class = 'bg-danger';
-            } else if (req.query.updatesuccess) {
-                message = 'Public key update was successful.';
-            } else if (req.query.prevregistration) {
-                message = 'Your account has already been registered. No further action is required.';
-            }
-            res.render('logout', {
-                message: message,
-                bg_class: bg_class
             });
         });
 
@@ -144,11 +98,11 @@ var router = function (logger, config, db, mailer) {
                     if (expired) {
                         logger.info('UUID ' + id + ' sent for conirmation. UUID found, but it has expired!');
                         db.log(userObject, 'UUID confirmed. UUID has expired: Not proceeding with user mapping');
-                        res.redirect('/auth/logout?exp=true');
+                        res.redirect('/logoff?exp=true');
                     } else if (document.itrustinfo) {
                         logger.info('User with uuid ' + id + ' and email ' + document.mail + ' already mapped.');
                         db.log(userObject, 'UUID confirmed. User already mapped: Not proceeding with user mapping');
-                        res.redirect('/auth/logout?previouslymapped=true');
+                        res.redirect('/logoff?previouslymapped=true');
                     } else {
                         req.session.email = document.mail;
                         req.session.username = document.extracted_dn_username;
@@ -159,7 +113,7 @@ var router = function (logger, config, db, mailer) {
                     }
                 } else {
                     logger.warn('UUID ' + id + ' sent for confirmation. No document found!');
-                    res.redirect('/auth/logout?invalid=true');
+                    res.redirect('/logoff?invalid=true');
                 }
 
             });

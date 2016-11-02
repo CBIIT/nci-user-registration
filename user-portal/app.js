@@ -46,6 +46,7 @@ mailer.init(logger, config, function () {
 
         var authRouter = require('./src/routes/authRoutes')(logger, config, db, mailer);
         var protectedRouter = require('./src/routes/protectedRoutes')(logger, config, db, mailer);
+        var logoffRouter = require('./src/routes/logoffRoutes')(logger);
 
         // Unprotected routes
         app.get('/edir', function (req, res) {
@@ -54,12 +55,9 @@ mailer.init(logger, config, function () {
         app.get('/authForm', function (req, res) {
             res.render('authForm');
         });
-        // app.get('/protected/itrust/update', function (req, res) {
-        //     res.render('updateForm');
-        // });
         app.use('/auth', authRouter);
         app.use('/protected/itrust', protectedRouter);
-        
+        app.use('/logoff', logoffRouter);
 
         // Enable auth check. Protected routes have to be defined after this!
         app.use(authChecker);
