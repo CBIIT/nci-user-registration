@@ -11,13 +11,13 @@ var router = function (logger) {
                 }
             });
 
-            res.cookie('NIHSMSESSION', 'LOGGEDOFF', {
-                domain: '.nih.gov',
-                path: '/',
-                httpOnly: true,
-                secure: true
-            });
-          
+            // res.cookie('NIHSMSESSION', 'LOGGEDOFF', {
+            //     domain: '.nih.gov',
+            //     path: '/',
+            //     httpOnly: true,
+            //     secure: true
+            // });
+            res.clearCookie('NIHSMSESSION', { domain: '.nih.gov', path: '/' });
             res.clearCookie('REGSESSION', { domain: '.nih.gov', path: '/' });
 
             var message = 'Thanks and Goodbye.';
