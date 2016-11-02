@@ -18,7 +18,7 @@ var router = function (logger) {
                 secure: true
             });
           
-            res.clearCookie('REGSESSION', { path: '/' });
+            res.clearCookie('REGSESSION', { domain: '.nih.gov', path: '/' });
 
             var message = 'Thanks and Goodbye.';
             var bg_class = 'bg-success';
