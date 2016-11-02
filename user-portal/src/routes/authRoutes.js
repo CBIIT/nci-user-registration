@@ -26,6 +26,7 @@ var router = function (logger, config, db, mailer) {
                     // if ((document.groupMembership.indexOf(config.edir.externalGroup) < 0) || document.itrustinfo) {
                     if (document.itrustinfo) {
                         // user has previously registered. Notify user that no further action is needed.
+                        alreadyRegistered = true;
                         sendEmail = false;
                         db.log(userObject, 'Registration requested. Not proceeding: user is either internal or was previously registered.');
                         logger.info('User already registered or internal. cn: ' + userObject.username + ', email: ' + userObject.email);

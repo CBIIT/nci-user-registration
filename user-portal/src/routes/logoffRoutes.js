@@ -50,6 +50,9 @@ var router = function (logger) {
                 message = 'Public key update was successful.';
             } else if (req.query.prevregistration) {
                 message = 'Your account has already been registered. No further action is required.';
+            } else if (req.query.error) {
+                message = 'An error occurred while registering your account. Please try again later.';
+                bg_class = 'bg_danger';
             }
             res.render('logout', {
                 message: message,
