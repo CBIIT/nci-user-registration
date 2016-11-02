@@ -17,6 +17,8 @@ var router = function (logger) {
                 httpOnly: true,
                 secure: true
             });
+          
+            res.clearCookie('REGSESSION', { path: '/' });
 
             var message = 'Thanks and Goodbye.';
             var bg_class = 'bg-success';
