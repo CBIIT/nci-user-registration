@@ -32,7 +32,6 @@ mailer.init(logger, config, function () {
             resave: true,
             saveUninitialized: false,
             cookie: {
-                domain: 'nih.gov',
                 secure: true,
                 maxAge: config.express.session.cookie_maxage
             },
