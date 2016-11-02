@@ -49,6 +49,9 @@ mailer.init(logger, config, function () {
         var logoffRouter = require('./src/routes/logoffRoutes')(logger);
 
         // Unprotected routes
+        app.get('/', function (req, res) {
+            res.redirect('/edir');
+        });
         app.get('/edir', function (req, res) {
             res.render('edir');
         });
