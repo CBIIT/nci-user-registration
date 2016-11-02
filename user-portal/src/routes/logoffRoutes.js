@@ -15,7 +15,7 @@ var router = function (logger) {
                 domain: '.nih.gov',
                 path: '/',
                 httpOnly: true,
-                secure: true
+                secure: false
             });
 
             var message = 'Thanks and Goodbye.';
