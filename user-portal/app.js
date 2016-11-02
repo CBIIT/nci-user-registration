@@ -26,13 +26,16 @@ mailer.init(logger, config, function () {
         app.use(bodyParser.urlencoded({
             extended: true
         }));
+
         app.use(session({
             name: config.express.session.name,
             secret: config.express.session.secret,
             resave: true,
             saveUninitialized: false,
             cookie: {
-                secure: true,
+                domain: '.nih.gov',
+                path: '/',
+                httpOnly: true,
                 maxAge: config.express.session.cookie_maxage
             },
             maxAge: config.express.session.maxAge,
