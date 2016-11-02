@@ -12,7 +12,8 @@ var router = function (logger, config, db, mailer) {
         var username = req.session.username;
         var email = req.session.email;
         var uuid = req.params.id;   
-        logger.info(req.headers);
+        // user_auth_type='federated'
+        // user_authn_source='federation'
         var sm_userdn = req.get('smuserdn').toLowerCase();
 
         if (!(username && email)) {
