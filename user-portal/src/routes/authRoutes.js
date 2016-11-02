@@ -16,8 +16,6 @@ var router = function (logger, config, db, mailer) {
 
             db.findUserByEmailAndCn(userObject, function (err, document) {
                 if (document) {
-                    req.session.email = userObject.email;
-                    req.session.username = userObject.username;
 
                     db.log(userObject, 'Login with username and email');
 

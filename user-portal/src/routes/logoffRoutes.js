@@ -5,7 +5,6 @@ var router = function (logger) {
 
     logoffRouter.route('/')
         .get(function (req, res) {
-            console.info('destroying cookie');
             req.session.destroy(function (err) {
                 if (err) {
                     logger.error('Failed to destroy session: ' + err);
