@@ -32,9 +32,6 @@ mailer.init(logger, config, function () {
             resave: true,
             saveUninitialized: false,
             cookie: {
-                path: '/',
-                httpOnly: true,
-                secure: true,
                 maxAge: config.express.session.cookie_maxage
             },
             maxAge: config.express.session.maxAge,
