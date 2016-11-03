@@ -31,7 +31,7 @@ var router = function (logger, config, db, mailer) {
         } else if (userAuthType !== 'federated') {
             logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is not federated!');
             db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
-            res.redirect('/logoff/reattempt?notfederated=true');
+            res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
         } else {
 
             var itrustInfo = {};
@@ -43,7 +43,7 @@ var router = function (logger, config, db, mailer) {
                 if (result === true) {
                     logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is already mapped to a different eDir account!');
                     db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is already mapped to a different eDir account.');
-                    res.redirect('/logoff/reattempt?duplicateregistration=true');
+                    res.redirect('/logoff/reattempt?duplicateregistration=true&uuid=' + uuid);
                 } else {
                     db.addMapping(userObject, itrustInfo, function (err) {
                         if (err) {
