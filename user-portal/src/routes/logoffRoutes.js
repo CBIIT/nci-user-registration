@@ -10,9 +10,15 @@ var router = function (logger) {
                     logger.error('Failed to destroy session: ' + err);
                 }
             });
-         
-            res.clearCookie('NIHSMSESSION', { domain: '.nih.gov', path: '/' });
-            res.clearCookie('REGSESSION', { domain: '.nih.gov', path: '/' });
+
+            res.clearCookie('NIHSMSESSION', {
+                domain: '.nih.gov',
+                path: '/'
+            });
+            res.clearCookie('REGSESSION', {
+                domain: '.nih.gov',
+                path: '/'
+            });
 
             var message = 'Thanks and Goodbye.';
             var bg_class = 'bg-success';
@@ -51,9 +57,34 @@ var router = function (logger) {
                 message = 'Your account has already been registered. No further action is required.';
             } else if (req.query.error) {
                 message = 'An error occurred while registering your account. Please try again later.';
-                bg_class = 'bg_danger';
+                bg_class = 'bg-danger';
             }
             res.render('logout', {
+                message: message,
+                bg_class: bg_class
+            });
+        });
+
+    logoffRouter.route('/reattempt')
+        .get(function (req, res) {
+            res.clearCookie('NIHSMSESSION', {
+                domain: '.nih.gov',
+                path: '/'
+            });
+            var message;
+            var bg_class = 'bg-success';
+            if (req.query.notfederated) {
+                message = '<p>The NIH account you selected for registration is not a federated account. Please select a federated account to complete registration.</p>' +
+                    '<p>If you have questions please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
+                bg_class = 'bg-warning';
+
+            } else if (req.query.duplicateregistration) {
+                message = '<p>Our records show that your NIH account was already registered and mapped to a different NCI account. If you want to use this NCI account you will need to register and select a different NIH account. </p>' +
+                    '<p>If you have questions please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
+                bg_class = 'bg-warning';
+            }
+
+            res.render('reattempt', {
                 message: message,
                 bg_class: bg_class
             });

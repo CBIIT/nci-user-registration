@@ -140,6 +140,20 @@ module.exports = {
         });
     },
 
+    isSmUserDnRegistered(itrustInfo, cb) {
+        var collection = db.collection(usersCollection);
+        collection.count({
+            'itrustinfo.sm_userdn': itrustInfo.sm_userdn
+        }, function (result) {
+            if (result === 0) {
+                cb(false);
+            } else {
+                cb(true);
+            }
+        });
+
+    },
+
     updateSSHPublicKey: function (smUserDN, pubkeyInfo, cb) {
         var collection = db.collection(usersCollection);
 

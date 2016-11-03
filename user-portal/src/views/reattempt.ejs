@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="content-type" content="application/json; charset=UTF-8">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Logout</title>
+	<meta name="generator" content="Bootply" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<!-- bower:css -->
+	<link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<!-- endbower -->
+	<!-- bower:js -->
+	<script src="/lib/jquery/dist/jquery.js"></script>
+	<script src="/lib/bootstrap/dist/js/bootstrap.js"></script>
+	<script src="/lib/bootstrap-validator/dist/validator.js"></script>
+	<!-- endbower -->
+	<!-- inject:css -->
+	<link rel="stylesheet" href="/css/styles.css">
+	<!-- endinject -->
+	<!-- inject:js -->
+	<!-- endinject -->
+	<!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+</head>
+
+<body>
+	<div class="container-fluid">
+		<div class="row top-20">
+			<div class="col-sm-6 col-sm-offset-3">
+				<a href="/edir">
+					<img class="img-responsive" src="/images/nci-logo-full.svg"></a>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 side-panel">
+				<strong>NIH IT Service Desk:</strong> <br>
+				<p>
+					301-496-4357 (HELP)<br> 301-496-8294 (TTY)<br> 866-319-4357 (HELP)
+				</p>
+				<p class=small>Normal Hours of Operation</p>
+				<p>
+					Mon - Fri : 6am - 6pm EST
+				</p>
+				<p class=small>
+					Limited Support After - Hours
+				</p>
+				<p> Sat - Sun : 8.30am - 5pm EST<br> Mon - Fri : 6pm - midnight EST
+				</p>
+			</div>
+			<div class="col-sm-6 main-content-no-fill <%=bg_class%>">
+				<h4>
+					 <%- message %>
+					<div class="row">
+						<div class="col-sm-12 top-20">
+							<p><a class="btn btn-primary" href="/protected/itrust/map/<%=uuid%>">Proceed</a></p>
+						</div>
+					</div>
+				</h4>
+			</div>
+		</div>
+		<div class="row">
+			<div class="main-content-no-fill">
+			</div>
+		</div>
+	</div>
+	<footer class="footer">
+		<div class="container">
+			<div>
+				<p>
+					<a href="/">Home</a> | <a href="http://www.cancer.gov/global/web/policies">Policies</a> | <a href="http://www.cancer.gov/global/web/policies/accessibility">Accessibility</a>					|
+					<a href="http://cancer.gov/global/viewing-files">Viewing Files</a> | <a href="http://www.cancer.gov/global/web/policies/foia">FOIA</a>					</p>
+				<p>
+					<a href="http://www.hhs.gov/">U.S. Department of Health and Human Services</a> | <a href="http://www.nih.gov">National Institutes of Health</a>					|
+					<a href="http://www.cancer.gov">National Cancer Institute</a> | <a href="http://usa.gov/">USA.gov</a> </p>
+				<p>
+					NIH ... Turning Discovery Into Health®
+				</p>
+			</div>
+		</div>
+	</footer>
+</body>
+
+</html>

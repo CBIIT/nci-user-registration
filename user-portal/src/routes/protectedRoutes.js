@@ -11,10 +11,16 @@ var router = function (logger, config, db, mailer) {
         // do we still have an active session 
         var username = req.session.username;
         var email = req.session.email;
-        var uuid = req.params.id;   
-        // user_auth_type='federated'
-        // user_authn_source='federation'
+        var uuid = req.params.id;
+
+        var userObject = {
+            uuid: uuid,
+            username: username,
+            email: email
+        };
+    
         var sm_userdn = req.get('smuserdn').toLowerCase();
+        var userAuthType = req.get('user_auth_type').toLowerCase();
 
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
@@ -22,33 +28,40 @@ var router = function (logger, config, db, mailer) {
         } else if (!sm_userdn) {
             logger.error('Failed to map with uuid' + uuid + ': sm_userdn undefined!');
             res.redirect('/logoff?mappingerror=true');
+        } else if (userAuthType !== 'federated') {
+            logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is not federated!');
+            db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
+            res.redirect('/logoff/reattempt?notfederated=true');
         } else {
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
             itrustInfo.processed = false;
 
-            var userObject = {
-                uuid: uuid,
-                username: username,
-                email: email
-            };
-
-            db.addMapping(userObject, itrustInfo, function (err) {
-                if (err) {
-                    logger.error('Failed to map ' + userObject.username + ' to userdn ' + sm_userdn);
-                    res.redirect('/logoff?mappingerror=true');
+            // check if iTrust info was already mapped to another account
+            db.isSmUserDnRegistered(itrustInfo, function (result) {
+                if (result === true) {
+                    logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is already mapped to a different eDir account!');
+                    db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is already mapped to a different eDir account.');
+                    res.redirect('/logoff/reattempt?duplicateregistration=true');
                 } else {
-                    logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
-                    logger.info('Praparing successful resistration email to ' + userObject.username);
-                    db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
-                    var subject = config.mail.subjectPrefix + ' ### Your account was registered';
-                    var message = '<p>Your account was registered successfully.</p>' +
-                        '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
-                        '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
-                    mailer.send(userObject.email, subject, message);
+                    db.addMapping(userObject, itrustInfo, function (err) {
+                        if (err) {
+                            logger.error('Failed to map ' + userObject.username + ' to userdn ' + sm_userdn);
+                            res.redirect('/logoff?mappingerror=true');
+                        } else {
+                            logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
+                            logger.info('Praparing successful resistration email to ' + userObject.username);
+                            db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
+                            var subject = config.mail.subjectPrefix + ' ### Your account was registered';
+                            var message = '<p>Your account was registered successfully.</p>' +
+                                '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
+                                '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
+                            mailer.send(userObject.email, subject, message);
 
-                    res.redirect('/logoff?mapped=true');
+                            res.redirect('/logoff?mapped=true');
+                        }
+                    });
                 }
             });
         }
@@ -93,5 +106,9 @@ var router = function (logger, config, db, mailer) {
 
     return protectedRouter;
 };
+
+function addMapping(userObject, itrustInfo) {
+
+}
 
 module.exports = router;
