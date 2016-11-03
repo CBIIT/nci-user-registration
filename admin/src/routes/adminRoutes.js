@@ -112,6 +112,7 @@ var router = function (logger, config, db) {
                 ldapClient.search(config.edir.searchBase, searchOptions, function (err, ldapRes) {
                     ldapRes.on('searchEntry', function (entry) {
                         var user = DeepTrim(entry.object);
+                        user = ArrayArize(user);
                         user.extracted_dn_username = extractUsername(user.dn);
                         users.push(user);
                     });
@@ -206,6 +207,29 @@ function DeepTrim(obj) {
             }
         }
     }
+    return obj;
+}
+
+function ArrayArize(obj) {
+    var type;
+    var array;
+    var value;
+    value = obj['groupMembership'];
+    type = typeof value;
+    if (type == 'string') {
+        array = [];
+        array.push(value);
+        obj['groupMembership'] = array;
+    }
+
+    value = obj['objectClass'];
+    type = typeof value;
+    if (type == 'string') {
+        array = [];
+        array.push(value);
+        obj['objectClass'] = array;
+    }
+
     return obj;
 }
 
