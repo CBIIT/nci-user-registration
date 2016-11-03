@@ -75,7 +75,7 @@ var router = function (logger) {
             var bg_class = 'bg-success';
             var uuid = req.query.uuid;
             if (req.query.notfederated) {
-                message = '<p>The NIH account you selected for registration is not a federated account. Please select a federated account to complete registration.</p>' +
+                message = '<p>The NIH account you selected for registration is not a federated account. Please select a federated account (not HHS Staff) to complete registration.</p>' +
                     '<p>If you have questions please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-warning';
                
