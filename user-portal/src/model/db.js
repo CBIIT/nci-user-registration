@@ -144,11 +144,14 @@ module.exports = {
         var collection = db.collection(usersCollection);
         collection.count({
             'itrustinfo.sm_userdn': itrustInfo.sm_userdn
-        }, function (result) {
+        }, function (err, result) {
+            if (err) {
+                loggerRef.error('Failed to get count of sm_userdn ' + itrustInfo.sm_userdn + ' mappings');
+            }
             if (result === 0) {
-                cb(false);
+                cb(err, false);
             } else {
-                cb(true);
+                cb(err, true);
             }
         });
 

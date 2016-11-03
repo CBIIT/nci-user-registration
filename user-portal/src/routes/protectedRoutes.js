@@ -39,7 +39,7 @@ var router = function (logger, config, db, mailer) {
             itrustInfo.processed = false;
 
             // check if iTrust info was already mapped to another account
-            db.isSmUserDnRegistered(itrustInfo, function (result) {
+            db.isSmUserDnRegistered(itrustInfo, function (err, result) {
                 if (result === true) {
                     logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is already mapped to a different eDir account!');
                     db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is already mapped to a different eDir account.');
