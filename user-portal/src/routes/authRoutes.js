@@ -21,8 +21,7 @@ var router = function (logger, config, db, mailer) {
 
                     var newUUID, confirmationLink;
 
-                    // if ((document.groupMembership.indexOf(config.edir.externalGroup) < 0) || document.itrustinfo) {
-                    if (document.itrustinfo) {
+                    if ((document.groupMembership.indexOf(config.edir.externalGroup) < 0) || document.itrustinfo) {
                         // user has previously registered. Notify user that no further action is needed.
                         alreadyRegistered = true;
                         sendEmail = false;

@@ -110,8 +110,4 @@ var router = function (logger, config, db, mailer) {
     return protectedRouter;
 };
 
-function addMapping(userObject, itrustInfo) {
-
-}
-
 module.exports = router;
