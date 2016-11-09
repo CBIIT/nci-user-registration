@@ -19,7 +19,9 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var sm_userdn = req.get('smuserdn').toLowerCase();
+        var sm_userdn = req.get('smuserdn');
+        var sm_userdn_lower = req.get('smuserdn').toLowerCase();
+
         var userAuthType = req.get('user_auth_type').toLowerCase();
 
         if (!(username && email)) {
@@ -36,6 +38,7 @@ var router = function (logger, config, db, mailer) {
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
+            itrustInfo.sm_userdn_lower = sm_userdn_lower;
             itrustInfo.processed = false;
 
             // check if iTrust info was already mapped to another account
@@ -81,9 +84,10 @@ var router = function (logger, config, db, mailer) {
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
             pubkeyInfo.processed = false;
-            var smUserDN = req.get('smuserdn').toLowerCase();
+            var smUserDN = req.get('smuserdn');
+            var smUserDN_lower = req.get('smuserdn').toLowerCase();
 
-            db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
+            db.updateSSHPublicKey(smUserDN_lower, pubkeyInfo, function (err, document) {
                 if (err) {
                     logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN);
                     res.redirect('/logoff?updateerror=true');
@@ -91,7 +95,7 @@ var router = function (logger, config, db, mailer) {
 
                     if (document.matchedCount === 1) {
                         logger.info('Updated public key for sm_userdn: ' + smUserDN);
-                        db.logWithDN(smUserDN, 'Updated public key: ' + pubkeyInfo.key);
+                        db.logWithDN(smUserDN_lower, 'Updated public key: ' + pubkeyInfo.key);
                         res.redirect('/logoff?updatesuccess=true');
                     } else {
                         logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count != 1');
