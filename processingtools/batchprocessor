@@ -1,9 +1,7 @@
 #!/usr/bin/perl
 
 use Net::LDAP;
-use Net::LDAPS;
 use Authen::SASL;
-use GSSAPI;
 use XML::LibXML;
 use LWP::UserAgent;
 use Data::Dumper;
