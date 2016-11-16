@@ -93,6 +93,9 @@ var router = function (logger, config, db, mailer) {
                         logger.info('Updated public key for sm_userdn: ' + smUserDN);
                         db.logWithDN(smUserDN, 'Updated public key: ' + pubkeyInfo.key);
                         res.redirect('/logoff?updatesuccess=true');
+                    } else if (document.matchedCount === -1) {
+                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count == -1');
+                        res.redirect('/logoff?updateerrornf=true');
                     } else {
                         logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count != 1');
                         res.redirect('/logoff?updateerror=true');
