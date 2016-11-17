@@ -34,7 +34,7 @@ var router = function (logger, config, db, mailer) {
                         subject = config.mail.subjectPrefix + ' ### Confirm Your New Account';
                         message = '<p>You have successfully applied for a new account at the National Cancer Institute. ' +
                             'You must confirm your e-mail address to proceed with registration. ' +
-                            'The link below is a unique confirmation link for your account, and it will expire in xx hours if not clicked.</p>' +
+                            'The link below is a unique confirmation link for your account, and it will expire in 24 hours if not clicked.</p>' +
                             '<p>Click ' + confirmationLink + ' to confirm your account. If you are having trouble clicking the link, please copy and paste the following URL into your web browser: </p>' +
                             '<p>' + config.mail.confirmURLPrefix + '/' + newUUID + '</p>' +
                             '<p>If you have any questions please contact the NIH IT Service Desk at 301-496-4357 and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>' +
