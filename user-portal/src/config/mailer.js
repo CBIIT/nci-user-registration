@@ -19,6 +19,7 @@ module.exports = {
 
         var mailOptions = {
             from: defaultFromAddress,
+            replyTo: defaultFromAddress,
             to: recipient,
             subject: subject,
             html: message
