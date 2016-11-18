@@ -31,7 +31,7 @@ var router = function (logger, config, db, mailer) {
                         // User hasn't registered. Produce a unique URL for verification'
                         newUUID = uuid.v4();
                         confirmationLink = '<a href="' + config.mail.confirmURLPrefix + '/' + newUUID + '">here</a>';
-                        subject = config.mail.subjectPrefix + ' ### Confirm Your New Account';
+                        subject = 'Confirm Your New Account' + config.mail.subjectPrefix;
                         message = '<p>You have successfully applied for a new account at the National Cancer Institute. ' +
                             'You must confirm your e-mail address to proceed with registration. ' +
                             'The link below is a unique confirmation link for your account, and it will expire in 24 hours if not clicked.</p>' +
