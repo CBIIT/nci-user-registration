@@ -46,15 +46,17 @@ sub healthcheck($) {
     my $result;
     eval {
         $logger->info("Running preflight checks");
-        $logger->debug("Trying to connect to $conf->{'ldap.direct.host'}"); 
-        my $ldap = Net::LDAP->new($conf->{'ldap.direct.host'}, port => $conf->{'ldap.direct.port'});
+        $logger->debug("Trying to connect to $conf->{'ldap.direct.host'}");
+        my @ldaphost = split / +/,$conf->{'ldap.direct.host'};
+        my $ldap = Net::LDAP->new(@ldaphost, port => $conf->{'ldap.direct.port'});
         $logger->debug("Trying to start TLS to $conf->{'ldap.direct.host'}"); 
-        $result=$ldap->start_tls(verify => 'require', sslversion => 'tlsv1', capath=> $conf->{'ssl.capath'});
+        $result=$ldap->start_tls(
+            verify => 'require', sslversion => 'tlsv1', clientcert => $conf->{'ssl.cert'},
+            clientkey => $conf->{'ssl.key'}, capath => $conf->{'ssl.capath'}
+        );
         $result->code && die "Unable to start TLS for direct LDAP connection: ".$result->error."\n";
-        $logger->debug("Trying to establish SASL/DIGEST-MD5 bind to $conf->{'ldap.direct.host'}");
-        my $ldapsasl=Authen::SASL->new( mechanism => 'DIGEST-MD5', callback => { 
-                user => $conf->{'ldap.direct.username'}, pass => $conf->{'ldap.direct.password'} 
-            });
+        $logger->debug("Trying to establish SASL/EXTERNAL bind to $conf->{'ldap.direct.host'}");
+        my $ldapsasl=Authen::SASL->new(mechanism => 'EXTERNAL', callback => { user => ''}) or die "$@";
         $result=$ldap->bind(sasl => $ldapsasl);
 
         $logger->debug("Searching for LDAP User Base $conf->{'ldap.base.user'} on $conf->{'ldap.direct.host'}");
@@ -74,7 +76,8 @@ sub healthcheck($) {
         );
 
         $logger->debug("Trying to connect to $conf->{'ldap.proxy.host'}"); 
-        my $proxy = Net::LDAP->new($conf->{'ldap.proxy.host'}, port => $conf->{'ldap.proxy.port'}, onerror => 'die') or die "LDAP Proxy Connection failed: '$@'\n";
+        my @proxyhost = split / +/,$conf->{'ldap.proxy.host'};
+        my $proxy = Net::LDAP->new(@proxyhost, port => $conf->{'ldap.proxy.port'}, onerror => 'die') or die "LDAP Proxy Connection failed: '$@'\n";
         $logger->debug("Trying to start TLS to $conf->{'ldap.proxy.host'}"); 
         $result=$proxy->start_tls(
             verify => 'require', sslversion => 'tlsv1', clientcert => $conf->{'ssl.cert'},
