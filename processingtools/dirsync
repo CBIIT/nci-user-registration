@@ -1,0 +1,395 @@
+#!/usr/bin/perl
+
+use Net::LDAP;
+use Authen::SASL;
+use Array::Diff;
+use DBM::Deep;
+use Data::Dumper;
+use Config::Properties;
+use Log::Log4perl;
+use Net::LDAP::LDIF;
+use Mail::Sendmail qw/sendmail/;
+
+use strict;
+
+Log::Log4perl::init('/local/content/dirsync/conf/log4perl.properties');
+
+my $timestamp = sub{sprintf '%04d%02d%02d%02d%02d%02d', $_[5]+1900, $_[4]+1, $_[3], $_[2] ,$_[1] ,$_[0]}->(localtime);
+mkdir "/local/content/dirsync/batch/$timestamp";
+
+my $history=DBM::Deep->new("/local/content/dirsync/data/history.db");
+
+my $conf = Config::Properties->
+    new(file => '/local/content/dirsync/conf/dirsync.properties')->getProperties;
+my $logger = Log::Log4perl->get_logger('dirsync');
+my $entrymap = {};
+sub expandString ($$$$$) {
+    my $format = shift;
+    my $sourceldap = shift;
+    my $destldap = shift;
+    my $class = shift;
+    my $realm = shift;
+    if ($format =~ /^lc:(.*)$/) {
+        return lc(expandString($1,$sourceldap,$destldap,$class,$realm));
+    } elsif ($format =~ /^rdn:(.*)$/) {
+        my $value=expandString($1,$sourceldap,$destldap,$class,$realm);
+        $value=~s/^.*?=//;
+        $value=~s/,.*//;
+        return $value;
+    } elsif ($format =~ /^(target|source)dn:(.*)$/) {
+        my $element=$1;
+        my $expression=$2;
+        my $value=expandString($expression,$sourceldap,$destldap,$class,$realm);
+        my @originaldns=split(/\n/,$value);
+        my @mappeddns=();
+        for my $originaldn (@originaldns) {
+            my $mappeddn=getmap($realm,$originaldn,$element);
+            if ($mappeddn) {
+                push @mappeddns,$mappeddn;
+            }
+        }
+        return join "\n",@mappeddns;
+    } elsif ($format =~ /^copy:(.*)$/) {
+        my $value=join "\n",$destldap->get_value($format);
+        $value=~s/^\s+|\s+$//g;
+        $value=~s/\n\s+/\n/g;
+        $value=~s/\s+\n/\n/g;
+        return "$value";
+    } elsif ($format eq 'dn') {
+        return $sourceldap->dn;
+    } else {
+        my @values=$sourceldap->get_value($format);
+        my $value=join "\n",@values;
+        $value=~s/^\s+|\s+$//g;
+        $value=~s/\n\s+/\n/g;
+        $value=~s/\s+\n/\n/g;
+        return "$value";
+    }
+}
+
+sub warning ($$) {
+    my $warnings=shift;
+    my $message=shift;
+    push @$warnings,$message;
+}
+
+sub abort($$) {
+    my $error=shift;
+    my $note=shift;
+
+    $logger->info("Critical error encountered. Sending alert.");
+    $logger->error($error);
+    my $message=<<"HERE";
+Encountered a critical error during batch processing:
+
+$error
+
+Processing cannot proceed until this issue is resolved.
+
+Please review application logs for more details and increase logging level as needed to capture further details during subsequent attempts.
+HERE
+    my %mail = (
+        To => $conf->{'mail.to'},
+        From => $conf->{'mail.from'},
+        Subject => $conf->{'mail.subject.error'},
+        Message => $message);
+    if (!sendmail(%mail)) {
+        $logger->error($Mail::Sendmail::error);
+    } else {
+        $logger->info("Message queued successfully.");
+        $logger->debug($Mail::Sendmail::log);
+    }
+    die "$note\n";
+}
+
+sub alert($) {
+    my $error=shift;
+    $logger->info("Warning condition encountered. Sending alert.");
+    $logger->warn($error);
+    my $message=<<"HERE";
+Batch processing completed with errors:
+
+$error
+
+Please review application logs for more details and increase logging level as needed to capture further details during subsequent attempts.
+HERE
+    my %mail = (
+        To => $conf->{'mail.to'},
+        From => $conf->{'mail.from'},
+        Subject => $conf->{'mail.subject.warn'},
+        Message => $message);
+    if (!sendmail(%mail)) {
+        $logger->error($Mail::Sendmail::error);
+    } else {
+        $logger->info("Message queued successfully.");
+        $logger->debug($Mail::Sendmail::log);
+    }
+}
+
+sub healthcheck($) {
+    my $struct={};
+    my $result;
+    eval {
+
+        $logger->info("Running preflight checks");
+
+        for my $server (split /\s+/,$conf->{servers}) {
+            $logger->debug("Trying to connect to $server...");
+
+            my $ldap = Net::LDAP->new(split (/\s+/,$conf->{"$server.host"}));
+            if ($conf->{"$server.starttls"} ne "false") {
+                $logger->debug("Trying to start TLS for $server"); 
+                $result=$ldap->start_tls(
+                    verify => 'require', sslversion => 'tlsv1', clientcert => $conf->{'ssl.cert'},
+                    clientkey => $conf->{'ssl.key'}, capath => $conf->{'ssl.capath'}
+                );
+                $result->code && die "Unable to start TLS for $server: ".$result->error."\n";
+            }
+            if ($conf->{"$server.binddn"}) {
+                $logger->debug("Trying to establish a simple bind to $server");
+                $result=$ldap->bind($conf->{"$server.binddn"}, password => $conf->{"$server.password"}) or die "$@";
+            } else {
+                $logger->debug("Trying to establish SASL/EXTERNAL bind to $server");
+                my $ldapsasl=Authen::SASL->new(mechanism => 'EXTERNAL', callback => { user => ''}) or die "$@";
+                $result=$ldap->bind(sasl => $ldapsasl) or die "$@";
+            }
+
+            $logger->debug("Searching for basedn for $server");
+            $result=$ldap->search(
+                base => $conf->{"$server.basedn"},
+                scope => 'base',
+                filter => '(objectclass=*)',
+                attrs => [ 'objectclass', ] ,
+            );
+            if (!$result->count) {
+                die "Unable to find ".($conf->{"$server.basedn"})." on $server!\n";
+            }
+            $logger->debug(Dumper($result));
+            $struct->{$server}=$ldap;
+        }
+
+        $logger->info("Preflight checks passed!");
+
+    };
+
+    if ($@) {
+        my $error=$@;
+        abort($error,"Preflight checks failed.");
+    }
+
+    return $struct;
+}
+
+my @warnings=();
+
+my $result;
+
+my $ldap=healthcheck($conf);
+
+sub addmapentry($$$$) {
+    my $realm=lc(shift);
+    my $source=shift;
+    my $target=shift;
+    my $uuid=shift;
+    for my $key ($source,$target,$uuid) {
+        if ($key) {
+            $entrymap->{$realm}->{lc($key)}->{source}=$source;
+            $entrymap->{$realm}->{lc($key)}->{target}=$target;
+            if ($uuid) {
+                $entrymap->{$realm}->{lc($key)}->{uuid}=$uuid;
+            }
+        }
+    }
+}
+
+sub refreshmapentry($$$) {
+    my $realm=shift;
+    my $source=shift;
+    my $uuid=shift;
+    my $oldsource=$entrymap->{$realm}->{lc($uuid)}->{source};
+    if ($oldsource && $oldsource ne $source) {
+        delete $entrymap->{$realm}->{lc($oldsource)};
+        addmapentry($realm,$source,$entrymap->{$realm}->{lc($uuid)}->{target},$uuid);
+    }
+}
+
+sub getmap($$$) {
+    my $realm=lc(shift);
+    my $key=lc(shift);
+    my $element=lc(shift);
+    if ($element!~/^(source|target|uuid)$/) {
+        return "#N/A";
+    } else {
+        return $entrymap->{$realm}->{$key}->{$element};
+    }
+}
+
+my $hmt=$history->{"highestModifyTimestamp"};
+my $lastrunhmt="19990101000000Z";
+if ($hmt gt "") {
+    $lastrunhmt=$hmt;
+}
+
+$logger->info("Initial modification timestamp filter: $lastrunhmt");
+
+$logger->info("Building cross-reference map");
+
+my $result;
+for my $realm (split /\s+/,$conf->{realms}) {
+    $logger->debug("Processing mapfile for realm $realm");
+    my $ldif = Net::LDAP::LDIF->new( $conf->{"mapfile.$realm"}, "r", onerror => 'undef' );
+    if ($ldif) {
+        while( not $ldif->eof ( ) ) {
+            my $entry = $ldif->read_entry ( );
+            if ( $ldif->error ( ) ) {
+                $logger->warn("Error msg: ".($ldif->error( )));
+                $logger->warn("Error lines:\n".($ldif->error_lines ( )));
+            } elsif ($entry) {
+                addmapentry($realm,$entry->get_value("x-nci-legacy-dn"),$entry->dn,$entry->get_value("x-nci-legacy-uuid"));
+            }
+        }
+        $ldif->done ( );
+    } else {
+        abort("Missing or invalid realm map file. Aborting to protect directory integrity.","Map file loading failed.");
+    }
+}
+
+for my $class (split /\s+/,$conf->{classes}) {
+    $logger->info("Processing $class objects");
+    my $source = $conf->{"$class.source"};
+    my @sourceattrlist = split /\s+/,$conf->{"$class.source.read.attributes"};
+    my $basedn = $conf->{"$class.$source.basedn"};
+    my $filter = $conf->{"$class.filter"};
+    if (!$filter) {
+        $filter="(objectclass=$class)";
+    }
+
+    my $scope = "sub";
+
+    $result=$ldap->{$conf->{"$class.$source.read"}}->search(
+        base => $basedn,
+        scope => $scope,
+        filter => "(\&(modifyTimestamp>=$lastrunhmt)$filter)",
+        attrs => \@sourceattrlist,
+    );
+
+    my @realms = split /\s+/,$conf->{"$class.realms"};
+    my @targetreadattrs = split (/\s+/,$conf->{"$class.target.read.attributes"});
+    my @targetwriteattrs = split (/\s+/,$conf->{"$class.target.write.attributes"});
+    for my $item ($result->entries) {
+        $logger->debug("Processing ".($item->dn));
+        my $sourcedn=$item->dn;
+        my $uuid=$item->get_value("entrustUser");
+        my $mt = $item->get_value("modifyTimestamp");
+        if ($mt gt $hmt) {
+            $hmt=$mt;
+        }
+        for my $realm (@realms) {
+            $logger->debug("Checking realm $realm");
+            if ($uuid && lc(getmap($realm,$uuid,"source")) ne lc($sourcedn)) {
+                $logger->debug("Refreshing changed map entries for $sourcedn");
+                refreshmapentry($realm,$sourcedn,$uuid);
+            }
+            my $target=getmap($realm,$sourcedn,"target");
+            if ($target) {
+                $logger->debug("Found target $target for source $sourcedn in realm $realm");
+                my $result = $ldap->{$conf->{"$class.$realm.read"}}->search(
+                    base => $target,
+                    scope => 'base',
+                    filter => "objectclass=$class",
+                    attrs => \@targetreadattrs,
+                );
+                if ($result->count == 1) {
+                    my $targetrecord = $result->entry(0);
+                    $logger->debug("Found target record ",$targetrecord->dn);
+                    my $changes=[];
+                    my $key = getmap($realm,$targetrecord->dn,$conf->{"history.$class.key"});
+                    my $laststate={};
+                    if (defined $history->{$realm}->{$key}) {
+                        $laststate=$history->{$realm}->{$key};
+                    } else {
+                        $history->{$realm}->{$key}=$laststate;
+                    }
+                    for my $attribute (@targetwriteattrs) {
+                        $logger->debug("Checking attribute $attribute for modifications since last run");
+                        my $value = expandString ($conf->{"$class.valuemap.$attribute"},$item,$targetrecord,$class,$realm);
+                        my @lastvalues=();
+                        if (defined $laststate->{$attribute}) {
+                            $logger->debug("Found history value from previous run");
+                            @lastvalues=@{$laststate->{$attribute}};
+                        } else {
+                            $logger->debug("No history found");
+                        }
+                        my @values = sort split /\n/,$value;
+                        if (lc($conf->{"$class.valuemap.$attribute.multivalued"}) eq "true") {
+                            $logger->debug("$attribute is multivalued, handling via add/delete operations");
+                            my $diff = Array::Diff->diff(\@lastvalues,\@values);
+                            my %lookup = map { lc($_) => $_ } $targetrecord->get_value($attribute);
+                            if ($diff->count) {
+                                $logger->debug(($item->dn)." sees ".($diff->count)." changes for $attribute in $realm since last sync");
+                                for my $deleted (@{$diff->deleted}) {
+                                    if (defined $lookup{lc($deleted)}) {
+                                        push @$changes, delete => [ $attribute => $deleted ];
+                                        $logger->debug("Deleting $attribute: $deleted");
+                                    }
+                                }
+                                for my $added (@{$diff->added}) {
+                                    if (!defined $lookup{lc($added)}) {
+                                        push @$changes,add => [ $attribute => $added ];
+                                        $logger->debug("Adding $attribute: $added");
+                                    }
+                                }
+                            }
+                        } else {
+                            $logger->debug("$attribute is not multivalued, handling via replace/delete operations");
+                            if ($values[0] ne $lastvalues[0]) {
+                                $logger->debug(($item->dn)." sees different value for $attribute in $realm since last sync");
+                                if ($values[0] eq "" && defined $targetrecord->get_value($attribute)) {
+                                    push @$changes, delete=> [ $attribute => $lastvalues[0]];
+                                    $logger->debug("Deleting $attribute: $lastvalues[0]");
+                                } elsif ($values[0] ne $targetrecord->get_value($attribute)) {
+                                    push @$changes, replace=> [ $attribute => $values[0]];
+                                    $logger->debug("Replacing $attribute: $values[0] => $lastvalues[0]");
+                                }
+                            }
+                        }
+                        $logger->debug("Saving history for $realm -> $key -> $attribute in history");
+                        $history->{$realm}->{$key}->{$attribute}=\@values;
+                    }
+                    if (scalar(@$changes)) {
+                        $logger->debug("Writing changes to batch file.");
+                        open BATCHFILE, ">>/local/content/dirsync/batch/$timestamp/".($conf->{"$class.$realm.write"})."-success.ldif";
+                        while (scalar @$changes) {
+                            my $changetype=shift (@$changes);
+                            my $change=shift (@$changes);
+                            eval {
+                                my $result=$ldap->{$conf->{"$class.$realm.write"}}->modify($targetrecord->dn, $changetype, [ $change->[0], $change->[1]]);
+                            };
+                            my $attemptedldif="dn: ".($targetrecord->dn)."\nchangetype: modify\n$changetype: $change->[0]\n$change->[0]: $change->[1]\n\n";
+                            if (! $@) {
+                                $logger->info("Applied the following change via ".($conf->{"$class.$realm.write"})."\n$attemptedldif");
+                                print BATCHFILE "# The following change was Committed successfully\n";
+                                print BATCHFILE $attemptedldif;
+                            } else {
+                                $logger->warn("Unable to apply a change to ".($targetrecord->dn)." via ".($conf->{"$class.$realm.write"}).": $@");
+                                my $err = $@;
+                                $err=~s/(^|\n)/#\1/g;
+                                open ERRFILE, ">>/local/content/dirsync/batch/$timestamp/".($conf->{"$class.$realm.write"})."-errors.ldif";
+                                print ERRFILE "$err\n";
+                                print ERRFILE $attemptedldif;
+                                close ERRFILE;
+                            }
+                        }
+                        close BATCHFILE;
+                    }
+                }
+            }
+        }
+    }
+}
+$logger->info("End of batch run.");
+$history->{highestModifyTimestamp}=$hmt;
+rmdir "/local/content/dirsync/batch/$timestamp";
+if (glob "/local/content/dirsync/batch/$timestamp/*-errors.ldif"){
+    alert("One or more transactions could not be applied manually. Please review the following files on $ENV{hostname} and apply them manually if necessary:\n\n".join("\n",glob "/local/content/dirsync/batch/$timestamp/*-errors.ldif"));
+}
