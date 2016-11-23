@@ -224,14 +224,6 @@ sub getmap($$$) {
     }
 }
 
-my $hmt=$history->{"highestModifyTimestamp"};
-my $lastrunhmt="19990101000000Z";
-if ($hmt gt "") {
-    $lastrunhmt=$hmt;
-}
-
-$logger->info("Initial modification timestamp filter: $lastrunhmt");
-
 $logger->info("Building cross-reference map");
 
 my $result;
@@ -269,7 +261,7 @@ for my $class (split /\s+/,$conf->{classes}) {
     $result=$ldap->{$conf->{"$class.$source.read"}}->search(
         base => $basedn,
         scope => $scope,
-        filter => "(\&(modifyTimestamp>=$lastrunhmt)$filter)",
+        filter => $filter,
         attrs => \@sourceattrlist,
     );
 
@@ -280,10 +272,6 @@ for my $class (split /\s+/,$conf->{classes}) {
         $logger->debug("Processing ".($item->dn));
         my $sourcedn=$item->dn;
         my $uuid=$item->get_value("entrustUser");
-        my $mt = $item->get_value("modifyTimestamp");
-        if ($mt gt $hmt) {
-            $hmt=$mt;
-        }
         for my $realm (@realms) {
             $logger->debug("Checking realm $realm");
             if ($uuid && lc(getmap($realm,$uuid,"source")) ne lc($sourcedn)) {
@@ -368,7 +356,7 @@ for my $class (split /\s+/,$conf->{classes}) {
                             my $attemptedldif="dn: ".($targetrecord->dn)."\nchangetype: modify\n$changetype: $change->[0]\n$change->[0]: $change->[1]\n\n";
                             if (! $@) {
                                 $logger->info("Applied the following change via ".($conf->{"$class.$realm.write"})."\n$attemptedldif");
-                                print BATCHFILE "# The following change was Committed successfully\n";
+                                print BATCHFILE "# The following change was committed successfully\n";
                                 print BATCHFILE $attemptedldif;
                             } else {
                                 $logger->warn("Unable to apply a change to ".($targetrecord->dn)." via ".($conf->{"$class.$realm.write"}).": $@");
@@ -388,7 +376,6 @@ for my $class (split /\s+/,$conf->{classes}) {
     }
 }
 $logger->info("End of batch run.");
-$history->{highestModifyTimestamp}=$hmt;
 rmdir "/local/content/dirsync/batch/$timestamp";
 if (glob "/local/content/dirsync/batch/$timestamp/*-errors.ldif"){
     alert("One or more transactions could not be applied manually. Please review the following files on $ENV{hostname} and apply them manually if necessary:\n\n".join("\n",glob "/local/content/dirsync/batch/$timestamp/*-errors.ldif"));
