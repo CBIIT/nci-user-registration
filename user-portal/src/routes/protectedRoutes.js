@@ -133,7 +133,7 @@ var router = function (logger, config, db, mailer) {
                 '<p>Justification: ' + justification + '</p>';
 
             mailer.send('svetoslav.yankov@nih.gov', subject, message);
-            logger.info('Access request submitted for application: ' + app + ', Eser DN: ' + userDN + ', access level requested: ' + accessLevel)
+            logger.info('Access request submitted for application: ' + app + ', Eser DN: ' + userDN + ', access level requested: ' + accessLevel);
 
             res.redirect('/logoff');
 
