@@ -132,7 +132,6 @@ module.exports = {
     },
 
     updateUsers: function (users, flag, cb) {
-        var collection = db.collection(usersCollection);
         var matched = 0;
         var modified = 0;
         var upserted = 0;
@@ -335,9 +334,6 @@ function updateSingle(user, flag, cb) {
             }, {
                 $set: {
                     'itrustinfo.processed': false
-                },
-                $push: {
-                    logs: utilRef.ts() + 'Document updated from eDir'
                 }
             }, function () {
                 collection.updateOne({
