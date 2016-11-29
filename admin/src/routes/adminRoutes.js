@@ -100,7 +100,8 @@ var router = function (logger, config, db) {
             logger.info('Updating user database');
             var users = [];
             var ldapClient = ldap.createClient({
-                url: config.edir.host
+                url: config.edir.host,
+                connectTimeout: 30000
             });
 
             ldapClient.bind(config.edir.dn, config.edir.password, function (err) {
