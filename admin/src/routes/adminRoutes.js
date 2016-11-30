@@ -4,6 +4,8 @@ var adminRouter = express.Router();
 var objectId = require('mongodb').ObjectID;
 var searchOptions;
 var js2xmlparser = require('js2xmlparser2');
+// const assert = require('assert');
+// const fs = require('fs');
 
 var parserOptions = {
     wrapArray: {
@@ -11,7 +13,7 @@ var parserOptions = {
     }
 };
 
-var router = function (logger, config, db) {
+var router = function (logger, config, db, util) {
 
     searchOptions = {
         filter: config.edir.filter,
@@ -111,9 +113,9 @@ var router = function (logger, config, db) {
                 }
                 ldapClient.search(config.edir.searchBase, searchOptions, function (err, ldapRes) {
                     ldapRes.on('searchEntry', function (entry) {
-                        var user = DeepTrim(entry.object);
-                        user = ArrayArize(user);
-                        user.extracted_dn_username = extractUsername(user.dn);
+                        var user = util.DeepTrim(entry.object);
+                        user = util.ArrayArize(user);
+                        user.extracted_dn_username = util.extractUsername(user.dn);
                         users.push(user);
                     });
                     ldapRes.on('searchReference', function () {});
@@ -191,53 +193,5 @@ var router = function (logger, config, db) {
 
     return adminRouter;
 };
-
-function DeepTrim(obj) {
-    for (var prop in obj) {
-        var value = obj[prop],
-            type = typeof value;
-        if (value != null && (type == 'string' || type == 'object') && obj.hasOwnProperty(prop)) {
-            if (type == 'object') {
-                DeepTrim(obj[prop]);
-            } else {
-                obj[prop] = obj[prop].trim();
-                if (prop == 'dn' || prop == 'cn' || prop == 'mail') {
-                    obj[prop] = obj[prop].toLowerCase();
-                }
-            }
-        }
-    }
-    return obj;
-}
-
-function ArrayArize(obj) {
-    var type;
-    var array;
-    var value;
-    value = obj['groupMembership'];
-    type = typeof value;
-    if (type == 'string') {
-        array = [];
-        array.push(value);
-        obj['groupMembership'] = array;
-    }
-
-    value = obj['objectClass'];
-    type = typeof value;
-    if (type == 'string') {
-        array = [];
-        array.push(value);
-        obj['objectClass'] = array;
-    }
-
-    return obj;
-}
-
-function extractUsername(dn) {
-    var start = dn.split('=')[1];
-    var result = start.substring(0, start.indexOf(',')).trim();
-
-    return result;
-}
 
 module.exports = router;

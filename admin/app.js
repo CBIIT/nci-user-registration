@@ -46,7 +46,9 @@ db.connect(logger, config, util, function (err) {
         })
     }));
 
-    var adminRouter = require('./src/routes/adminRoutes')(logger, config, db);
+    var adminRouter = require('./src/routes/adminRoutes')(logger, config, db, util);
+    var appRouter = require('./src/routes/appRoutes')(logger, config, db, util);
+
 
     // Unprotected routes
     app.get('/', function (req, res) {
@@ -62,6 +64,7 @@ db.connect(logger, config, util, function (err) {
         });
     });
     app.use('/users', adminRouter);
+    app.use('/apps', appRouter);
 
     // Enable auth check, protected routes have to be defined after this!
     app.use(authChecker);

@@ -4,6 +4,8 @@ var db;
 var confirmTimeout;
 var loggerRef;
 var usersCollection;
+var groupsCollection;
+var appsCollection;
 var utilRef;
 var configRef;
 
@@ -15,6 +17,8 @@ module.exports = {
         utilRef = util;
         configRef = config;
         usersCollection = config.db.users_collection;
+        groupsCollection = config.db.groups_collection;
+        appsCollection = config.db.apps_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
                 throw err;
@@ -22,7 +26,6 @@ module.exports = {
             db = database;
             cb();
         });
-
     },
 
     getAllUsers: function (cb) {
@@ -130,6 +133,16 @@ module.exports = {
             cb();
         });
     },
+
+    insertGroups: function (groups, cb) {
+        var collection = db.collection(groupsCollection);
+        collection.insertMany(groups, {
+            ordered: false
+        }, function (err, results) {
+            cb();
+        });
+    },
+
 
     updateUsers: function (users, flag, cb) {
         var matched = 0;
@@ -286,7 +299,42 @@ module.exports = {
         }, function (err, count) {
             return cb(err, count);
         });
-    }
+    },
+
+    addApplication: function (appObject, cb) {
+        var collection = db.collection(appsCollection);
+        collection.updateOne({
+            'name_lower': appObject.name_lower,
+        }, {
+            $set: {
+                name: appObject.name,
+                name_lower: appObject.name_lower,
+                description: appObject.description,
+                read_groups: appObject.readGroups,
+                write_groups: appObject.writeGroups,
+                admin_groups: appObject.adminGroups
+            }
+        }, {
+            upsert: true
+        }, function (err) {
+            if (err) {
+                loggerRef.error('Failed to persist application ' + appObject.name);
+            }
+            cb(err);
+        });
+    },
+
+    searchApp: function (searchObject, cb) {
+        var collection = db.collection(appsCollection);
+        collection.find({
+            name_lower: searchObject.name ? searchObject.name : {
+                $regex: /.*/
+            }
+        }).toArray(
+            function (err, results) {
+                cb(err, results);
+            });
+    },
 };
 
 
@@ -315,8 +363,7 @@ function updateSingle(user, flag, cb) {
             'gidnumber': user.gidnumber,
             'homedirectory': user.homedirectory,
             'loginshell': user.loginshell
-        },
-
+        }
     }, {
         upsert: true
     }, function (err, result) {

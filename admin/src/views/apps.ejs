@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>NCI Registration Portal</title>
+    <meta name="generator" content="Bootply" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <!-- bower:css -->
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- endbower -->
+    <!-- bower:js -->
+    <script src="/lib/jquery/dist/jquery.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="/lib/bootstrap-validator/dist/validator.js"></script>
+    <!-- endbower -->
+    <!-- inject:css -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- endinject -->
+    <!-- inject:js -->
+    <!-- endinject -->
+    <!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row top-20">
+            <div class="col-sm-2">
+                <h3>ADMIN PORTAL</h3>
+            </div>
+            <div class="col-sm-6 col-sm-offset-1">
+                <a href="/">
+                    <img class="img-responsive" src="/images/nci-logo-full.svg" alt="National Cancer Institute"></a>
+            </div>
+            <div class="col-sm-2 col-sm-offset-1">
+                <h3>ADMIN PORTAL</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2 main-content">
+                <div class="row">
+                    <div>
+                        <form class="form-inline" action="/apps/search" method="post" data-toggle="validator">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="name" class="form-control" id="name" name="name" placeholder="App name">
+                                <!-- <div class="help-block with-errors"></div> -->
+                            </div>
+                            <button type="submit" class="btn btn-default">Search</button>
+                        </form>
+                    </div>
+                </div>
+                <% if (apps.length > 0) {  var numApps = apps.length; %>
+                    <div class="row">
+                        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                            <% for(var i=0; i < numApps; i++) { var app = apps[i];  %>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="heading<%=i%>">
+                                        <h4 class="panel-title">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
+                                                aria-expanded=<% if (numApps===1 ) { %>"true"<%} else {%>"false"<%}%> >
+                                            <%=app.name%>: <%=app._id%>
+                                        </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numApps === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
+                                        <div class="panel-body">
+                                            <ul>
+                                                <% if (app.description) {%>
+                                                    <li>
+                                                        <b>Description:</b>
+                                                        <%=app.description%>
+                                                    </li>
+                                                    <%}%>
+
+                                                <li>
+                                                    <b>Read Access Groups</b>
+                                                    <ul>
+                                                     <% if (app.read_groups) {%>
+                                                        <% for(var j=0; j<app.read_groups.length; j++) {%>
+                                                        <li>
+                                                            <%=app.read_groups[j]%>
+                                                        </li>
+                                                        <%}%>
+                                                    <%}%>
+                                                    </ul>
+                                                    
+                                                </li>
+
+                                                 <li>
+                                                    <b>Write Access Groups</b>
+                                                    <ul>
+                                                     <% if (app.write_groups) {%>
+                                                        <% for(var j=0; j<app.read_groups.length; j++) {%>
+                                                        <li>
+                                                            <%=app.read_groups[j]%>
+                                                        </li>
+                                                        <%}%>
+                                                    <%}%>
+                                                    </ul>
+                                                    
+                                                </li>
+
+                                                 <li>
+                                                    <b>Admin Access Groups</b>
+                                                    <ul>
+                                                     <% if (app.write_groups) {%>
+                                                        <% for(var j=0; j<app.read_groups.length; j++) {%>
+                                                        <li>
+                                                            <%=app.read_groups[j]%>
+                                                        </li>
+                                                        <%}%>
+                                                    <%}%>
+                                                    </ul>
+                                                    
+                                                </li>
+
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <%}%>
+                        </div>
+                    </div>
+                    <%}%>
+            </div>
+        </div>
+</body>
+
+</html>
