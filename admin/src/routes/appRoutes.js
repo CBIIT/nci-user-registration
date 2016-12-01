@@ -3,9 +3,7 @@ var ldap = require('ldapjs');
 var appRouter = express.Router();
 var fs = require('fs');
 var tlsOptions;
-// var objectId = require('mongodb').ObjectID;
-// var searchOptions;
-
+var objectId = require('mongodb').ObjectID;
 
 var router = function (logger, config, db, util) {
 
@@ -15,10 +13,16 @@ var router = function (logger, config, db, util) {
 
     appRouter.route('/')
         .get(function (req, res) {
-            var apps = [];
 
-            res.render('apps', {
-                apps: apps
+            var searchObject = {
+                name_lower: ''
+            };
+
+            db.searchApp(searchObject, function (err, results) {
+                var apps = results;
+                res.render('apps', {
+                    apps: apps
+                });
             });
         });
 
@@ -45,8 +49,9 @@ var router = function (logger, config, db, util) {
 
     appRouter.route('/search')
         .post(function (req, res) {
+            var searchStr = req.body.name.toLowerCase().trim();
             var searchObject = {
-                name_lower: req.body.name.toLowerCase().trim()
+                name_lower: searchStr
             };
 
             db.searchApp(searchObject, function (err, results) {
@@ -70,15 +75,79 @@ var router = function (logger, config, db, util) {
             var appObject = {
                 name: name,
                 name_lower: name.toLowerCase(),
-                description: description,
-                read_groups: [],
-                write_groups: [],
-                admin_groups: []
+                description: description
             };
 
             db.addApplication(appObject, function () {
                 logger.info('Added application ' + name);
                 res.send('Application added');
+            });
+        });
+
+    appRouter.route('/getAllGroups')
+        .get(function (req, res) {
+            db.getAllGroups(function (err, result) {
+                res.send(result);
+            });
+        });
+
+    appRouter.route('/app/:id/groups/read/add')
+        .post(function (req, res) {
+            var id = new objectId(req.params.id);
+            var groupDN = req.body.read_group.toLowerCase().trim();
+
+            db.addReadGroup(id, groupDN, function (err) {
+                db.getApp(id, function (err, results) {
+                    var apps = results;
+                    res.render('apps', {
+                        apps: apps
+                    });
+                });
+            });
+        });
+
+    appRouter.route('/app/:id/groups/read/remove/:dn')
+        .get(function (req, res) {
+            var id = new objectId(req.params.id);
+            var groupDN = req.params.dn.toLowerCase().trim();
+
+            db.removeReadGroup(id, groupDN, function (err) {
+                db.getApp(id, function (err, results) {
+                    var apps = results;
+                    res.render('apps', {
+                        apps: apps
+                    });
+                });
+            });
+        });
+
+    appRouter.route('/app/:id/groups/write/add')
+        .post(function (req, res) {
+            var id = new objectId(req.params.id);
+            var groupDN = req.body.write_group.toLowerCase().trim();
+
+            db.addWriteGroup(id, groupDN, function (err) {
+                db.getApp(id, function (err, results) {
+                    var apps = results;
+                    res.render('apps', {
+                        apps: apps
+                    });
+                });
+            });
+        });
+
+    appRouter.route('/app/:id/groups/admin/add')
+        .post(function (req, res) {
+            var id = new objectId(req.params.id);
+            var groupDN = req.body.admin_group.toLowerCase().trim();
+
+            db.addAdminGroup(id, groupDN, function (err) {
+                db.getApp(id, function (err, results) {
+                    var apps = results;
+                    res.render('apps', {
+                        apps: apps
+                    });
+                });
             });
         });
 

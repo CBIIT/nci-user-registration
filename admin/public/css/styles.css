@@ -76,3 +76,5 @@ textarea { resize:vertical; }
 .panel-body  {
     word-break:break-all;
 }
+
+.twitter-typeahead, .tt-hint, .tt-input, .tt-menu { width: 100%; }

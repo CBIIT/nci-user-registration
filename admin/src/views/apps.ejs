@@ -14,6 +14,7 @@
     <script src="/lib/jquery/dist/jquery.js"></script>
     <script src="/lib/bootstrap/dist/js/bootstrap.js"></script>
     <script src="/lib/bootstrap-validator/dist/validator.js"></script>
+    <script src="/lib/typeahead.js/dist/typeahead.bundle.js"></script>
     <!-- endbower -->
     <!-- inject:css -->
     <link rel="stylesheet" href="/css/styles.css">
@@ -46,7 +47,7 @@
                         <form class="form-inline" action="/apps/search" method="post" data-toggle="validator">
                             <div class="form-group">
                                 <label for="name">Name</label>
-                                <input type="name" class="form-control" id="name" name="name" placeholder="App name">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="App name">
                                 <!-- <div class="help-block with-errors"></div> -->
                             </div>
                             <button type="submit" class="btn btn-default">Search</button>
@@ -68,57 +69,119 @@
                                     </div>
                                     <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numApps === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
                                         <div class="panel-body">
-                                            <ul>
+                                            <p>Description:
                                                 <% if (app.description) {%>
-                                                    <li>
-                                                        <b>Description:</b>
-                                                        <%=app.description%>
-                                                    </li>
-                                                    <%}%>
-
-                                                <li>
-                                                    <b>Read Access Groups</b>
-                                                    <ul>
-                                                     <% if (app.read_groups) {%>
-                                                        <% for(var j=0; j<app.read_groups.length; j++) {%>
-                                                        <li>
-                                                            <%=app.read_groups[j]%>
-                                                        </li>
+                                                    <%=app.description%>
                                                         <%}%>
-                                                    <%}%>
-                                                    </ul>
-                                                    
-                                                </li>
-
-                                                 <li>
-                                                    <b>Write Access Groups</b>
-                                                    <ul>
-                                                     <% if (app.write_groups) {%>
-                                                        <% for(var j=0; j<app.read_groups.length; j++) {%>
-                                                        <li>
-                                                            <%=app.read_groups[j]%>
-                                                        </li>
-                                                        <%}%>
-                                                    <%}%>
-                                                    </ul>
-                                                    
-                                                </li>
-
-                                                 <li>
-                                                    <b>Admin Access Groups</b>
-                                                    <ul>
-                                                     <% if (app.write_groups) {%>
-                                                        <% for(var j=0; j<app.read_groups.length; j++) {%>
-                                                        <li>
-                                                            <%=app.read_groups[j]%>
-                                                        </li>
-                                                        <%}%>
-                                                    <%}%>
-                                                    </ul>
-                                                    
-                                                </li>
-
-                                            </ul>
+                                            </p>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Read Access Groups</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% if (app.read_groups) { 
+                                                        var numReadGroups = app.read_groups.length;
+                                                        for (var j=0; j < numReadGroups; j++) { 
+                                                            var group = app.read_groups[j];   
+                                                    {%>
+                                                        <tr>
+                                                            <td>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/read/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
+                                                            </td>
+                                                        </tr>
+                                                        <%}}}%>
+                                                            <tr>
+                                                                <td width="50%"></td>
+                                                                <td>
+                                                                    <form action="/apps/app/<%=app._id%>/groups/read/add" method="post" data-toggle="validator">
+                                                                        <div id="groupInput1">
+                                                                            <div class="form-group">
+                                                                                <label for="read_group">DN</label>
+                                                                                <input type="text" class="typeahead form-control" id="read_group" name="read_group" placeholder="Group DN for READ access" data-error="Group DN is required."
+                                                                                    required>
+                                                                            </div>
+                                                                            <button type="submit" class="btn btn-default" style="float: right;">Add</button>
+                                                                            <div class="help-block with-errors"></div>
+                                                                        </div>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                </tbody>
+                                            </table>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Write Access Groups</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                      <% if (app.write_groups) { 
+                                                        var numWriteGroups = app.write_groups.length;
+                                                        for (var s=0; s < numWriteGroups; s++) { 
+                                                            var group = app.write_groups[s];   
+                                                    {%>
+                                                        <tr>
+                                                            <td>
+                                                                <%=group%>
+                                                            </td>
+                                                        </tr>
+                                                        <%}}}%>
+                                                    <tr>
+                                                        <td width="50%"></td>
+                                                        <td>
+                                                            <form action="/apps/app/<%=app._id%>/groups/write/add" method="post" data-toggle="validator">
+                                                                <div id="groupInput3">
+                                                                    <div class="form-group">
+                                                                        <label for="write_group">DN</label>
+                                                                        <input type="text" class="typeahead form-control" id="write_group" name="write_group" placeholder="Group DN for READ/WRITE access" data-error="Group DN is required."
+                                                                            required>
+                                                                    </div>
+                                                                    <button type="submit" class="btn btn-default" style="float: right;">Add</button>
+                                                                    <div class="help-block with-errors"></div>
+                                                                </div>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Admin Access Groups</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                      <% if (app.admin_groups) { 
+                                                        var numAdminGroups = app.admin_groups.length;
+                                                        for (var t=0; t < numAdminGroups; t++) { 
+                                                            var group = app.admin_groups[t];   
+                                                    {%>
+                                                        <tr>
+                                                            <td>
+                                                                <%=group%>
+                                                            </td>
+                                                        </tr>
+                                                        <%}}}%>
+                                                    <tr>
+                                                        <td width="50%"></td>
+                                                        <td>
+                                                            <form action="/apps/app/<%=app._id%>/groups/admin/add" method="post" data-toggle="validator">
+                                                                <div id="groupInput1">
+                                                                    <div class="form-group">
+                                                                        <label for="admin_group">DN</label>
+                                                                        <input type="text" class="typeahead form-control" id="admin_group" name="admin_group" placeholder="Group DN for ADMIN access" data-error="Group DN is required."
+                                                                            required>
+                                                                    </div>
+                                                                    <button type="submit" class="btn btn-default" style="float: right;">Add</button>
+                                                                    <div class="help-block with-errors"></div>
+                                                                </div>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +191,58 @@
                     <%}%>
             </div>
         </div>
+    </div>
+    <script>
+
+var groups = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  prefetch: {
+      url: 'http://localhost:8090/apps/getAllGroups',
+      cache: false,
+      cacheKey: groups,
+      transform: function(response) {
+          return $.map(response, function(groupObj) {
+              return groupObj.dn;
+          });
+      }
+  }
+});
+
+$('#groupInput1 .typeahead').typeahead({
+  hint: true,
+  highlight: true,
+  minLength: 1,
+},
+{
+  name: 'groups',
+  source: groups,
+  limit: 8  
+});
+
+$('#groupInput2 .typeahead').typeahead({
+  hint: true,
+  highlight: true,
+  minLength: 1
+},
+{
+  name: 'groups',
+  source: groups,
+  limit: 8
+});
+
+$('#groupInput3 .typeahead').typeahead({
+  hint: true,
+  highlight: true,
+  minLength: 1
+},
+{
+  name: 'groups',
+  source: groups,
+  limit:8
+});
+
+        </script>
 </body>
 
 </html>

@@ -309,10 +309,10 @@ module.exports = {
             $set: {
                 name: appObject.name,
                 name_lower: appObject.name_lower,
-                description: appObject.description,
-                read_groups: appObject.readGroups,
-                write_groups: appObject.writeGroups,
-                admin_groups: appObject.adminGroups
+                description: appObject.description
+                    // read_groups: appObject.readGroups,
+                    // write_groups: appObject.writeGroups,
+                    // admin_groups: appObject.adminGroups
             }
         }, {
             upsert: true
@@ -326,15 +326,97 @@ module.exports = {
 
     searchApp: function (searchObject, cb) {
         var collection = db.collection(appsCollection);
+        var searchStr;
+        if (searchObject.name_lower) {
+            searchStr = searchObject.name_lower;
+        } else {
+            searchStr = /.*/;
+        }
+
         collection.find({
-            name_lower: searchObject.name ? searchObject.name : {
-                $regex: /.*/
+            name_lower: {
+                $regex: searchStr
             }
         }).toArray(
             function (err, results) {
                 cb(err, results);
             });
     },
+
+    getApp: function (id, cb) {
+        var collection = db.collection(appsCollection);
+        collection.find({
+            _id: id
+        }).toArray(
+            function (err, results) {
+                cb(err, results);
+            });
+    },
+
+    getAllGroups: function (cb) {
+        var collection = db.collection(groupsCollection);
+        collection.find({}, {
+            dn: 1
+        }).toArray(function (err, results) {
+            cb(err, results);
+        });
+    },
+
+    addReadGroup(appId, groupDN, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.update({
+            _id: appId
+        }, {
+            $addToSet: {
+                read_groups: groupDN
+            }
+        }, function (err) {
+            cb(err);
+        });
+    },
+
+    removeReadGroup(appId, groupDN, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.update({
+            _id: appId
+        }, {
+            $pull: {
+                read_groups: groupDN
+            }
+        }, function (err) {
+            cb(err);
+        });
+    },
+
+    addWriteGroup(appId, groupDN, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.update({
+            _id: appId
+        }, {
+            $addToSet: {
+                write_groups: groupDN
+            }
+        }, function (err) {
+            cb(err);
+        });
+    },
+
+    addAdminGroup(appId, groupDN, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.update({
+            _id: appId
+        }, {
+            $addToSet: {
+                admin_groups: groupDN
+            }
+        }, function (err) {
+            cb(err);
+        });
+    }
 };
 
 
