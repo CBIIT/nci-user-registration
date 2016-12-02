@@ -246,7 +246,7 @@ SERVICE: for my $service (@services) {
                     open TMP, ">/tmp/batchprocessor.ldif";
                     print TMP "dn: $newgroupdn\nchangetype:modify\nadd: member\nmember: $newdn\n\n\n";
                     close TMP;
-                    `/usr/local/openldap2.4/bin/ldapmodify -ZZ -Y EXTERNAL -H ldap://nihlds2v.nih.gov:$conf->{'ldap.direct.port'} -c -f /tmp/batchprocessor.ldif -S /tmp/batchprocessor.errors.ldif`;
+                    `/usr/local/openldap2.4/bin/ldapmodify -Q -ZZ -Y EXTERNAL -H ldap://nihlds2v.nih.gov:$conf->{'ldap.direct.port'} -c -f /tmp/batchprocessor.ldif -S /tmp/batchprocessor.errors.ldif`;
                     $logger->debug("Exited group addition routine.");
                     if ( -s "/tmp/batchprocessor.errors.ldif") {
                         $logger->warn("Unable to add $newdn to group $newgroupdn. Skipping remaining groups.");
