@@ -312,9 +312,6 @@ module.exports = {
                 name: appObject.name,
                 name_lower: appObject.name_lower,
                 description: appObject.description
-                    // read_groups: appObject.readGroups,
-                    // write_groups: appObject.writeGroups,
-                    // admin_groups: appObject.adminGroups
             }
         }, {
             upsert: true
@@ -324,6 +321,28 @@ module.exports = {
             }
             cb(err);
         });
+    },
+
+    searchRequest: function (searchStr, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.find({
+            $or: [{
+                request_id: searchStr
+            }, {
+                requested_app: {
+                    $regex: searchStr
+                }
+            }, {
+                user_dn: {
+                    $regex: searchStr
+                }
+            }]
+        }).toArray(
+            function (err, results) {
+                cb(err, results);
+            });
+
     },
 
     searchApp: function (searchObject, cb) {
@@ -354,6 +373,24 @@ module.exports = {
                 cb(err, results);
             });
     },
+
+    getSingleApp(id, cb) {
+        var collection = db.collection(appsCollection);
+        collection.findOne({
+            _id: id
+        }, function (err, result) {
+            cb(err, result);
+        });
+    },
+
+    getAllApps: function (cb) {
+        var collection = db.collection(appsCollection);
+        collection.find().toArray(
+            function (err, results) {
+                cb(err, results);
+            });
+    },
+
 
     getAllGroups: function (cb) {
         var collection = db.collection(groupsCollection);
@@ -401,6 +438,21 @@ module.exports = {
             function (err, results) {
                 cb(err, results);
             });
+    },
+
+    approveRequest(requestId, approvedResource, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: requestId
+        }, {
+            $set: {
+                approval: 'approved',
+                approved_resource: approvedResource
+            }
+        }, function (err, result) {
+            cb(err, result);
+        });
     }
 };
 

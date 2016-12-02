@@ -131,7 +131,7 @@ var router = function (logger, config, db, mailer) {
             // record request and send email
             var requestObject = {};
             var requestId = uuid.v4();
-            requestObject.request_id = requestId;
+            requestObject.request_id = requestId; 
             requestObject.requested_app = app;
             requestObject.user_dn = userDN;
             requestObject.requested_access_level = accessLevel;
@@ -140,7 +140,7 @@ var router = function (logger, config, db, mailer) {
 
             var subject = 'NCI Application Access Request';
             var message = '<p>Access was requested for application: ' + app + '</p>' +
-                '<p>Request ID: ' + requestId + '</p>' +
+                '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
                 '<p>User DN: the user DN' + userDN + '</p>' +
                 // '<p>User DN: the user DN' + '</p>' +
                 '<p>Access Level: ' + accessLevel + '</p>' +
