@@ -1,5 +1,6 @@
 var express = require('express');
 var protectedRouter = express.Router();
+var uuid = require('node-uuid');
 
 var router = function (logger, config, db, mailer) {
 
@@ -121,19 +122,33 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            var userDN = req.get('smuserdn').toLowerCase();
+            // var userDN = req.get('smuserdn').toLowerCase();
+            var userDN = 'cn=yankovsr,ou=users,ou=nci,o=nih';
             var accessLevel = req.body.acclevel;
-            var justification = req.body.justification;
+            var justification = req.body.justification.trim();
+
+
+            // record request and send email
+            var requestObject = {};
+            var requestId = uuid.v4();
+            requestObject.request_id = requestId;
+            requestObject.user_dn = userDN;
+            requestObject.access_level = accessLevel;
+            requestObject.justification = justification;
 
             var subject = 'NCI Application Access Request';
             var message = '<p>Access was requested for application: ' + app + '</p>' +
-                '<p>User DN: the user DN' + userDN + '</p>' + 
+                '<p>Request ID: ' + requestId + '</p>' +
+                '<p>User DN: the user DN' + userDN + '</p>' +
                 // '<p>User DN: the user DN' + '</p>' +
                 '<p>Access Level: ' + accessLevel + '</p>' +
                 '<p>Justification: ' + justification + '</p>';
 
-            mailer.send('svetoslav.yankov@nih.gov', subject, message);
-            logger.info('Access request submitted for application: ' + app + ', Eser DN: ' + userDN + ', access level requested: ' + accessLevel);
+
+            db.recordAccessRequest(requestObject, function (err, result) {
+                mailer.send('svetoslav.yankov@nih.gov', subject, message);
+                logger.info('Access request submitted for application: ' + app + ', Eser DN: ' + userDN + ', access level requested: ' + accessLevel);
+            });
 
             res.redirect('/logoff');
 

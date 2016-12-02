@@ -4,6 +4,7 @@ var db;
 var confirmTimeout;
 var loggerRef;
 var usersCollection;
+var requestCollection;
 var utilRef;
 
 module.exports = {
@@ -13,6 +14,7 @@ module.exports = {
         loggerRef = logger;
         utilRef = util;
         usersCollection = config.db.users_collection;
+        requestCollection = config.db.request_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
                 throw err;
@@ -172,5 +174,14 @@ module.exports = {
             }
             cb(err, document);
         });
+    },
+
+    recordAccessRequest: function (requestObject, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.insert(requestObject, function (err, result) {
+            cb(err, result);
+        });
+
     }
 };
