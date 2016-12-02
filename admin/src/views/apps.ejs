@@ -88,18 +88,18 @@
                                                     {%>
                                                         <tr>
                                                             <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/read/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/read_groups/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
                                                             </td>
                                                         </tr>
                                                         <%}}}%>
                                                             <tr>
                                                                 <td width="50%"></td>
                                                                 <td>
-                                                                    <form action="/apps/app/<%=app._id%>/groups/read/add" method="post" data-toggle="validator">
+                                                                    <form action="/apps/app/<%=app._id%>/groups/read_groups/add" method="post" data-toggle="validator">
                                                                         <div id="groupInput1">
                                                                             <div class="form-group">
-                                                                                <label for="read_group">DN</label>
-                                                                                <input type="text" class="typeahead form-control" id="read_group" name="read_group" placeholder="Group DN for READ access" data-error="Group DN is required."
+                                                                                <label for="group">DN</label>
+                                                                                <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for READ access" data-error="Group DN is required."
                                                                                     required>
                                                                             </div>
                                                                             <button type="submit" class="btn btn-default" style="float: right;">Add</button>
@@ -124,18 +124,18 @@
                                                     {%>
                                                         <tr>
                                                             <td>
-                                                                <%=group%>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/write_groups/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
                                                             </td>
                                                         </tr>
                                                         <%}}}%>
                                                     <tr>
                                                         <td width="50%"></td>
                                                         <td>
-                                                            <form action="/apps/app/<%=app._id%>/groups/write/add" method="post" data-toggle="validator">
+                                                            <form action="/apps/app/<%=app._id%>/groups/write_groups/add" method="post" data-toggle="validator">
                                                                 <div id="groupInput3">
                                                                     <div class="form-group">
-                                                                        <label for="write_group">DN</label>
-                                                                        <input type="text" class="typeahead form-control" id="write_group" name="write_group" placeholder="Group DN for READ/WRITE access" data-error="Group DN is required."
+                                                                        <label for="group">DN</label>
+                                                                        <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for READ/WRITE access" data-error="Group DN is required."
                                                                             required>
                                                                     </div>
                                                                     <button type="submit" class="btn btn-default" style="float: right;">Add</button>
@@ -160,18 +160,18 @@
                                                     {%>
                                                         <tr>
                                                             <td>
-                                                                <%=group%>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/admin_groups/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
                                                             </td>
                                                         </tr>
                                                         <%}}}%>
                                                     <tr>
                                                         <td width="50%"></td>
                                                         <td>
-                                                            <form action="/apps/app/<%=app._id%>/groups/admin/add" method="post" data-toggle="validator">
+                                                            <form action="/apps/app/<%=app._id%>/groups/admin_groups/add" method="post" data-toggle="validator">
                                                                 <div id="groupInput1">
                                                                     <div class="form-group">
-                                                                        <label for="admin_group">DN</label>
-                                                                        <input type="text" class="typeahead form-control" id="admin_group" name="admin_group" placeholder="Group DN for ADMIN access" data-error="Group DN is required."
+                                                                        <label for="group">DN</label>
+                                                                        <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for ADMIN access" data-error="Group DN is required."
                                                                             required>
                                                                     </div>
                                                                     <button type="submit" class="btn btn-default" style="float: right;">Add</button>

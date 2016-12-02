@@ -132,9 +132,11 @@ var router = function (logger, config, db, mailer) {
             var requestObject = {};
             var requestId = uuid.v4();
             requestObject.request_id = requestId;
+            requestObject.requested_app = app;
             requestObject.user_dn = userDN;
-            requestObject.access_level = accessLevel;
+            requestObject.requested_access_level = accessLevel;
             requestObject.justification = justification;
+            requestObject.approval = 'unknown';
 
             var subject = 'NCI Application Access Request';
             var message = '<p>Access was requested for application: ' + app + '</p>' +

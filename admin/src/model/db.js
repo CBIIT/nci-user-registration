@@ -6,6 +6,7 @@ var loggerRef;
 var usersCollection;
 var groupsCollection;
 var appsCollection;
+var requestCollection;
 var utilRef;
 var configRef;
 
@@ -19,6 +20,7 @@ module.exports = {
         usersCollection = config.db.users_collection;
         groupsCollection = config.db.groups_collection;
         appsCollection = config.db.apps_collection;
+        requestCollection = config.db.request_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
                 throw err;
@@ -362,60 +364,43 @@ module.exports = {
         });
     },
 
-    addReadGroup(appId, groupDN, cb) {
+    addGroup(appId, groupSetName, groupDN, cb) {
         var collection = db.collection(appsCollection);
 
         collection.update({
             _id: appId
         }, {
             $addToSet: {
-                read_groups: groupDN
+                [groupSetName]: groupDN
             }
         }, function (err) {
             cb(err);
         });
     },
 
-    removeReadGroup(appId, groupDN, cb) {
+    removeGroup(appId, groupSetName, groupDN, cb) {
         var collection = db.collection(appsCollection);
 
         collection.update({
             _id: appId
         }, {
             $pull: {
-                read_groups: groupDN
+                [groupSetName]: groupDN
             }
         }, function (err) {
             cb(err);
         });
     },
 
-    addWriteGroup(appId, groupDN, cb) {
-        var collection = db.collection(appsCollection);
+    getRequest(uuid, cb) {
+        var collection = db.collection(requestCollection);
 
-        collection.update({
-            _id: appId
-        }, {
-            $addToSet: {
-                write_groups: groupDN
-            }
-        }, function (err) {
-            cb(err);
-        });
-    },
-
-    addAdminGroup(appId, groupDN, cb) {
-        var collection = db.collection(appsCollection);
-
-        collection.update({
-            _id: appId
-        }, {
-            $addToSet: {
-                admin_groups: groupDN
-            }
-        }, function (err) {
-            cb(err);
-        });
+        collection.find({
+            request_id: uuid
+        }).toArray(
+            function (err, results) {
+                cb(err, results);
+            });
     }
 };
 

@@ -91,13 +91,14 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    appRouter.route('/app/:id/groups/read/add')
+    appRouter.route('/app/:id/groups/:groupSetName/add')
         .post(function (req, res) {
-            var id = new objectId(req.params.id);
-            var groupDN = req.body.read_group.toLowerCase().trim();
+            var appId = new objectId(req.params.id);
+            var groupSetName = req.params.groupSetName;
+            var groupDN = req.body.group.toLowerCase().trim();
 
-            db.addReadGroup(id, groupDN, function (err) {
-                db.getApp(id, function (err, results) {
+            db.addGroup(appId, groupSetName, groupDN, function (err) {
+                db.getApp(appId, function (err, results) {
                     var apps = results;
                     res.render('apps', {
                         apps: apps
@@ -106,43 +107,14 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    appRouter.route('/app/:id/groups/read/remove/:dn')
+    appRouter.route('/app/:id/groups/:groupSetName/remove/:dn')
         .get(function (req, res) {
-            var id = new objectId(req.params.id);
+            var appId = new objectId(req.params.id);
+            var groupSetName = req.params.groupSetName;
             var groupDN = req.params.dn.toLowerCase().trim();
 
-            db.removeReadGroup(id, groupDN, function (err) {
-                db.getApp(id, function (err, results) {
-                    var apps = results;
-                    res.render('apps', {
-                        apps: apps
-                    });
-                });
-            });
-        });
-
-    appRouter.route('/app/:id/groups/write/add')
-        .post(function (req, res) {
-            var id = new objectId(req.params.id);
-            var groupDN = req.body.write_group.toLowerCase().trim();
-
-            db.addWriteGroup(id, groupDN, function (err) {
-                db.getApp(id, function (err, results) {
-                    var apps = results;
-                    res.render('apps', {
-                        apps: apps
-                    });
-                });
-            });
-        });
-
-    appRouter.route('/app/:id/groups/admin/add')
-        .post(function (req, res) {
-            var id = new objectId(req.params.id);
-            var groupDN = req.body.admin_group.toLowerCase().trim();
-
-            db.addAdminGroup(id, groupDN, function (err) {
-                db.getApp(id, function (err, results) {
+            db.removeGroup(appId, groupSetName, groupDN, function (err) {
+                db.getApp(appId, function (err, results) {
                     var apps = results;
                     res.render('apps', {
                         apps: apps
@@ -161,7 +133,6 @@ function updateGroups(ou, groupType, logger, config, db, util) {
 
         logger.info('Updating groups table from ou: ' + ou);
         var groups = [];
-
 
         var ldapClient = ldap.createClient({
             url: config.ldapproxy.host,
