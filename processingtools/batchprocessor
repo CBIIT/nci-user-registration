@@ -48,7 +48,7 @@ sub healthcheck($) {
         $logger->info("Running preflight checks");
         $logger->debug("Trying to connect to $conf->{'ldap.direct.host'}");
         my @ldaphost = split / +/,$conf->{'ldap.direct.host'};
-        my $ldap = Net::LDAP->new(@ldaphost, port => $conf->{'ldap.direct.port'});
+        my $ldap = Net::LDAP->new(@ldaphost, port => $conf->{'ldap.direct.port',onerr => 'warn'});
         $logger->debug("Trying to start TLS to $conf->{'ldap.direct.host'}"); 
         $result=$ldap->start_tls(
             verify => 'require', sslversion => 'tlsv1', clientcert => $conf->{'ssl.cert'},
@@ -242,15 +242,21 @@ SERVICE: for my $service (@services) {
                 $logger->info("Found matching group:\n\t$legacygroupdn =>\n\t$newgroupdn");
                 if (!$adgroups{$newgroupdn}) {
                     $logger->info("Adding new member: $newdn... ");
-                    eval {
-                        my $result=$ldap->{'direct'}->modify($newgroupdn, add => [ 'member', $newdn ]);
-                    };
-                    if (! $@) {
-                        $logger->info("Success");
-                    } else {
+                    $logger->debug("Entering group addition routine.");
+                    open TMP, ">/tmp/batchprocessor.ldif";
+                    print TMP "dn: $newgroupdn\nchangetype:modify\nadd: member\nmember: $newdn\n\n\n";
+                    close TMP;
+                    `/usr/local/openldap2.4/bin/ldapmodify -ZZ -Y EXTERNAL -H ldap://nihlds2v.nih.gov:$conf->{'ldap.direct.port'} -c -f /tmp/batchprocessor.ldif -S /tmp/batchprocessor.errors.ldif`;
+                    $logger->debug("Exited group addition routine.");
+                    if ( -s "/tmp/batchprocessor.errors.ldif") {
                         $logger->warn("Unable to add $newdn to group $newgroupdn. Skipping remaining groups.");
-                        warning(\@warnings, "Unable to add $newdn to group $newgroupdn. Skipping any remaining groups. Will retry later.\nError: $@");
+                        unlink "/tmp/batchprocessor.errors.ldif";
+                        unlink "/tmp/batchprocessor.ldif";
                         next RECORD;
+                    } else {
+                        $logger->info("Success");
+                        unlink "/tmp/batchprocessor.errors.ldif";
+                        unlink "/tmp/batchprocessor.ldif";
                     }
                 } else {
                     $logger->debug("Ignoring existing member: $newdn");
