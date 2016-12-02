@@ -3,6 +3,11 @@ var protectedRouter = express.Router();
 
 var router = function (logger, config, db, mailer) {
 
+    protectedRouter.route('/whoami')
+        .get(function (req, res) {
+            res.send(req.get('smuserdn'));
+        });
+
     protectedRouter.route('/map/:id')
 
     .get(function (req, res) {
