@@ -122,8 +122,8 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            // var userDN = req.get('smuserdn').toLowerCase();
-            var userDN = 'cn=yankovsr,ou=users,ou=nci,o=nih';
+            var userDN = req.get('smuserdn').toLowerCase();
+            // var userDN = 'cn=yankovsr,ou=users,ou=nci,o=nih';
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
 
@@ -142,7 +142,6 @@ var router = function (logger, config, db, mailer) {
             var message = '<p>Access was requested for application: ' + app + '</p>' +
                 '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
                 '<p>User DN: the user DN' + userDN + '</p>' +
-                // '<p>User DN: the user DN' + '</p>' +
                 '<p>Access Level: ' + accessLevel + '</p>' +
                 '<p>Justification: ' + justification + '</p>';
 
