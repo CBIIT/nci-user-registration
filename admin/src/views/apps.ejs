@@ -88,7 +88,8 @@
                                                     {%>
                                                         <tr>
                                                             <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/read_groups/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/read_groups/remove/<%=group%>"
+                                                                        class="btn btn-link btn-xs" role="button">Remove</a>
                                                             </td>
                                                         </tr>
                                                         <%}}}%>
@@ -117,33 +118,34 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                      <% if (app.write_groups) { 
+                                                    <% if (app.write_groups) { 
                                                         var numWriteGroups = app.write_groups.length;
                                                         for (var s=0; s < numWriteGroups; s++) { 
                                                             var group = app.write_groups[s];   
                                                     {%>
                                                         <tr>
                                                             <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/write_groups/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/write_groups/remove/<%=group%>"
+                                                                        class="btn btn-link btn-xs" role="button">Remove</a>
                                                             </td>
                                                         </tr>
                                                         <%}}}%>
-                                                    <tr>
-                                                        <td width="50%"></td>
-                                                        <td>
-                                                            <form action="/apps/app/<%=app._id%>/groups/write_groups/add" method="post" data-toggle="validator">
-                                                                <div id="groupInput3">
-                                                                    <div class="form-group">
-                                                                        <label for="group">DN</label>
-                                                                        <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for READ/WRITE access" data-error="Group DN is required."
-                                                                            required>
-                                                                    </div>
-                                                                    <button type="submit" class="btn btn-default" style="float: right;">Add</button>
-                                                                    <div class="help-block with-errors"></div>
-                                                                </div>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
+                                                            <tr>
+                                                                <td width="50%"></td>
+                                                                <td>
+                                                                    <form action="/apps/app/<%=app._id%>/groups/write_groups/add" method="post" data-toggle="validator">
+                                                                        <div id="groupInput3">
+                                                                            <div class="form-group">
+                                                                                <label for="group">DN</label>
+                                                                                <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for READ/WRITE access" data-error="Group DN is required."
+                                                                                    required>
+                                                                            </div>
+                                                                            <button type="submit" class="btn btn-default" style="float: right;">Add</button>
+                                                                            <div class="help-block with-errors"></div>
+                                                                        </div>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
                                                 </tbody>
                                             </table>
                                             <table class="table">
@@ -153,33 +155,34 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                      <% if (app.admin_groups) { 
+                                                    <% if (app.admin_groups) { 
                                                         var numAdminGroups = app.admin_groups.length;
                                                         for (var t=0; t < numAdminGroups; t++) { 
                                                             var group = app.admin_groups[t];   
                                                     {%>
                                                         <tr>
                                                             <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/admin_groups/remove/<%=group%>" class="btn btn-link btn-xs" role="button">Remove</a>
+                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/admin_groups/remove/<%=group%>"
+                                                                        class="btn btn-link btn-xs" role="button">Remove</a>
                                                             </td>
                                                         </tr>
                                                         <%}}}%>
-                                                    <tr>
-                                                        <td width="50%"></td>
-                                                        <td>
-                                                            <form action="/apps/app/<%=app._id%>/groups/admin_groups/add" method="post" data-toggle="validator">
-                                                                <div id="groupInput1">
-                                                                    <div class="form-group">
-                                                                        <label for="group">DN</label>
-                                                                        <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for ADMIN access" data-error="Group DN is required."
-                                                                            required>
-                                                                    </div>
-                                                                    <button type="submit" class="btn btn-default" style="float: right;">Add</button>
-                                                                    <div class="help-block with-errors"></div>
-                                                                </div>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
+                                                            <tr>
+                                                                <td width="50%"></td>
+                                                                <td>
+                                                                    <form action="/apps/app/<%=app._id%>/groups/admin_groups/add" method="post" data-toggle="validator">
+                                                                        <div id="groupInput1">
+                                                                            <div class="form-group">
+                                                                                <label for="group">DN</label>
+                                                                                <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for ADMIN access" data-error="Group DN is required."
+                                                                                    required>
+                                                                            </div>
+                                                                            <button type="submit" class="btn btn-default" style="float: right;">Add</button>
+                                                                            <div class="help-block with-errors"></div>
+                                                                        </div>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -198,7 +201,7 @@ var groups = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.whitespace,
   queryTokenizer: Bloodhound.tokenizers.whitespace,
   prefetch: {
-      url: 'http://localhost:8090/apps/getAllGroups',
+      url: location.protocol + '//' + location.host + '/apps/getAllGroups',
       cache: false,
       cacheKey: groups,
       transform: function(response) {
