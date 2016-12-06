@@ -51,7 +51,10 @@
                                 <!-- <div class="help-block with-errors"></div> -->
                             </div>
                             <button type="submit" class="btn btn-default">Search</button>
+                            <a class="btn btn-primary" href="/apps/app/add" role="button">New App</a>
                         </form>
+                    </div>
+                    <div>
                     </div>
                 </div>
                 <% if (apps.length > 0) {  var numApps = apps.length; %>
@@ -63,16 +66,20 @@
                                         <h4 class="panel-title">
                                             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
                                                 aria-expanded=<% if (numApps===1 ) { %>"true"<%} else {%>"false"<%}%> >
-                                            <%=app.name%>: <%=app._id%>
+                                            <%=app.name%>
                                         </a>
                                         </h4>
                                     </div>
                                     <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numApps === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
                                         <div class="panel-body">
-                                            <p>Description:
+                                            <p>
                                                 <% if (app.description) {%>
+                                                    Description:
                                                     <%=app.description%>
                                                         <%}%>
+                                            </p>
+                                            <p>
+                                                <a href="/apps/app/edit/<%=app._id%>">edit app information</a>
                                             </p>
                                             <table class="table">
                                                 <thead>
@@ -96,6 +103,7 @@
                                                             <tr>
                                                                 <td width="50%"></td>
                                                                 <td>
+                                                                    <a name="<%=app._id%>_read_groups"></a>
                                                                     <form action="/apps/app/<%=app._id%>/groups/read_groups/add" method="post" data-toggle="validator">
                                                                         <div id="groupInput1">
                                                                             <div class="form-group">
@@ -133,6 +141,7 @@
                                                             <tr>
                                                                 <td width="50%"></td>
                                                                 <td>
+                                                                    <a name="<%=app._id%>_write_groups"></a>
                                                                     <form action="/apps/app/<%=app._id%>/groups/write_groups/add" method="post" data-toggle="validator">
                                                                         <div id="groupInput3">
                                                                             <div class="form-group">
@@ -170,6 +179,7 @@
                                                             <tr>
                                                                 <td width="50%"></td>
                                                                 <td>
+                                                                    <a name="<%=app._id%>_admin_groups"></a>
                                                                     <form action="/apps/app/<%=app._id%>/groups/admin_groups/add" method="post" data-toggle="validator">
                                                                         <div id="groupInput1">
                                                                             <div class="form-group">
@@ -244,6 +254,9 @@ $('#groupInput3 .typeahead').typeahead({
   source: groups,
   limit:8
 });
+
+var anchor = <%- JSON.stringify(anchor) %>;
+window.onload = window.location.hash = anchor;
 
         </script>
 </body>

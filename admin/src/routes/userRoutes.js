@@ -1,11 +1,9 @@
 var express = require('express');
 var ldap = require('ldapjs');
-var adminRouter = express.Router();
+var userRouter = express.Router();
 var objectId = require('mongodb').ObjectID;
 var searchOptions;
 var js2xmlparser = require('js2xmlparser2');
-// const assert = require('assert');
-// const fs = require('fs');
 
 var parserOptions = {
     wrapArray: {
@@ -21,7 +19,7 @@ var router = function (logger, config, db, util) {
         attributes: config.edir.attributes
     };
 
-    adminRouter.route('/user/:id')
+    userRouter.route('/user/:id')
         .get(function (req, res) {
             var id = new objectId(req.params.id);
 
@@ -34,7 +32,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/search')
+    userRouter.route('/search')
         .post(function (req, res) {
             var searchObject = {
                 cn: req.body.cn.toLowerCase().trim(),
@@ -73,7 +71,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/init')
+    userRouter.route('/init')
         .get(function (req, res) {
             db.userCount(function (err, count) {
                 var users = [];
@@ -97,7 +95,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/updateUsers')
+    userRouter.route('/updateUsers')
         .get(function (req, res) {
             logger.info('Updating user database');
             var users = [];
@@ -135,7 +133,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/getItrustUpdates')
+    userRouter.route('/getItrustUpdates')
         .get(function (req, res) {
             logger.info('Itrust updates requested.');
             db.getUnprocessedItrustUsers(function (err, users) {
@@ -147,7 +145,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/flagItrustUpdates')
+    userRouter.route('/flagItrustUpdates')
         .post(function (req, res) {
 
             var data = req.body.userids.value;
@@ -163,7 +161,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/getPublicKeyUpdates')
+    userRouter.route('/getPublicKeyUpdates')
         .get(function (req, res) {
             logger.info('Public Key updates requested.');
             db.getUnprocessedPubKeyUsers(function (err, users) {
@@ -175,7 +173,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    adminRouter.route('/flagPublicKeyUpdates')
+    userRouter.route('/flagPublicKeyUpdates')
         .post(function (req, res) {
 
             var data = req.body.userids.value;
@@ -191,7 +189,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    return adminRouter;
+    return userRouter;
 };
 
 module.exports = router;

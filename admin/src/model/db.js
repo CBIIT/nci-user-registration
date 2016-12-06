@@ -345,19 +345,18 @@ module.exports = {
 
     },
 
-    searchApp: function (searchObject, cb) {
+    searchApp: function (searchStr, cb) {
         var collection = db.collection(appsCollection);
-        var searchStr;
-        if (searchObject.name_lower) {
-            searchStr = searchObject.name_lower;
-        } else {
-            searchStr = /.*/;
-        }
 
         collection.find({
-            name_lower: {
-                $regex: searchStr
-            }
+
+            $or: [{
+                name_lower: searchStr
+            }, {
+                name_lower: {
+                    $regex: searchStr ? searchStr : /.*/
+                }
+            }]
         }).toArray(
             function (err, results) {
                 cb(err, results);
@@ -452,6 +451,37 @@ module.exports = {
             }
         }, function (err, result) {
             cb(err, result);
+        });
+    },
+
+    getPendingApprovedRequests(cb) {
+        var collection = db.collection(requestCollection);
+        collection.find({
+            'approval': 'approved',
+            'processed': {
+                $exists: false
+            }
+        }, {
+            'user_dn': 1,
+            'approved_resource': 1
+        }).toArray(function (err, results) {
+            return cb(err, results);
+        });
+    },
+    setRequestsProcessed: function (requestIds, cb) {
+        var collection = db.collection(requestCollection);
+        var bulk = collection.initializeUnorderedBulkOp();
+        bulk.find({
+            _id: {
+                $in: requestIds
+            }
+        }).update({
+            $set: {
+                'processed': true
+            }
+        });
+        bulk.execute(function (err, result) {
+            return cb(err, result.toJSON());
         });
     }
 };

@@ -14,14 +14,11 @@ var router = function (logger, config, db, util) {
     appRouter.route('/')
         .get(function (req, res) {
 
-            var searchObject = {
-                name_lower: ''
-            };
-
-            db.searchApp(searchObject, function (err, results) {
+            db.searchApp('', function (err, results) {
                 var apps = results;
                 res.render('apps', {
-                    apps: apps
+                    apps: apps,
+                    anchor: '#'
                 });
             });
         });
@@ -50,37 +47,57 @@ var router = function (logger, config, db, util) {
     appRouter.route('/search')
         .post(function (req, res) {
             var searchStr = req.body.name.toLowerCase().trim();
-            var searchObject = {
-                name_lower: searchStr
-            };
 
-            db.searchApp(searchObject, function (err, results) {
+            db.searchApp(searchStr, function (err, results) {
                 var apps = results;
                 res.render('apps', {
-                    apps: apps
+                    apps: apps,
+                    anchor: '#'
                 });
             });
         });
 
     appRouter.route('/app/add')
         .get(function (req, res) {
-            res.render('newApp');
+            res.render('newApp', {
+                name: null,
+                description: null
+            });
         });
 
 
     appRouter.route('/app/add')
         .post(function (req, res) {
             var name = req.body.name.trim();
+            var name_lower = name.toLowerCase();
             var description = req.body.description.trim();
             var appObject = {
                 name: name,
-                name_lower: name.toLowerCase(),
+                name_lower: name_lower,
                 description: description
             };
 
             db.addApplication(appObject, function () {
-                logger.info('Added application ' + name);
-                res.send('Application added');
+                logger.info('Added or updated application ' + name);
+
+                db.searchApp(name_lower, function (err, results) {
+                    var apps = results;
+                    res.render('apps', {
+                        apps: apps,
+                        anchor: '#'
+                    });
+                });
+            });
+        });
+
+    appRouter.route('/app/edit/:id')
+        .get(function (req, res) {
+            var appId = new objectId(req.params.id);
+            db.getSingleApp(appId, function (err, result) {
+                res.render('newApp', {
+                    name: result.name,
+                    description: result.description
+                });
             });
         });
 
@@ -101,7 +118,8 @@ var router = function (logger, config, db, util) {
                 db.getApp(appId, function (err, results) {
                     var apps = results;
                     res.render('apps', {
-                        apps: apps
+                        apps: apps,
+                        anchor: req.params.id + '_' + req.params.groupSetName
                     });
                 });
             });
@@ -117,7 +135,8 @@ var router = function (logger, config, db, util) {
                 db.getApp(appId, function (err, results) {
                     var apps = results;
                     res.render('apps', {
-                        apps: apps
+                        apps: apps,
+                        anchor: req.params.id + '_' + req.params.groupSetName
                     });
                 });
             });

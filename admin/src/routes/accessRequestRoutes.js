@@ -1,6 +1,13 @@
 var express = require('express');
 var accessRequestRouter = express.Router();
 var objectId = require('mongodb').ObjectID;
+var js2xmlparser = require('js2xmlparser2');
+
+var parserOptions = {
+    wrapArray: {
+        enabled: true
+    }
+};
 
 var router = function (logger, config, db, util) {
 
@@ -8,7 +15,6 @@ var router = function (logger, config, db, util) {
         .get(function (req, res) {
 
             var requests = [];
-            var apps = [];
 
             res.render('requests', {
                 requests: requests
@@ -74,6 +80,37 @@ var router = function (logger, config, db, util) {
                     });
                 });
 
+            });
+        });
+
+    accessRequestRouter.route('/getPendingApprovedRequests')
+        .get(function (req, res) {
+            logger.info('Pending approved requests requested.');
+            db.getPendingApprovedRequests(function (err, requests) {
+                var request;
+                for (var i = 0; i < requests.length; i++) {
+                    request = requests[i];
+                    request._id = request._id.toString();
+                    request.approved_resource.app_id = request.approved_resource.app_id.toString();
+                }
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('requests', requests, parserOptions));
+            });
+        });
+
+    accessRequestRouter.route('/flagProcessedRequests')
+        .post(function (req, res) {
+
+            var data = req.body.requestids.value;
+            var convertedRequestIds = [];
+            for (var i = 0; i < data.length; i++) {
+                convertedRequestIds.push(new objectId(data[i]));
+            }
+            logger.info('The following requests have been reported as processed and will now be flagged: ' + convertedRequestIds);
+            db.setRequestsProcessed(convertedRequestIds, function (err, result) {
+                logger.info('Flagging result: ' + JSON.stringify(result));
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('result', result, parserOptions));
             });
         });
 

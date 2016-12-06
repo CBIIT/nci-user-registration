@@ -147,7 +147,7 @@ var router = function (logger, config, db, mailer) {
 
 
             db.recordAccessRequest(requestObject, function (err, result) {
-                mailer.send('svetoslav.yankov@nih.gov', subject, message);
+                mailer.send('svetoslav.yankov@nih.gov, john.ribeiro@nih.gov', subject, message);
                 logger.info('Access request submitted for application: ' + app + ', Eser DN: ' + userDN + ', access level requested: ' + accessLevel);
             });
 

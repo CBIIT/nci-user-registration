@@ -46,7 +46,7 @@ db.connect(logger, config, util, function (err) {
         })
     }));
 
-    var adminRouter = require('./src/routes/adminRoutes')(logger, config, db, util);
+    var userRouter = require('./src/routes/userRoutes')(logger, config, db, util);
     var appRouter = require('./src/routes/appRoutes')(logger, config, db, util);
     var accessRequestRouter = require('./src/routes/accessRequestRoutes')(logger, config, db, util);
 
@@ -58,12 +58,8 @@ db.connect(logger, config, util, function (err) {
         // });
     });
 
-    app.get('/test', function (req, res) {
-        res.render('index-test', {
-            users: []
-        });
-    });
-    app.use('/users', adminRouter);
+ 
+    app.use('/users', userRouter);
     app.use('/apps', appRouter);
     app.use('/requests', accessRequestRouter);
 
