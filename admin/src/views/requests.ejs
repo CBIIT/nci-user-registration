@@ -86,7 +86,7 @@
                                     <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numReqs === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
                                         <div class="panel-body">
                                             <p>Request Status:
-                                                <%=request.approval.toUpperCase()%>
+                                                <%=request.approval === 'unknown' ? 'Pending Approval' : request.approval.toUpperCase()%>
                                             </p>
                                             <p>Request ID:
                                                 <% if (request.request_id) {%>
