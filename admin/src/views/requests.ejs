@@ -85,6 +85,9 @@
                                     </div>
                                     <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numReqs === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
                                         <div class="panel-body">
+                                            <p>Request Status:
+                                                <%=request.approval.toUpperCase()%>
+                                            </p>
                                             <p>Request ID:
                                                 <% if (request.request_id) {%>
                                                     <%=request.request_id%>
@@ -115,11 +118,12 @@
                                                     <%=request.justification%>
                                                         <%}%>
                                             </p>
-                                            <p>
-                                                <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
-                                                    <div class="form-group">
-                                                        <label for="app">Select approved App:</label>
-                                                        <select class="form-control" id="app" name="app" data-error="Select the app which was approved" required>
+                                            <%if (request.approval === 'unknown') { %>
+                                                <p>
+                                                    <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
+                                                        <div class="form-group">
+                                                            <label for="app">Select approved App:</label>
+                                                            <select class="form-control" id="app" name="app" data-error="Select the app which was approved" required>
                                                             <option value=""></option>
                                                             <% for (var j=0; j<apps.length; j++) { var app = apps[j]; %>
                                                             <option value="<%=app._id%>" 
@@ -131,30 +135,51 @@
                                                                 ><%=app.name%></option>
                                                             <% } %>
                                                         </select>
-                                                        <div class="help-block with-errors"></div>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <fieldset>
-                                                            <label>Access level:</label>
-                                                            <div class="checkbox">
-                                                                <label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="read_access_checkbox" value="read_groups">READ</label>
-                                                            </div>
-                                                            <div class="checkbox">
-                                                                <label for="write_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="write_access_checkbox" value="write_groups">READ/WRITE</label>
-                                                            </div>
-                                                            <div class="checkbox">
-                                                                <label for="admin_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="admin_access_checkbox" value="admin_groups">ADMIN</label>
-                                                            </div>
                                                             <div class="help-block with-errors"></div>
-                                                        </fieldset>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="notes">Notes</label>
-                                                        <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
-                                                    </div>
-                                                    <button type="submit" class="btn btn-default">Approve</button>
-                                                </form>
-                                            </p>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <fieldset>
+                                                                <label>Access level:</label>
+                                                                <div class="checkbox">
+                                                                    <label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="read_access_checkbox" value="read_groups">READ</label>
+                                                                </div>
+                                                                <div class="checkbox">
+                                                                    <label for="write_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="write_access_checkbox" value="write_groups">READ/WRITE</label>
+                                                                </div>
+                                                                <div class="checkbox">
+                                                                    <label for="admin_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="admin_access_checkbox" value="admin_groups">ADMIN</label>
+                                                                </div>
+                                                                <div class="help-block with-errors"></div>
+                                                            </fieldset>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="notes">Notes</label>
+                                                            <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary">Approve</button>
+                                                        <a class="btn btn-danger" href="/requests/request/<%=request.request_id%>/reject" role="button">Reject</a>
+                                                    </form>
+                                                </p>
+                                                <% } else if (request.approval === 'approved') { %>
+                                                    <p>
+                                                        Approved Resources:
+                                                    </p>
+                                                    <p>
+                                                        <ul>
+                                                            <li>Application:
+                                                                <%=request.approved_resource.app_name%>
+                                                            </li>
+                                                            <li>
+                                                                Access Roles:
+                                                                <%= request.approved_resource.access_level.join() %>
+                                                            </li>
+                                                            <li>
+                                                                Groups:
+                                                                <%=[].concat.apply([], request.approved_resource.groups).join(' ### ') %>
+                                                            </li>
+                                                        </ul>
+                                                    </p>
+                                                    <% } %>
                                         </div>
                                     </div>
                                 </div>

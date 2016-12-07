@@ -458,6 +458,20 @@ module.exports = {
         });
     },
 
+    rejectRequest(requestId, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: requestId
+        }, {
+            $set: {
+                approval: 'rejected'
+            }
+        }, function (err, result) {
+            cb();
+        });
+    },
+
     getPendingApprovedRequests(cb) {
         var collection = db.collection(requestCollection);
         collection.find({

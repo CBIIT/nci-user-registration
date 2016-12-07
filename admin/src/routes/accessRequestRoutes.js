@@ -88,11 +88,19 @@ var router = function (logger, config, db, util) {
                         res.redirect('/requests');
                     });
                 } else {
-                    res.send('Error: No access level selected');
+                    res.send('Error: No access roles selected!');
                 }
 
             });
 
+        });
+
+    accessRequestRouter.route('/request/:id/reject')
+        .get(function (req, res) {
+            var requestId = req.params.id;
+            db.rejectRequest(requestId, function () {
+                res.redirect('/requests');
+            });
         });
 
     accessRequestRouter.route('/search')
