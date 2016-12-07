@@ -57,13 +57,13 @@
                                 <fieldset>
                                     <label for="disposition">Status:</label>
                                     <div class="radio">
-                                        <label><input type="radio" name="disposition" id="disposition" value="unknown" required <% if (disposition === 'unknown') { %> checked="checked" <% }  %> >Pending Approval</label>
+                                        <label for="disposition_unknown"><input type="radio" name="disposition" id="disposition_unknown" value="unknown" required <% if (disposition === 'unknown') { %> checked="checked" <% }  %> >Pending Approval</label>
                                     </div>
                                     <div class="radio">
-                                        <label><input type="radio" name="disposition" id="disposition" value="approved" required <% if (disposition === 'approved') { %> checked="approved" <% }  %> >Approved</label>
+                                        <label for="disposition_approved"><input type="radio" name="disposition" id="disposition_approved" value="approved" required <% if (disposition === 'approved') { %> checked="checked" <% }  %> >Approved</label>
                                     </div>
                                     <div class="radio">
-                                        <label><input type="radio" name="disposition" id="disposition" value="rejected" required <% if (disposition === 'rejected') { %> checked="rejected" <% }  %> >Rejected</label>
+                                        <label for="disposition_rejected"><input type="radio" name="disposition" id="disposition_rejected" value="rejected" required <% if (disposition === 'rejected') { %> checked="checked" <% }  %> >Rejected</label>
                                     </div>
                                 </fieldset>
                             </div>
@@ -136,13 +136,13 @@
                                                     <div class="form-group">
                                                         <fieldset>
                                                             <label>Access level:</label>
-                                                            <div class="radio">
+                                                            <div class="checkbox">
                                                                 <label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="read_access_checkbox" value="read_groups">READ</label>
                                                             </div>
-                                                            <div class="radio">
+                                                            <div class="checkbox">
                                                                 <label for="write_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="write_access_checkbox" value="write_groups">READ/WRITE</label>
                                                             </div>
-                                                            <div class="radio">
+                                                            <div class="checkbox">
                                                                 <label for="admin_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="admin_access_checkbox" value="admin_groups">ADMIN</label>
                                                             </div>
                                                             <div class="help-block with-errors"></div>
