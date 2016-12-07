@@ -447,7 +447,8 @@ module.exports = {
         var collection = db.collection(requestCollection);
 
         collection.updateOne({
-            request_id: requestId
+            request_id: requestId,
+            approval: 'unknown'
         }, {
             $set: {
                 approval: 'approved',
@@ -462,12 +463,13 @@ module.exports = {
         var collection = db.collection(requestCollection);
 
         collection.updateOne({
-            request_id: requestId
+            request_id: requestId,
+            approval: 'unknown'
         }, {
             $set: {
                 approval: 'rejected'
             }
-        }, function (err, result) {
+        }, function () {
             cb();
         });
     },
