@@ -113,7 +113,7 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .get(function (req, res) {
             var app = req.query.app;
-            console.log('App: ' + app);
+            console.log(req.headers);
             res.render('accessRequestForm', {
                 app: app
             });
@@ -123,6 +123,7 @@ var router = function (logger, config, db, mailer) {
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
             var userDN = req.get('smuserdn').toLowerCase();
+            var displayName = req.get('user_displayname');
             // var userDN = 'cn=yankovsr,ou=users,ou=nci,o=nih';
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
@@ -134,6 +135,7 @@ var router = function (logger, config, db, mailer) {
             requestObject.request_id = requestId; 
             requestObject.requested_app = app;
             requestObject.user_dn = userDN;
+            requestObject.displayName = displayName;
             requestObject.requested_access_level = accessLevel;
             requestObject.justification = justification;
             requestObject.approval = 'unknown';
@@ -147,8 +149,8 @@ var router = function (logger, config, db, mailer) {
 
 
             db.recordAccessRequest(requestObject, function (err, result) {
-                mailer.send('svetoslav.yankov@nih.gov, john.ribeiro@nih.gov, wuye@mail.nih.gov', subject, message);
-                logger.info('Access request submitted for application: ' + app + ', Eser DN: ' + userDN + ', access level requested: ' + accessLevel);
+                mailer.send('svetoslav.yankov@nih.gov, john.ribeiro@nih.gov', subject, message);
+                logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
             });
 
             res.redirect('/logoff');
