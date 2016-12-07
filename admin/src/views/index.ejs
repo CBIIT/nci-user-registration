@@ -27,7 +27,6 @@
 </head>
 
 <body>
-
     <div class="container-fluid">
         <div class="row top-20">
             <div class="col-sm-2">
@@ -41,278 +40,22 @@
                 <h3>ADMIN PORTAL</h3>
             </div>
         </div>
-
-
         <div class="row">
-            <div class="col-sm-2 side-panel">
-            Total Users: <%=stats.totalUsers%> </br>
-            External: <%=stats.externalUserCount%> </br>
-            Self-Registered: <%=stats.selfRegisteredCount%> </br>
-            Processed: <%=stats.processedCount%>    
-            </div>
-
-            <div class="col-sm-8 main-content">
+            <div class="col-sm-8 col-sm-offset-2 main-content">
                 <div class="row">
-                    <div class="col-sm-offset-4">
-                        <h4>### USER REGISTRATION ADMINISTRATION ###</h4>
-                    </div>
+                    <ul>
+                        <li>
+                            <a href="/users/init">Users</a>
+                        </li>
+                        <li>
+                            <a href="/apps">Apps</a>
+                        </li>
+                        <li>
+                            <a href="/requests">Requests</a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="row">
-                    <div>
-                        <form class="form-inline" action="/users/search" method="post" data-toggle="validator">
-                            <div class="form-group">
-                                <label for="cn">CN</label>
-                                <input type="cn" class="form-control" id="cn" name="cn" placeholder="cn of the user">
-                                <!-- <div class="help-block with-errors"></div> -->
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="email of the user">
-                                <!--    <div class="help-block with-errors"></div> -->
-                            </div>
-                            <button type="submit" class="btn btn-default">Search</button>
-                        </form>
-                    </div>
-                </div>
-
-                <% if (users.length > 0) {  var numUsers = users.length; %>  
-
-                <div class="row">
-                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                <!-- --- end -->
-
-                <% for(var i=0; i < numUsers; i++) { var user = users[i];  %>
-
-                            <div class="panel panel-default">
-                                <div class="panel-heading" role="tab" id="heading<%=i%>">
-                                    <h4 class="panel-title">
-                                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>" 
-                                        aria-expanded=<% if (numUsers === 1) { %>"true"<%} else {%>"false"<%}%> >
-                                            <%=user.fullName%>
-                                        </a>
-                                    </h4>
-                                </div>
-                                <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numUsers === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>" >
-                                    <div class="panel-body">
-                                      
-                                        <ul>
-                                    <% if (user.entrustuser) {%>
-                                        <li>
-                                            <b>entrustuser:</b>
-                                            <%=user.entrustuser%>
-                                        </li>
-                                    <%}%>
-                                    <% if (user.dn) {%>
-                                        <li>
-                                            <b>dn:</b>
-                                            <%=user.dn%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.extracted_dn_username) {%>
-                                        <li>
-                                            <b>extracted username (from DN):</b>
-                                            <%=user.extracted_dn_username%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.nciNihIC) {%>
-                                        <li>
-                                            <b>nciNihIC:</b>
-                                            <%=user.nciNihIC%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.nciNihUID) {%>
-                                        <li>
-                                            <b>nciNihUID:</b>
-                                            <%=user.nciNihUID%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.workforceID) {%>
-                                        <li>
-                                            <b>workforceID:</b>
-                                            <%=user.workforceID%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.mail) {%>
-                                        <li>
-                                            <b>mail:</b>
-                                            <%=user.mail%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.givenName) {%>
-                                        <li>
-                                            <b>givenName:</b>
-                                            <%=user.givenName%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.fullName) {%>
-                                        <li>
-                                            <b>fullName:</b>
-                                            <%=user.fullName%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.telephoneNumber) {%>
-                                        <li>
-                                            <b>telephoneNumber:</b>
-                                            <%=user.telephoneNumber%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.sn) {%>
-                                        <li>
-                                            <b>sn:</b>
-                                            <%=user.sn%>
-                                        </li>
-                                    <%}%>
-
-                                        <li><b>ObjectClass</b></li>
-                                            <ul>
-                                                <% if (user.objectClass) {%>
-                                                    <% for(var j=0; j<user.objectClass.length; j++) {%>
-                                                        <li>
-                                                            <%=user.objectClass[j]%>
-                                                        </li>
-                                                    <%}%>
-                                                <%}%>
-                                            </ul>
-
-                                        <li><b>Groups</b></li>
-                                            <ul>
-                                                <% if (user.groupMembership) {%>
-                                                    <% for(var j=0; j<user.groupMembership.length; j++) {%>
-                                                        <li>
-                                                            <%=user.groupMembership[j]%>
-                                                        </li>
-                                                    <%}%>
-                                                <%}%>
-                                            </ul>
-
-                                    <% if (user.cn) {%>
-                                        <li>
-                                            <b>cn:</b>
-                                            <%=user.cn%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.uid) {%>
-                                        <li>
-                                            <b>uid:</b>
-                                            <%=user.uid%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.uidnumber) {%>
-                                        <li>
-                                            <b>uidnumber:</b>
-                                            <%=user.uidnumber%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.gidnumber) {%>
-                                        <li>
-                                            <b>gidnumber:</b>
-                                            <%=user.gidnumber%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.homedirectory) {%>
-                                        <li>
-                                            <b>homedirectory:</b>
-                                            <%=user.homedirectory%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.loginshell) {%>
-                                        <li>
-                                            <b>loginshell:</b>
-                                            <%=user.loginshell%>
-                                        </li>
-                                    <%}%>
-
-                                    <% if (user.uuid) {%>
-                                        <li>
-                                            <b>token:</b>
-                                            <%=user.uuid.uuid%> ### expires <%= new Date(user.uuid.expires)%>
-                                        </li>
-                                    <%}%>
-                                       
-
-                                    <% if (user.itrustinfo) {%>
-                                        <li>
-                                            <b>Mapping</b>
-                                        </li>
-                                        <ul>
-                                            <li>
-                                                <b>sm_userdn:</b>
-                                                <%=user.itrustinfo.sm_userdn%>
-                                            </li>
-                                            <li>
-                                                <b>processed:</b>
-                                                <%=user.itrustinfo.processed%>
-                                            </li>
-                                        </ul>
-                                    <%}%>
-
-                                    <% if (user.pubkeyinfo) {%>
-                                        <li>
-                                            <b>SSH Public Key</b>
-                                        </li>
-                                        <ul>
-                                            <li>
-                                                <b>text:</b>
-                                                <%=user.pubkeyinfo.key%>
-                                            </li>
-                                            <li>
-                                                <b>processed:</b>
-                                                <%=user.pubkeyinfo.processed%>
-                                            </li>
-                                        </ul>
-                                    <%}%>
-                                    <% if (user.logs) {%>
-                                    <li>
-                                        <b>Logs</b>
-                                    </li>
-                                    <ul>
-                                       
-                                            <% for(var j=0; j <user.logs.length; j++) {%>
-                                                <li>
-                                                    <%=user.logs[j]%>
-                                                </li>
-                                            <%}%>
-                                        
-                                    </ul>
-                                    <%}%>   
-
-                                     <% if (user.updated) {%>
-                                    <li>
-                                        <b>updated:</b>
-                                        <%=user.updated%>
-                                    </li>
-                                    <%}%>
-                                </ul>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        <%}%>
-
-                            <!-- --- end -->
-                            </div>
-                        </div>
-                        <%}%>
-
-                    </div>
-
             </div>
-
 </body>
 
 </html>

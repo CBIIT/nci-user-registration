@@ -101,7 +101,6 @@
                                                             <% for (var j=0; j<apps.length; j++) { var app = apps[j]; %>
                                                             <option value="<%=app._id%>" 
                                                                 <% if (app.name_lower === request.requested_app.toLowerCase()) { %>
-
                                                                 selected="selected"
                                                                 
                                                                 <% } %>
@@ -142,57 +141,6 @@
             </div>
         </div>
     </div>
-    <script>
-
-var groups = new Bloodhound({
-  datumTokenizer: Bloodhound.tokenizers.whitespace,
-  queryTokenizer: Bloodhound.tokenizers.whitespace,
-  prefetch: {
-      url: 'http://localhost:8090/apps/getAllGroups',
-      cache: false,
-      cacheKey: groups,
-      transform: function(response) {
-          return $.map(response, function(groupObj) {
-              return groupObj.dn;
-          });
-      }
-  }
-});
-
-$('#groupInput1 .typeahead').typeahead({
-  hint: true,
-  highlight: true,
-  minLength: 1,
-},
-{
-  name: 'groups',
-  source: groups,
-  limit: 8  
-});
-
-$('#groupInput2 .typeahead').typeahead({
-  hint: true,
-  highlight: true,
-  minLength: 1
-},
-{
-  name: 'groups',
-  source: groups,
-  limit: 8
-});
-
-$('#groupInput3 .typeahead').typeahead({
-  hint: true,
-  highlight: true,
-  minLength: 1
-},
-{
-  name: 'groups',
-  source: groups,
-  limit:8
-});
-
-        </script>
 </body>
 
 </html>

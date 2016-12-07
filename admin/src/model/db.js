@@ -323,20 +323,24 @@ module.exports = {
         });
     },
 
-    searchRequest: function (searchStr, cb) {
+    searchRequest: function (searchStr, disposition, cb) {
         var collection = db.collection(requestCollection);
 
         collection.find({
-            $or: [{
-                request_id: searchStr
+            $and: [{
+                approval: disposition
             }, {
-                requested_app: {
-                    $regex: searchStr
-                }
-            }, {
-                user_dn: {
-                    $regex: searchStr
-                }
+                $or: [{
+                    request_id: searchStr
+                }, {
+                    requested_app: {
+                        $regex: searchStr
+                    }
+                }, {
+                    user_dn: {
+                        $regex: searchStr
+                    }
+                }]
             }]
         }).toArray(
             function (err, results) {
@@ -482,6 +486,15 @@ module.exports = {
         });
         bulk.execute(function (err, result) {
             return cb(err, result.toJSON());
+        });
+    },
+    pendingApprovalCount: function (cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.count({
+            approval: 'unknown'
+        }, function (err, count) {
+            return cb(err, count);
         });
     }
 };

@@ -52,14 +52,14 @@ var router = function (logger, config, db, util) {
                             stats.processedCount = count;
                             //at least one search value
                             if (!searchObject.cn && !searchObject.email) {
-                                res.render('index', {
+                                res.render('users', {
                                     users: users,
                                     stats: stats
                                 });
                             } else {
                                 db.search(searchObject, function (err, results) {
                                     users = results;
-                                    res.render('index', {
+                                    res.render('users', {
                                         users: users,
                                         stats: stats
                                     });
@@ -84,7 +84,7 @@ var router = function (logger, config, db, util) {
                             stats.selfRegisteredCount = count;
                             db.processedCount(function (err, count) {
                                 stats.processedCount = count;
-                                res.render('index', {
+                                res.render('users', {
                                     users: users,
                                     stats: stats
                                 });

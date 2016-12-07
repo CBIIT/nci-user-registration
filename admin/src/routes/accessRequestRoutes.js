@@ -14,25 +14,45 @@ var router = function (logger, config, db, util) {
     accessRequestRouter.route('/')
         .get(function (req, res) {
 
-            var requests = [];
+            var searchStr = '';
+            var disposition = 'unknown';
+            var stats = {};
 
-            res.render('requests', {
-                requests: requests
+            db.pendingApprovalCount(function (err, count) {
+                stats.pendingApprovalCount = count;
+
+                db.searchRequest(searchStr, disposition, function (err, results) {
+                    var requests = results;
+                    db.getAllApps(function (err, results) {
+                        var apps = results;
+                        res.render('requests', {
+                            requests: requests,
+                            stats: stats,
+                            apps: apps,
+                            disposition: disposition
+                        });
+                    });
+
+                });
             });
         });
 
     accessRequestRouter.route('/request/:uuid')
         .get(function (req, res) {
             var uuid = req.params.uuid;
+            var stats = {};
 
-            db.getRequest(uuid, function (err, result) {
+            db.pendingApprovalCount(function (err, count) {
+                stats.pendingApprovalCount = count;
+                db.getRequest(uuid, function (err, result) {
 
-                var requests = result;
-                db.getAllApps(function (err, results) {
-                    var apps = results;
-                    res.render('requests', {
-                        requests: requests,
-                        apps: apps
+                    var requests = result;
+                    db.getAllApps(function (err, results) {
+                        var apps = results;
+                        res.render('requests', {
+                            requests: requests,
+                            apps: apps
+                        });
                     });
                 });
             });
@@ -57,8 +77,7 @@ var router = function (logger, config, db, util) {
 
                 db.approveRequest(requestId, approvedResource, function (err, result) {
 
-
-                    res.send('Approved');
+                    res.redirect('/requests');
                 });
 
             });
@@ -68,18 +87,25 @@ var router = function (logger, config, db, util) {
     accessRequestRouter.route('/search')
         .post(function (req, res) {
             var searchStr = req.body.query.toLowerCase().trim();
+            var disposition = req.body.disposition;
+            var stats = {};
 
+            db.pendingApprovalCount(function (err, count) {
+                stats.pendingApprovalCount = count;
 
-            db.searchRequest(searchStr, function (err, results) {
-                var requests = results;
-                db.getAllApps(function (err, results) {
-                    var apps = results;
-                    res.render('requests', {
-                        requests: requests,
-                        apps: apps
+                db.searchRequest(searchStr, disposition, function (err, results) {
+                    var requests = results;
+                    db.getAllApps(function (err, results) {
+                        var apps = results;
+                        res.render('requests', {
+                            requests: requests,
+                            stats: stats,
+                            apps: apps,
+                            disposition: disposition
+                        });
                     });
-                });
 
+                });
             });
         });
 
