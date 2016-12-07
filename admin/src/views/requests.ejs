@@ -132,14 +132,15 @@
                                                         <fieldset>
                                                             <label>Access level:</label>
                                                             <div class="radio">
-                                                                <label><input type="radio" name="acclevel" id="levelRadiosRead" value="read_groups" required>READ</label>
+                                                                <label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="read_access_checkbox" value="read_groups">READ</label>
                                                             </div>
                                                             <div class="radio">
-                                                                <label><input type="radio" name="acclevel" id="levelRadiosWrite" value="write_groups" required>READ/WRITE</label>
+                                                                <label for="write_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="write_access_checkbox" value="write_groups">READ/WRITE</label>
                                                             </div>
                                                             <div class="radio">
-                                                                <label><input type="radio" name="acclevel" id="levelRadiosAdmin" value="admin_groups" required>ADMIN</label>
+                                                                <label for="admin_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="admin_access_checkbox" value="admin_groups">ADMIN</label>
                                                             </div>
+                                                            <div class="help-block with-errors"></div>
                                                         </fieldset>
                                                     </div>
                                                     <div class="form-group">

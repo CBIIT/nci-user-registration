@@ -66,7 +66,7 @@ var router = function (logger, config, db, util) {
         .post(function (req, res) {
             var requestId = req.params.id;
             var appId = new objectId(req.body.app);
-            var accessLevel = req.body.acclevel;
+            var accessLevelArray = req.body.acclevel;
 
             var approvedResource = {};
 
@@ -75,13 +75,21 @@ var router = function (logger, config, db, util) {
 
                 approvedResource.app_id = appId;
                 approvedResource.app_name = app.name;
-                approvedResource.access_level = accessLevel;
-                approvedResource.groups = app[accessLevel];
+                approvedResource.access_level = accessLevelArray;
+                approvedResource.groups = [];
 
-                db.approveRequest(requestId, approvedResource, function (err, result) {
+                if (accessLevelArray) {
+                    accessLevelArray.forEach(function (accessLevel) {
+                        approvedResource.groups.push(app[accessLevel]);
+                    });
 
-                    res.redirect('/requests');
-                });
+                    db.approveRequest(requestId, approvedResource, function (err, result) {
+
+                        res.redirect('/requests');
+                    });
+                } else {
+                    res.send('Error: No access level selected');
+                }
 
             });
 
