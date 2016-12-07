@@ -40,6 +40,7 @@ var router = function (logger, config, db, util) {
     accessRequestRouter.route('/request/:uuid')
         .get(function (req, res) {
             var uuid = req.params.uuid;
+            var disposition = 'unknown';
             var stats = {};
 
             db.pendingApprovalCount(function (err, count) {
@@ -52,7 +53,8 @@ var router = function (logger, config, db, util) {
                         res.render('requests', {
                             requests: requests,
                             stats: stats,
-                            apps: apps
+                            apps: apps,
+                            disposition: disposition
                         });
                     });
                 });
