@@ -161,7 +161,8 @@ function updateGroups(ou, groupType, logger, config, db, util) {
         var groupSearchOptions = {
             scope: 'sub',
             attributes: config.ldapproxy.group_attributes,
-            paged: true
+            paged: true,
+            sizeLimit: 1000
         };
 
         ldapClient.bind(config.ldapproxy.dn, config.ldapproxy.password, function (err) {
