@@ -51,6 +51,7 @@ var router = function (logger, config, db, util) {
                         var apps = results;
                         res.render('requests', {
                             requests: requests,
+                            stats: stats,
                             apps: apps
                         });
                     });
