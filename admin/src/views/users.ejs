@@ -47,7 +47,7 @@
             <div class="col-sm-2 side-panel">
             Total Users: <%=stats.totalUsers%> <br />
             External: <%=stats.externalUserCount%> <br />
-            Self-Registered: <%=stats.selfRegisteredCount%> <br />
+            Registered: <%=stats.selfRegisteredCount%> <br />
             Processed: <%=stats.processedCount%>    
             </div>
 
@@ -289,6 +289,10 @@
                                                 <b>processed:</b>
                                                 <%=user.itrustinfo.processed%>
                                             </li>
+                                            <% if (user.itrustinfo.override) { %> 
+                                                <b>override:</b>
+                                                <%=user.itrustinfo.override%>
+                                            <%}%>
                                         </ul>
                                     <%} else { %>
                                         <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal">Set Mapping</button>

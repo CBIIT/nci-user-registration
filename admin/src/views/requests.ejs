@@ -85,39 +85,69 @@
                                     </div>
                                     <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numReqs === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
                                         <div class="panel-body">
-                                            <p>Request Status:
-                                                <%=request.approval === 'unknown' ? 'Pending Approval' : request.approval.toUpperCase()%>
-                                            </p>
-                                            <p>Request ID:
-                                                <% if (request.request_id) {%>
-                                                    <%=request.request_id%>
-                                                        <%}%>
-                                            </p>
-                                            <p>User Display Name:
-                                                <% if (request.display_name) {%>
-                                                    <%=request.display_name%>
-                                                        <%}%>
-                                            </p>
-                                            <p>Requested application:
-                                                <% if (request.requested_app) {%>
-                                                    <%=request.requested_app%>
-                                                        <%}%>
-                                            </p>
-                                            <p>User DN:
-                                                <% if (request.user_dn) {%>
-                                                    <%=request.user_dn%>
-                                                        <%}%>
-                                            </p>
-                                            <p>Requested Access Level:
-                                                <% if (request.requested_access_level) {%>
-                                                    <%=request.requested_access_level%>
-                                                        <%}%>
-                                            </p>
-                                            <p>User Justification:
-                                                <% if (request.justification) {%>
-                                                    <%=request.justification%>
-                                                        <%}%>
-                                            </p>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th width="40%">Access Request Information</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Request Status</td>
+                                                        <td>
+                                                            <%=request.approval === 'unknown' ? 'Pending Approval' : request.approval.toUpperCase()%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Request ID</td>
+                                                        <td>
+                                                            <% if (request.request_id) {%>
+                                                                <%=request.request_id%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>User Name</td>
+                                                        <td>
+                                                            <% if (request.display_name) {%>
+                                                                <%=request.display_name%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Requested Application</td>
+                                                        <td>
+                                                            <% if (request.requested_app) {%>
+                                                                <%=request.requested_app%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>User DN</td>
+                                                        <td>
+                                                            <% if (request.user_dn) {%>
+                                                                <%=request.user_dn%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Requested Access Level</td>
+                                                        <td>
+                                                            <% if (request.requested_access_level) {%>
+                                                                <%=request.requested_access_level%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>User Justification</td>
+                                                        <td>
+                                                            <% if (request.justification) {%>
+                                                                <%=request.justification%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                             <%if (request.approval === 'unknown') { %>
                                                 <p>
                                                     <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
@@ -161,24 +191,41 @@
                                                     </form>
                                                 </p>
                                                 <% } else if (request.approval === 'approved') { %>
-                                                    <p>
-                                                        Approved Resources:
-                                                    </p>
-                                                    <p>
-                                                        <ul>
-                                                            <li>Application:
-                                                                <%=request.approved_resource.app_name%>
-                                                            </li>
-                                                            <li>
-                                                                Access Roles:
-                                                                <%= request.approved_resource.access_level.join() %>
-                                                            </li>
-                                                            <li>
-                                                                Groups:
-                                                                <%=[].concat.apply([], request.approved_resource.groups).join(' ### ') %>
-                                                            </li>
-                                                        </ul>
-                                                    </p>
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="40%">Approved Resources</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Application</td>
+                                                                <td>
+                                                                    <%=request.approved_resource.app_name%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Access Roles</td>
+                                                                <td>
+                                                                    <%= request.approved_resource.access_level.join() %>
+                                                                </td>
+                                                            </tr>
+                                                             <% var groups = [].concat.apply([], request.approved_resource.groups); %>
+                                                            <tr>
+                                                                <td>Groups</td>
+                                                                <td><%=groups[0]%></td>
+                                                            </tr>
+                                                           
+                                                            <% for (var g=1; g < groups.length; g++) { %>
+                                                                <tr>
+                                                                    <td></td>
+                                                                    <td>
+                                                                        <%=groups[g]%>
+                                                                    </td>
+                                                                </tr>
+                                                                <%}%>
+                                                        </tbody>
+                                                    </table>
                                                     <% } %>
                                         </div>
                                     </div>
