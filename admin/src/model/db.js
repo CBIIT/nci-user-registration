@@ -154,6 +154,23 @@ module.exports = {
         });
     },
 
+    isSmUserDnRegistered(itrustInfo, cb) {
+        var collection = db.collection(usersCollection);
+        collection.count({
+            'itrustinfo.sm_userdn': itrustInfo.sm_userdn
+        }, function (err, result) {
+            if (err) {
+                loggerRef.error('Failed to get count of sm_userdn ' + itrustInfo.sm_userdn + ' mappings');
+            }
+            if (result === 0) {
+                cb(err, false);
+            } else {
+                cb(err, true);
+            }
+        });
+
+    },
+
     insertUsers: function (users, cb) {
         var collection = db.collection(usersCollection);
         collection.insertMany(users, {
