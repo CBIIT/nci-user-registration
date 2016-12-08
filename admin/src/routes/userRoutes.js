@@ -120,7 +120,7 @@ var router = function (logger, config, db, util) {
                     ldapRes.on('error', function (err) {
                         ldapClient.unbind();
                         logger.error('error: ' + err.message);
-                        throw err;
+                        res.send('There was an error while processing user updates. More information is available in the logs.');
                     });
                     ldapRes.on('end', function () {
                         ldapClient.unbind();
