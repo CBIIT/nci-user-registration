@@ -45,9 +45,9 @@
 
         <div class="row">
             <div class="col-sm-2 side-panel">
-            Total Users: <%=stats.totalUsers%> </br>
-            External: <%=stats.externalUserCount%> </br>
-            Self-Registered: <%=stats.selfRegisteredCount%> </br>
+            Total Users: <%=stats.totalUsers%> <br />
+            External: <%=stats.externalUserCount%> <br />
+            Self-Registered: <%=stats.selfRegisteredCount%> <br />
             Processed: <%=stats.processedCount%>    
             </div>
 
@@ -79,7 +79,6 @@
 
                 <div class="row">
                     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                <!-- --- end -->
 
                 <% for(var i=0; i < numUsers; i++) { var user = users[i];  %>
 
@@ -95,7 +94,7 @@
                                 <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numUsers === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>" >
                                     <div class="panel-body">
                                       
-                                        <ul>
+                                    <ul>
                                     <% if (user.entrustuser) {%>
                                         <li>
                                             <b>entrustuser:</b>
@@ -194,6 +193,8 @@
                                                 <%}%>
                                             </ul>
 
+                                    
+                                    
                                     <% if (user.cn) {%>
                                         <li>
                                             <b>cn:</b>
@@ -244,10 +245,41 @@
                                     <%}%>
                                        
 
+                                    <li>
+                                        <b>Mapping</b> 
+                                    </li>
+                                     <!-- Modal -->
+                                    <div class="modal fade" id="iTrustModal" role="dialog">
+                                        <div class="modal-dialog">
+                                        
+                                        <!-- Modal content-->
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Set/Override sm_userdn</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="/users/user/<%=user._id%>/setItrustInfo" method="post" data-toggle="validator">
+                                                  <div class="form-group">
+                                                    <label for="sm_userdn" class="form-control-label">sm_userdn:</label>
+                                                    <input type="text" class="form-control" name="sm_userdn" id="sm_userdn" data-error="sm_userdn is required." required <% if (user.itrustinfo) {%> value="<%=user.itrustinfo.sm_userdn %>" <%}%> >
+                                                    <div class="help-block with-errors"></div>
+                                                </div>  
+                                                <p>Caution: submitting the form will map the user account to the submitted sm_userdn.</p>
+                                                <div class="modal-footer">
+                                                   <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                   <button type="submit" class="btn btn-primary">Submit</button>
+                                                </div>
+                                                </form>
+                                                
+                                            </div>
+                                            
+                                        </div>
+                                        
+                                        </div>
+                                    </div>
                                     <% if (user.itrustinfo) {%>
-                                        <li>
-                                            <b>Mapping</b>
-                                        </li>
+                                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal">Override</button>
                                         <ul>
                                             <li>
                                                 <b>sm_userdn:</b>
@@ -258,7 +290,9 @@
                                                 <%=user.itrustinfo.processed%>
                                             </li>
                                         </ul>
-                                    <%}%>
+                                    <%} else { %>
+                                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal">Set Mapping</button>
+                                    <% } %>
 
                                     <% if (user.pubkeyinfo) {%>
                                         <li>
@@ -276,10 +310,10 @@
                                         </ul>
                                     <%}%>
                                     <% if (user.logs) {%>
-                                    <li>
-                                        <b>Logs</b>
-                                    </li>
-                                    <ul>
+                                        <li>
+                                            <b>Logs</b>
+                                        </li>
+                                        <ul>
                                        
                                             <% for(var j=0; j <user.logs.length; j++) {%>
                                                 <li>
@@ -287,7 +321,7 @@
                                                 </li>
                                             <%}%>
                                         
-                                    </ul>
+                                        </ul>
                                     <%}%>   
 
                                      <% if (user.updated) {%>
@@ -304,14 +338,14 @@
 
                         <%}%>
 
-                            <!-- --- end -->
                             </div>
                         </div>
                         <%}%>
 
                     </div>
 
-            </div>
+        </div>
+    </div>
 
 </body>
 

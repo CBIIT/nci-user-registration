@@ -23,11 +23,11 @@ var router = function (logger, config, db, util) {
         .get(function (req, res) {
             var id = new objectId(req.params.id);
 
-            db.getUser(id, function (err, results) {
+            db.getUser(id, function (err, result) {
                 if (err) {
                     throw err;
                 }
-                res.send(id);
+                res.send(result);
 
             });
         });
@@ -145,6 +145,18 @@ var router = function (logger, config, db, util) {
             });
         });
 
+    userRouter.route('/getItrustOverrides')
+        .get(function (req, res) {
+            logger.info('Itrust overrides requested.');
+            db.getOverridenItrustUsers(function (err, users) {
+                for (var i = 0; i < users.length; i++) {
+                    users[i]._id = users[i]._id.toString();
+                }
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('users', users, parserOptions));
+            });
+        });
+
     userRouter.route('/flagItrustUpdates')
         .post(function (req, res) {
 
@@ -186,6 +198,53 @@ var router = function (logger, config, db, util) {
                 logger.info('Flagging result: ' + JSON.stringify(result));
                 res.set('Content-Type', 'text/xml');
                 res.send(js2xmlparser('result', result, parserOptions));
+            });
+        });
+
+    userRouter.route('/user/:id/setItrustInfo')
+        .post(function (req, res) {
+            var userId = new objectId(req.params.id);
+            var smUserDN = req.body.sm_userdn.trim().toLowerCase();
+
+            db.getUser(userId, function (err, result) {
+                if (err) {
+                    throw err;
+                }
+                var user = result;
+                var newItrustInfo = {};
+                if (user.itrustinfo && user.itrustinfo.processed) {
+                    // This is an override
+                    logger.info('Overriding itrustinfo mapping for user DN' + user.dn);
+                    if (smUserDN !== user.itrustinfo.sm_userdn) {
+                        newItrustInfo.sm_userdn = smUserDN;
+                        newItrustInfo.processed = false;
+                        newItrustInfo.override = true;
+
+                        db.setMappingByUserId(userId, newItrustInfo, function (err) {
+                            if (err) {
+                                res.send('Error: Failed setting itrustInfo - ' + err);
+                            } else {
+                                db.log(user, 'itrustinfo mapping changed from ' + user.itrustinfo.sm_userdn + ' to ' + smUserDN);
+                                res.send('Override completed successfully');
+                            }
+                        });
+                    } else {
+                        res.send('Nothing to change');
+                    }
+                } else {
+                    // This is a new mapping performed by the admin, or an override of an unprocessed record.
+                    newItrustInfo.sm_userdn = smUserDN;
+                    newItrustInfo.processed = false;
+
+                    db.setMappingByUserId(userId, newItrustInfo, function (err) {
+                        if (err) {
+                            res.send('Error: Failed setting itrustInfo - ' + err);
+                        } else {
+                            db.logWithUserID(userId, 'itrustinfo set by admin to ' + smUserDN);
+                            res.send('ItrustInfo set successfully');
+                        }
+                    });
+                }
             });
         });
 

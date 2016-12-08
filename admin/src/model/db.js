@@ -86,6 +86,17 @@ module.exports = {
         });
     },
 
+    logWithUserID: function (userId, message) {
+        var collection = db.collection(usersCollection);
+        collection.updateOne({
+            '_id': userId
+        }, {
+            $push: {
+                logs: utilRef.ts() + message
+            }
+        });
+    },
+
     updateUUID: function (userObject, uuid, cb) {
         var collection = db.collection(usersCollection);
         collection.updateOne({
@@ -122,6 +133,22 @@ module.exports = {
         }, function (err) {
             if (err) {
                 loggerRef.error('Failed to persist itrustinfo for ' + userObject.username);
+            }
+            cb(err);
+        });
+    },
+
+    setMappingByUserId: function (userId, itrustInfo, cb) {
+        var collection = db.collection(usersCollection);
+        collection.updateOne({
+            '_id': userId
+        }, {
+            $set: {
+                itrustinfo: itrustInfo
+            }
+        }, function (err) {
+            if (err) {
+                loggerRef.error('Failed to persist itrustinfo for user ID ' + userId);
             }
             cb(err);
         });
@@ -200,7 +227,34 @@ module.exports = {
     getUnprocessedItrustUsers: function (cb) {
         var collection = db.collection(usersCollection);
         collection.find({
-            'itrustinfo.processed': false
+            'itrustinfo.processed': false,
+            'itrustinfo.override': {
+                $exists: false
+            }
+        }, {
+            'entrustuser': 1,
+            'dn': 1,
+            'extracted_dn_username': 1,
+            'mail': 1,
+            'objectClass': 1,
+            'groupMembership': 1,
+            'uidnumber': 1,
+            'gidnumber': 1,
+            'homedirectory': 1,
+            'loginshell': 1,
+            'itrustinfo': 1
+        }).toArray(function (err, results) {
+            return cb(err, results);
+        });
+    },
+
+    getOverridenItrustUsers: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.find({
+            'itrustinfo.processed': false,
+            'itrustinfo.override': {
+                $exists: true
+            }
         }, {
             'entrustuser': 1,
             'dn': 1,
