@@ -40,6 +40,18 @@
                 <h3>ADMIN PORTAL</h3>
             </div>
         </div>
+        <% if (typeof alert !== 'undefined' && alert !== null) { %>
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2">
+                <div class="alert <%=alert.severity_class%> alert-dismissible fade in" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                    <strong><%=alert.message%></strong> 
+                </div>
+            </div>
+        </div>
+        <%}%>
         <div class="row">
             <div class="col-sm-8 col-sm-offset-2 main-content">
                 <div class="row">
@@ -51,10 +63,39 @@
                                 <!-- <div class="help-block with-errors"></div> -->
                             </div>
                             <button type="submit" class="btn btn-default">Search</button>
-                            <a class="btn btn-default" href="/apps/app/add" role="button">New App</a>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#appModal" data-app="" data-description=""
+                                dat-id="">New App</button>
                         </form>
                     </div>
-                    <div>
+                    <!-- Modal New/Edit app form -->
+                    <div class="modal fade" id="appModal" role="dialog">
+                        <div class="modal-dialog">
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title"></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/apps/app/addorupdate" method="post" data-toggle="validator">
+                                        <input type="hidden" name="appId" id="appId">
+                                        <div class="form-group">
+                                            <label for="name">Name</label>
+                                            <input type="text" class="form-control" id="name" name="name" data-error="App name is required." required>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="description">Description</label>
+                                            <textarea class="form-control" rows="6" id="description" name="description"></textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <% if (apps.length > 0) {  var numApps = apps.length; %>
@@ -79,7 +120,8 @@
                                                         <%}%>
                                             </p>
                                             <p>
-                                                <a href="/apps/app/edit/<%=app._id%>">edit app information</a>
+                                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>" data-description="<%=app.description%>"
+                                                    data-id="<%=app._id%>">edit app information</button>
                                             </p>
                                             <table class="table">
                                                 <thead>
@@ -254,6 +296,20 @@ $('#groupInput3 .typeahead').typeahead({
   source: groups,
   limit:8
 });
+
+$('#appModal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget) 
+  var appName = button.data('app') 
+  var appId = button.data('id');
+  var appDescription = button.data('description');
+  
+  var modal = $(this)
+  var title = appName ? 'Edit Application ' + appName : 'New Application';
+  modal.find('.modal-title').text(title)
+  modal.find('.modal-body #name').val(appName)
+  modal.find('.modal-body #appId').val(appId)
+  modal.find('.modal-body #description').val(appDescription)
+})
 
 var anchor = <%- JSON.stringify(anchor) %>;
 window.onload = window.location.hash = anchor;

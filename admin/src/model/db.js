@@ -376,19 +376,31 @@ module.exports = {
 
     addApplication: function (appObject, cb) {
         var collection = db.collection(appsCollection);
+        collection.insertOne({
+            name: appObject.name,
+            name_lower: appObject.name_lower,
+            description: appObject.description
+        }, function (err, result) {
+            if (err) {
+                loggerRef.error('Error: Failed to create application ' + appObject.name + ': ' + err);
+            }
+            cb(err, result);
+        });
+    },
+
+    updateApplication: function (appId, appObject, cb) {
+        var collection = db.collection(appsCollection);
         collection.updateOne({
-            'name_lower': appObject.name_lower,
+            '_id': appId,
         }, {
             $set: {
                 name: appObject.name,
                 name_lower: appObject.name_lower,
                 description: appObject.description
             }
-        }, {
-            upsert: true
         }, function (err) {
             if (err) {
-                loggerRef.error('Failed to persist application ' + appObject.name);
+                loggerRef.error('Failed to update application ' + appObject.name);
             }
             cb(err);
         });
@@ -436,6 +448,31 @@ module.exports = {
             function (err, results) {
                 cb(err, results);
             });
+    },
+
+    appExistsCheck: function (name, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.count({
+            name_lower: name.toLowerCase()
+        }, function (err, count) {
+            var result = count === 0 ? false : true;
+            return cb(err, result);
+        });
+    },
+
+    appExistsCheck2: function (id, name, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.count({
+            _id: {
+                $ne: id
+            },
+            name_lower: name.toLowerCase()
+        }, function (err, count) {
+            var result = count === 0 ? false : true;
+            return cb(err, result);
+        });
     },
 
     getApp: function (id, cb) {

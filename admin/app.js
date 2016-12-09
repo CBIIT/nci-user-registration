@@ -37,6 +37,10 @@ db.connect(logger, config, util, function (err) {
         resave: true,
         saveUninitialized: false,
         cookie: {
+            //domain: '.nih.gov',
+            domain: config.express.session.domain,
+            path: '/',
+            httpOnly: true,
             maxAge: config.express.session.cookie_maxage
         },
         maxAge: config.express.session.maxAge,
@@ -55,7 +59,7 @@ db.connect(logger, config, util, function (err) {
         res.render('index');
     });
 
- 
+
     app.use('/users', userRouter);
     app.use('/apps', appRouter);
     app.use('/requests', accessRequestRouter);

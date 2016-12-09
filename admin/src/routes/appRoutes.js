@@ -13,12 +13,36 @@ var router = function (logger, config, db, util) {
 
     appRouter.route('/')
         .get(function (req, res) {
-
+            var alert = null;
+            if (req.session.alert) {
+                alert = req.session.alert;
+                req.session.alert = null;
+            }
             db.searchApp('', function (err, results) {
                 var apps = results;
                 res.render('apps', {
                     apps: apps,
-                    anchor: '#'
+                    anchor: '#',
+                    alert: alert ? alert : null
+                });
+            });
+        });
+
+    appRouter.route('/app/:id')
+        .get(function (req, res) {
+            var alert = null;
+            if (req.session.alert) {
+                alert = req.session.alert;
+                req.session.alert = null;
+            }
+
+            var appId = new objectId(req.params.id);
+
+            db.getApp(appId, function (err, results) {
+                res.render('apps', {
+                    apps: results,
+                    anchor: '#',
+                    alert: alert ? alert : null
                 });
             });
         });
@@ -57,48 +81,63 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    appRouter.route('/app/add')
-        .get(function (req, res) {
-            res.render('newApp', {
-                name: null,
-                description: null
-            });
-        });
-
-
-    appRouter.route('/app/add')
+    appRouter.route('/app/addorupdate')
         .post(function (req, res) {
+            var appIdStr = req.body.appId.trim();
+            var appIdObj;
+            if (appIdStr) {
+                appIdObj = new objectId(appIdStr);
+            }
+
             var name = req.body.name.trim();
             var name_lower = name.toLowerCase();
             var description = req.body.description.trim();
+
             var appObject = {
                 name: name,
                 name_lower: name_lower,
                 description: description
             };
 
-            db.addApplication(appObject, function () {
-                logger.info('Added or updated application ' + name);
-
-                db.searchApp(name_lower, function (err, results) {
-                    var apps = results;
-                    res.render('apps', {
-                        apps: apps,
-                        anchor: '#'
-                    });
+            if (appIdObj) {
+                db.appExistsCheck2(appIdObj, name_lower, function (err, exists) {
+                    if (exists) {
+                        logger.error('Failed to update application. An application ' + name + ' already exists.');
+                        var alert = {
+                            message: 'Error: Failed to update application! Application ' + name + ' already exists.',
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/apps');
+                    } else {
+                        db.updateApplication(appIdObj, appObject, function (err) {
+                            logger.info('Modified application ' + name);
+                            res.redirect('/apps/app/' + appIdStr);
+                        });
+                    }
                 });
-            });
-        });
-
-    appRouter.route('/app/edit/:id')
-        .get(function (req, res) {
-            var appId = new objectId(req.params.id);
-            db.getSingleApp(appId, function (err, result) {
-                res.render('newApp', {
-                    name: result.name,
-                    description: result.description
+            } else {
+                db.appExistsCheck(name_lower, function (err, exists) {
+                    if (exists) {
+                        logger.error('Failed to create application. An application with this name already exists.');
+                        var alert = {
+                            message: 'Error: Failed to create application! Application ' + name + ' already exists.',
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/apps');
+                    } else {
+                        db.addApplication(appObject, function (err, result) {
+                            if (err) {
+                                res.send('Failed to create application: ' + err);
+                            } else {
+                                logger.info('Added application ' + name);
+                                res.redirect('/apps/app/' + result.insertedId);
+                            }
+                        });
+                    }
                 });
-            });
+            }
         });
 
     appRouter.route('/getAllGroups')
