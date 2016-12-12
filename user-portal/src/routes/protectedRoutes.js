@@ -37,9 +37,6 @@ var router = function (logger, config, db, mailer) {
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
             res.redirect('/logoff?mappingerror=true');
-        } else if (!sm_userdn) {
-            logger.error('Failed to map with uuid' + uuid + ': sm_userdn undefined!');
-            res.redirect('/logoff?mappingerror=true');
         } else if (userAuthType !== 'federated') {
             logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is not federated!');
             db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
