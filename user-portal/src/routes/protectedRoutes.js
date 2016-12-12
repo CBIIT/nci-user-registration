@@ -30,8 +30,9 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var sm_userdn = req.get('sm_userdn').toLowerCase();
+        var sm_userdn = req.get('sm_userdn').toLowerCase().trim();
         var userAuthType = req.get('user_auth_type').toLowerCase();
+        var dnTester = new RegExp('^cn=.*,dc=nih,dc=gov$');
 
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
@@ -43,11 +44,29 @@ var router = function (logger, config, db, mailer) {
             logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is not federated!');
             db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
+        } else if (sm_userdn === '') {
+            logger.warn('User account was provisioned, but sm_userdn is empty. Try mapping again in 24 hours.');
+            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + req.headers);
+            mailer.send(config.mail.admin_list, 'Empty sm_userdn registration attempt', 'Headers: ' + req.headers);
+            res.redirect('/logoff?pending=true');
+        } else if (!sm_userdn.match(dnTester)) {
+            logger.warn('Registration attempted with invalid sm_userdn: ' + sm_userdn + '. Completing registration and setting processing to manual.');
+
+
         } else {
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
             itrustInfo.processed = false;
+
+            var validDN = true;
+
+            if (!sm_userdn.match(dnTester)) {
+                validDN = false;
+                logger.warn('Registration attempted with invalid sm_userdn: ' + sm_userdn + '. Completing registration and setting processing to manual.');
+                itrustInfo.processed = 'manual';
+            }
+
 
             // check if iTrust info was already mapped to another account
             db.isSmUserDnRegistered(itrustInfo, function (err, result) {
@@ -65,15 +84,21 @@ var router = function (logger, config, db, mailer) {
                             res.redirect('/logoff?mappingerror=true');
                         } else {
                             logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
-                            logger.info('Praparing successful resistration email to ' + userObject.username);
-                            db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
-                            var subject = config.mail.subjectPrefix + ' ### Your account was registered';
-                            var message = '<p>Your account was registered successfully.</p>' +
-                                '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
-                                '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
-                            mailer.send(userObject.email, subject, message);
 
-                            res.redirect('/logoff?mapped=true');
+                            if (validDN) {
+                                logger.info('Praparing successful resistration email to ' + userObject.username);
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
+                                var subject = config.mail.subjectPrefix + ' ### Your account was registered';
+                                var message = '<p>Your account was registered successfully.</p>' +
+                                    '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
+                                    '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
+                                mailer.send(userObject.email, subject, message);
+                                res.redirect('/logoff?mapped=true');
+                            } else {
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Processing was set to manual and needs to be resolved. Headers: ' + req.headers);
+                                mailer.send(config.mail.admin_list, 'Registration with invalid sm_userdn', 'Headers: ' + req.headers);
+                                res.redirect('logoff?invaliddn=true');
+                            }
                         }
                     });
                 }
