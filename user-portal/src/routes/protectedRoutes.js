@@ -5,7 +5,7 @@ var router = function (logger, config, db, mailer) {
 
     protectedRouter.route('/whoami')
         .get(function (req, res) {
-            res.send(req.get('smuserdn'));
+            res.send(req.get('sm_userdn'));
         });
 
     protectedRouter.route('/map/:id')
@@ -24,7 +24,7 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var sm_userdn = req.get('smuserdn').toLowerCase();
+        var sm_userdn = req.get('sm_userdn').toLowerCase();
         var userAuthType = req.get('user_auth_type').toLowerCase();
 
         if (!(username && email)) {
@@ -86,7 +86,7 @@ var router = function (logger, config, db, mailer) {
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
             pubkeyInfo.processed = false;
-            var smUserDN = req.get('smuserdn').toLowerCase();
+            var smUserDN = req.get('sm_userdn').toLowerCase();
 
             db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
                 if (err) {
