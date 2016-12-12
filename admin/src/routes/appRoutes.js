@@ -225,7 +225,7 @@ function updateGroups(ou, groupType, logger, config, db, util) {
                 });
                 ldapRes.on('end', function () {
                     ldapClient.unbind();
-                    db.insertGroups(groups, function () {
+                    db.reloadGroups(groups, function () {
                         resolve('Success!');
                     });
 

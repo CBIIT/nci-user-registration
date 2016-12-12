@@ -175,17 +175,24 @@ module.exports = {
         var collection = db.collection(usersCollection);
         collection.insertMany(users, {
             ordered: false
-        }, function (err, results) {
+        }, function () {
             cb();
         });
     },
 
-    insertGroups: function (groups, cb) {
+    reloadGroups: function (groups, cb) {
         var collection = db.collection(groupsCollection);
-        collection.insertMany(groups, {
-            ordered: false
-        }, function (err, results) {
-            cb();
+        collection.remove({}, function () {
+            collection.insertMany(groups, {
+                ordered: false
+            }, function () {
+                // this.getAllApps(function (err, apps) {
+                //     apps.forEach(function (app) {
+
+                //     });
+                // });
+                cb();
+            });
         });
     },
 
