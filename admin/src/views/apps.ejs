@@ -41,211 +41,142 @@
             </div>
         </div>
         <% if (typeof alert !== 'undefined' && alert !== null) { %>
-        <div class="row">
-            <div class="col-sm-8 col-sm-offset-2">
-                <div class="alert <%=alert.severity_class%> alert-dismissible fade in" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <div class="alert <%=alert.severity_class%> alert-dismissible fade in" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
-                    <strong><%=alert.message%></strong> 
+                        <strong><%=alert.message%></strong>
+                    </div>
                 </div>
             </div>
-        </div>
-        <%}%>
-        <div class="row">
-            <div class="col-sm-8 col-sm-offset-2 main-content">
+            <%}%>
                 <div class="row">
-                    <div>
-                        <form class="form-inline" action="/apps/search" method="post" data-toggle="validator">
-                            <div class="form-group">
-                                <label for="name">Name</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="App name">
-                                <!-- <div class="help-block with-errors"></div> -->
+                    <div class="col-sm-8 col-sm-offset-2 main-content">
+                        <div class="row">
+                            <div>
+                                <form class="form-inline" action="/apps/search" method="post" data-toggle="validator">
+                                    <div class="form-group">
+                                        <label for="name">Name</label>
+                                        <input type="text" class="form-control" id="name" name="name" placeholder="App name">
+                                        <!-- <div class="help-block with-errors"></div> -->
+                                    </div>
+                                    <button type="submit" class="btn btn-default">Search</button>
+                                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#appModal" data-app="" data-description=""
+                                        dat-id="">New App</button>
+                                </form>
                             </div>
-                            <button type="submit" class="btn btn-default">Search</button>
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#appModal" data-app="" data-description=""
-                                dat-id="">New App</button>
-                        </form>
-                    </div>
-                    <!-- Modal New/Edit app form -->
-                    <div class="modal fade" id="appModal" role="dialog">
-                        <div class="modal-dialog">
-                            <!-- Modal content-->
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title"></h4>
-                                </div>
-                                <div class="modal-body">
-                                    <form action="/apps/app/addorupdate" method="post" data-toggle="validator">
-                                        <input type="hidden" name="appId" id="appId">
-                                        <div class="form-group">
-                                            <label for="name">Name</label>
-                                            <input type="text" class="form-control" id="name" name="name" data-error="App name is required." required>
-                                            <div class="help-block with-errors"></div>
+                            <!-- Modal New/Edit app form -->
+                            <div class="modal fade" id="appModal" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title"></h4>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="description">Description</label>
-                                            <textarea class="form-control" rows="6" id="description" name="description"></textarea>
+                                        <div class="modal-body">
+                                            <form action="/apps/app/addorupdate" method="post" data-toggle="validator">
+                                                <input type="hidden" name="appId" id="appId">
+                                                <div class="form-group">
+                                                    <label for="name">Name</label>
+                                                    <input type="text" class="form-control" id="name" name="name" data-error="App name is required." required>
+                                                    <div class="help-block with-errors"></div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="description">Description</label>
+                                                    <textarea class="form-control" rows="6" id="description" name="description"></textarea>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                                </div>
+                                            </form>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-primary">Submit</button>
-                                        </div>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <% if (apps.length > 0) {  var numApps = apps.length; %>
-                    <div class="row">
-                        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                            <% for(var i=0; i < numApps; i++) { var app = apps[i];  %>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="heading<%=i%>">
-                                        <h4 class="panel-title">
-                                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
-                                                aria-expanded=<% if (numApps===1 ) { %>"true"<%} else {%>"false"<%}%> >
+                        <% if (apps.length > 0) {  var numApps = apps.length; %>
+                            <div class="row">
+                                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                    <% for(var i=0; i < numApps; i++) { var app = apps[i];  %>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="heading<%=i%>">
+                                                <h4 class="panel-title">
+                                                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
+                                                        aria-expanded=<% if (numApps===1 ) { %>"true"<%} else {%>"false"<%}%> >
                                             <%=app.name%>
                                         </a>
-                                        </h4>
-                                    </div>
-                                    <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numApps === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
-                                        <div class="panel-body">
-                                            <p>
-                                                <% if (app.description) {%>
-                                                    Description:
-                                                    <%=app.description%>
-                                                        <%}%>
-                                            </p>
-                                            <p>
-                                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>" data-description="<%=app.description%>"
-                                                    data-id="<%=app._id%>">edit app information</button>
-                                            </p>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Read Access Groups</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% if (app.read_groups) { 
-                                                        var numReadGroups = app.read_groups.length;
-                                                        for (var j=0; j < numReadGroups; j++) { 
-                                                            var group = app.read_groups[j];   
-                                                    {%>
-                                                        <tr>
-                                                            <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/read_groups/remove/<%=group%>"
-                                                                        class="btn btn-link btn-xs" role="button">Remove</a>
-                                                            </td>
-                                                        </tr>
-                                                        <%}}}%>
-                                                            <tr>
-                                                                <td width="50%"></td>
-                                                                <td>
-                                                                    <a name="<%=app._id%>_read_groups"></a>
-                                                                    <form action="/apps/app/<%=app._id%>/groups/read_groups/add" method="post" data-toggle="validator">
-                                                                        <div id="groupInput1">
-                                                                            <div class="form-group">
-                                                                                <label for="group">DN</label>
-                                                                                <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for READ access" data-error="Group DN is required."
-                                                                                    required>
-                                                                            </div>
-                                                                            <button type="submit" class="btn btn-default" style="float: right;">Add</button>
-                                                                            <div class="help-block with-errors"></div>
-                                                                        </div>
-                                                                    </form>
-                                                                </td>
-                                                            </tr>
-                                                </tbody>
-                                            </table>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Write Access Groups</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% if (app.write_groups) { 
-                                                        var numWriteGroups = app.write_groups.length;
-                                                        for (var s=0; s < numWriteGroups; s++) { 
-                                                            var group = app.write_groups[s];   
-                                                    {%>
-                                                        <tr>
-                                                            <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/write_groups/remove/<%=group%>"
-                                                                        class="btn btn-link btn-xs" role="button">Remove</a>
-                                                            </td>
-                                                        </tr>
-                                                        <%}}}%>
-                                                            <tr>
-                                                                <td width="50%"></td>
-                                                                <td>
-                                                                    <a name="<%=app._id%>_write_groups"></a>
-                                                                    <form action="/apps/app/<%=app._id%>/groups/write_groups/add" method="post" data-toggle="validator">
-                                                                        <div id="groupInput2">
-                                                                            <div class="form-group">
-                                                                                <label for="group">DN</label>
-                                                                                <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for READ/WRITE access" data-error="Group DN is required."
-                                                                                    required>
-                                                                            </div>
-                                                                            <button type="submit" class="btn btn-default" style="float: right;">Add</button>
-                                                                            <div class="help-block with-errors"></div>
-                                                                        </div>
-                                                                    </form>
-                                                                </td>
-                                                            </tr>
-                                                </tbody>
-                                            </table>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Admin Access Groups</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% if (app.admin_groups) { 
-                                                        var numAdminGroups = app.admin_groups.length;
-                                                        for (var t=0; t < numAdminGroups; t++) { 
-                                                            var group = app.admin_groups[t];   
-                                                    {%>
-                                                        <tr>
-                                                            <td>
-                                                                <%=group%> <a href="/apps/app/<%=app._id%>/groups/admin_groups/remove/<%=group%>"
-                                                                        class="btn btn-link btn-xs" role="button">Remove</a>
-                                                            </td>
-                                                        </tr>
-                                                        <%}}}%>
-                                                            <tr>
-                                                                <td width="50%"></td>
-                                                                <td>
-                                                                    <a name="<%=app._id%>_admin_groups"></a>
-                                                                    <form action="/apps/app/<%=app._id%>/groups/admin_groups/add" method="post" data-toggle="validator">
-                                                                        <div id="groupInput3">
-                                                                            <div class="form-group">
-                                                                                <label for="group">DN</label>
-                                                                                <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for ADMIN access" data-error="Group DN is required."
-                                                                                    required>
-                                                                            </div>
-                                                                            <button type="submit" class="btn btn-default" style="float: right;">Add</button>
-                                                                            <div class="help-block with-errors"></div>
-                                                                        </div>
-                                                                    </form>
-                                                                </td>
-                                                            </tr>
-                                                </tbody>
-                                            </table>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numApps === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
+                                                <div class="panel-body">
+                                                    <p>
+                                                        <% if (app.description) {%>
+                                                            Description:
+                                                            <%=app.description%>
+                                                                <%}%>
+                                                    </p>
+                                                    <p>
+                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>" data-description="<%=app.description%>"
+                                                            data-id="<%=app._id%>">edit app information</button>
+                                                    </p>
+                                                    <% for (var r = 0; r < app.roles.length; r++) { 
+                                                var role = app.roles[r]; 
+                                                var groups = role.groups;
+                                                var numGroups = groups.length;
+                                                %>
+                                                        <table class="table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th><%=role.role_name%></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <%  
+                                                        
+                                                    for (var g=0; g < numGroups; g++) { 
+                                                        var group = groups[g];   
+                                                    %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <%=group%> <a href="/apps/app/<%=app._id%>/groups/<%=role.role_name%>/remove/<%=group%>"
+                                                                                    class="btn btn-link btn-xs" role="button">Remove</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <%}%>
+                                                                        <tr>
+                                                                            <td width="50%"></td>
+                                                                            <td>
+                                                                                <a name="<%=app._id%>_<%=role.role_name%>"></a>
+                                                                                <form action="/apps/app/<%=app._id%>/groups/<%=role.role_name%>/add" method="post" data-toggle="validator">
+                                                                                    <div id="groupInput<%=g%>">
+                                                                                        <div class="form-group">
+                                                                                            <label for="group">DN</label>
+                                                                                            <input type="text" class="typeahead form-control" id="group" name="group" placeholder="Group DN for <%=role.role_name%> access"
+                                                                                                data-error="Group DN is required."
+                                                                                                required>
+                                                                                        </div>
+                                                                                        <button type="submit" class="btn btn-default" style="float: right;">Add</button>
+                                                                                        <div class="help-block with-errors"></div>
+                                                                                    </div>
+                                                                                </form>
+                                                                            </td>
+                                                                        </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        <% } %>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <%}%>
                                 </div>
-                                <%}%>
-                        </div>
+                            </div>
+                            <%}%>
                     </div>
-                    <%}%>
-            </div>
-        </div>
+                </div>
     </div>
     <script>
 

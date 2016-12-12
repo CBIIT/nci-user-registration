@@ -127,6 +127,24 @@ var router = function (logger, config, db, util) {
                         req.session.alert = alert;
                         res.redirect('/apps');
                     } else {
+                        var roles = [];
+                        var role = {
+                            role_name: 'read_groups',
+                            groups: []
+                        };
+                        roles.push(role);
+                        role = {
+                            role_name: 'write_groups',
+                            groups: []
+                        };
+                        roles.push(role);
+                        role = {
+                            role_name: 'admin_groups',
+                            groups: []
+                        };
+                        roles.push(role);
+                        appObject.roles = roles;
+
                         db.addApplication(appObject, function (err, result) {
                             if (err) {
                                 res.send('Failed to create application: ' + err);

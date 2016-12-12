@@ -386,7 +386,8 @@ module.exports = {
         collection.insertOne({
             name: appObject.name,
             name_lower: appObject.name_lower,
-            description: appObject.description
+            description: appObject.description,
+            roles: appObject.roles
         }, function (err, result) {
             if (err) {
                 loggerRef.error('Error: Failed to create application ' + appObject.name + ': ' + err);
@@ -521,12 +522,17 @@ module.exports = {
 
     addGroup(appId, groupSetName, groupDN, cb) {
         var collection = db.collection(appsCollection);
-
+        console.log('groupSetName: ' + groupSetName);
         collection.update({
-            _id: appId
+            _id: appId,
+            roles: {
+                $elemMatch: {
+                    role_name: groupSetName
+                }
+            }
         }, {
             $addToSet: {
-                [groupSetName]: groupDN
+                'roles.$.groups': groupDN
             }
         }, function (err) {
             cb(err);
