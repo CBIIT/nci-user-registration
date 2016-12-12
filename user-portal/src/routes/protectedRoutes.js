@@ -43,13 +43,9 @@ var router = function (logger, config, db, mailer) {
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
         } else if (sm_userdn === '') {
             logger.warn('User account was provisioned, but sm_userdn is empty. Try mapping again in 24 hours.');
-            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + req.headers);
-            mailer.send(config.mail.admin_list, 'Empty sm_userdn registration attempt', 'Headers: ' + req.headers);
+            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + JSON.stringify(req.headers));
+            mailer.send(config.mail.admin_list, 'Empty sm_userdn registration attempt', 'Headers: ' + JSON.stringify(req.headers));
             res.redirect('/logoff?pending=true');
-        } else if (!sm_userdn.match(dnTester)) {
-            logger.warn('Registration attempted with invalid sm_userdn: ' + sm_userdn + '. Completing registration and setting processing to manual.');
-
-
         } else {
 
             var itrustInfo = {};
@@ -92,8 +88,8 @@ var router = function (logger, config, db, mailer) {
                                 mailer.send(userObject.email, subject, message);
                                 res.redirect('/logoff?mapped=true');
                             } else {
-                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Processing was set to manual and needs to be resolved. Headers: ' + req.headers);
-                                mailer.send(config.mail.admin_list, 'Registration with invalid sm_userdn', 'Headers: ' + req.headers);
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Processing was set to manual and needs to be resolved. Headers: ' + JSON.stringify(req.headers));
+                                mailer.send(config.mail.admin_list, 'Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers));
                                 res.redirect('logoff?invaliddn=true');
                             }
                         }
