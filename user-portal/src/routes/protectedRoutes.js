@@ -8,6 +8,12 @@ var router = function (logger, config, db, mailer) {
             res.send(req.get('sm_userdn'));
         });
 
+    protectedRouter.route('/headers')
+        .get(function (req, res) {
+            res.send(req.headers);
+        });
+
+
     protectedRouter.route('/map/:id')
 
     .get(function (req, res) {
