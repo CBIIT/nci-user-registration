@@ -627,6 +627,14 @@ module.exports = {
         }, function (err, count) {
             return cb(err, count);
         });
+    },
+    pendingManualCount: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.count({
+            'itrustinfo.processed': 'manual'
+        }, function (err, count) {
+            return cb(err, count);
+        });
     }
 };
 

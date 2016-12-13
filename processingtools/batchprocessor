@@ -182,13 +182,19 @@ SERVICE: for my $service (@services) {
         $logger->info("Legacy eDir DN: $edirdn");
         my $newdn=$xpc->find($conf->{"xpath.dn"},$record);
         my @changes=();
-        $result=$ldap->{'proxy'}->search(
-            base => "$newdn",
-            scope => 'base',
-            filter => '(objectclass=*)',
-            attrs => \@attrlist,
-        );
-        if (! $result->count ) {
+        eval {
+            $result=$ldap->{'proxy'}->search(
+                base => "$newdn",
+                scope => 'base',
+                filter => '(objectclass=*)',
+                attrs => \@attrlist,
+            );
+        };
+        if ($@) {
+            $logger->warn("Unexpected error while searching proxy for DN $newdn, skipping for now. $@");
+            warning(\@warnings,"Warning: Unexpected error while searching proxy for DN $newdn. Skipping. $@");
+            next RECORD;
+        } elsif (! $result->count ) {
             $logger->warn("$newdn not yet in LDAP, skipping for now.");
             warning(\@warnings,"Warning: $newdn not yet in LDAP, may not yet have replicated. Skipping.");
             next RECORD;

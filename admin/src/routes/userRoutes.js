@@ -50,21 +50,23 @@ var router = function (logger, config, db, util) {
                         stats.selfRegisteredCount = count;
                         db.processedCount(function (err, count) {
                             stats.processedCount = count;
-                            //at least one search value
-                            if (!searchObject.cn && !searchObject.email) {
-                                res.render('users', {
-                                    users: users,
-                                    stats: stats
-                                });
-                            } else {
-                                db.search(searchObject, function (err, results) {
-                                    users = results;
-                                    res.render('users', {
+                            db.pendingManualCount(function (err, count) {
+                                stats.pendingManualCount = count;
+                                if (!searchObject.cn && !searchObject.email) {
+                                    res.render('index', {
                                         users: users,
                                         stats: stats
                                     });
-                                });
-                            }
+                                } else {
+                                    db.search(searchObject, function (err, results) {
+                                        users = results;
+                                        res.render('index', {
+                                            users: users,
+                                            stats: stats
+                                        });
+                                    });
+                                }
+                            });
                         });
                     });
                 });
@@ -83,10 +85,13 @@ var router = function (logger, config, db, util) {
                         db.selfRegisteredCount(function (err, count) {
                             stats.selfRegisteredCount = count;
                             db.processedCount(function (err, count) {
-                                stats.processedCount = count;
-                                res.render('users', {
-                                    users: users,
-                                    stats: stats
+                                stats.processedCount = count; <<
+                                db.pendingManualCount(function (err, count) {
+                                    stats.pendingManualCount = count;
+                                    res.render('index', {
+                                        users: users,
+                                        stats: stats
+                                    });
                                 });
                             });
                         });
