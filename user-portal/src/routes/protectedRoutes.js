@@ -6,8 +6,14 @@ var router = function (logger, config, db, mailer) {
 
     protectedRouter.route('/whoami')
         .get(function (req, res) {
-            res.send(req.get('smuserdn'));
+            res.send(req.get('sm_userdn'));
         });
+
+    protectedRouter.route('/headers')
+        .get(function (req, res) {
+            res.send(req.headers);
+        });
+
 
     protectedRouter.route('/map/:id')
 
@@ -25,24 +31,36 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var sm_userdn = req.get('smuserdn').toLowerCase();
+        var sm_userdn = req.get('sm_userdn').toLowerCase().trim();
         var userAuthType = req.get('user_auth_type').toLowerCase();
+        var dnTester = new RegExp(config.edir.dnTestRegex);
 
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
-            res.redirect('/logoff?mappingerror=true');
-        } else if (!sm_userdn) {
-            logger.error('Failed to map with uuid' + uuid + ': sm_userdn undefined!');
             res.redirect('/logoff?mappingerror=true');
         } else if (userAuthType !== 'federated') {
             logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is not federated!');
             db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
+        } else if (sm_userdn === '') {
+            logger.warn('User account was provisioned, but sm_userdn is empty. User will be advised to attempt mapping in 24 hours.');
+            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + JSON.stringify(req.headers));
+            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty sm_userdn registration attempt', 'Headers: ' + JSON.stringify(req.headers));
+            res.redirect('/logoff?pending=true');
         } else {
 
             var itrustInfo = {};
             itrustInfo.sm_userdn = sm_userdn;
             itrustInfo.processed = false;
+
+            var validDN = true;
+
+            if (!sm_userdn.match(dnTester)) {
+                validDN = false;
+                logger.warn('Registration attempted with invalid sm_userdn: ' + sm_userdn + '. Completing registration and setting processing to manual.');
+                itrustInfo.processed = 'manual';
+            }
+
 
             // check if iTrust info was already mapped to another account
             db.isSmUserDnRegistered(itrustInfo, function (err, result) {
@@ -60,15 +78,21 @@ var router = function (logger, config, db, mailer) {
                             res.redirect('/logoff?mappingerror=true');
                         } else {
                             logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
-                            logger.info('Praparing successful resistration email to ' + userObject.username);
-                            db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
-                            var subject = config.mail.subjectPrefix + ' ### Your account was registered';
-                            var message = '<p>Your account was registered successfully.</p>' +
-                                '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
-                                '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
-                            mailer.send(userObject.email, subject, message);
 
-                            res.redirect('/logoff?mapped=true');
+                            if (validDN) {
+                                logger.info('Praparing successful resistration email to ' + userObject.username);
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
+                                var subject = config.mail.subjectPrefix + ' ### Your account was registered';
+                                var message = '<p>Your account was registered successfully.</p>' +
+                                    '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
+                                    '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
+                                mailer.send(userObject.email, subject, message);
+                                res.redirect('/logoff?mapped=true');
+                            } else {
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + JSON.stringify(req.headers));
+                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix +' ### Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers));
+                                res.redirect('/logoff?invaliddn=true');
+                            }
                         }
                     });
                 }
@@ -87,7 +111,7 @@ var router = function (logger, config, db, mailer) {
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
             pubkeyInfo.processed = false;
-            var smUserDN = req.get('smuserdn').toLowerCase();
+            var smUserDN = req.get('sm_userdn').toLowerCase();
 
             db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
                 if (err) {

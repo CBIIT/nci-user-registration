@@ -59,6 +59,13 @@ var router = function (logger) {
                 message = 'Public key update was successful.';
             } else if (req.query.prevregistration) {
                 message = 'Your account has already been registered. No further action is required.';
+            } else if (req.query.pending) {
+                message = 'Your federated account has been provisioned but is not yet available for registration with NCI. Please try again in 24 hours.';
+                bg_class = 'bg-danger';
+            } else if (req.query.invaliddn) {
+                message = 'Your NCI registration request could not be processed automatically. We will process it manually and let you know when the registration has been completed.';
+                bg_class = 'bg-danger';
+                
             } else if (req.query.error) {
                 message = 'An error occurred while registering your account. Please try again later.';
                 bg_class = 'bg-danger';
