@@ -60,7 +60,7 @@ var router = function (logger, config, db, util) {
                                 } else {
                                     db.search(searchObject, function (err, results) {
                                         users = results;
-                                        res.render('index', {
+                                        res.render('users', {
                                             users: users,
                                             stats: stats
                                         });
@@ -88,7 +88,7 @@ var router = function (logger, config, db, util) {
                                 stats.processedCount = count;
                                 db.pendingManualCount(function (err, count) {
                                     stats.pendingManualCount = count;
-                                    res.render('index', {
+                                    res.render('users', {
                                         users: users,
                                         stats: stats
                                     });
