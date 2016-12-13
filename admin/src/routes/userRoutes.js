@@ -85,7 +85,7 @@ var router = function (logger, config, db, util) {
                         db.selfRegisteredCount(function (err, count) {
                             stats.selfRegisteredCount = count;
                             db.processedCount(function (err, count) {
-                                stats.processedCount = count; <<
+                                stats.processedCount = count;
                                 db.pendingManualCount(function (err, count) {
                                     stats.pendingManualCount = count;
                                     res.render('index', {
