@@ -32,7 +32,7 @@ var router = function (logger, config, db, mailer) {
 
         var sm_userdn = req.get('sm_userdn').toLowerCase().trim();
         var userAuthType = req.get('user_auth_type').toLowerCase();
-        var dnTester = new RegExp('^cn=.*,dc=nih,dc=gov$');
+        var dnTester = new RegExp(config.edir.dnTestRegex);
 
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
@@ -42,7 +42,7 @@ var router = function (logger, config, db, mailer) {
             db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
         } else if (sm_userdn === '') {
-            logger.warn('User account was provisioned, but sm_userdn is empty. Try mapping again in 24 hours.');
+            logger.warn('User account was provisioned, but sm_userdn is empty. User will be advised to attempt mapping in 24 hours.');
             db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + JSON.stringify(req.headers));
             mailer.send(config.mail.admin_list, 'Empty sm_userdn registration attempt', 'Headers: ' + JSON.stringify(req.headers));
             res.redirect('/logoff?pending=true');
@@ -88,9 +88,9 @@ var router = function (logger, config, db, mailer) {
                                 mailer.send(userObject.email, subject, message);
                                 res.redirect('/logoff?mapped=true');
                             } else {
-                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Processing was set to manual and needs to be resolved. Headers: ' + JSON.stringify(req.headers));
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + JSON.stringify(req.headers));
                                 mailer.send(config.mail.admin_list, 'Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers));
-                                res.redirect('logoff?invaliddn=true');
+                                res.redirect('/logoff?invaliddn=true');
                             }
                         }
                     });
