@@ -147,9 +147,12 @@ var router = function (logger, config, db, mailer) {
 
 function getHeaders(headers) {
     var result = '';
-    headers.forEach(function (item) {
-        result += headers[item] + '\n';
-    });
+    for (var item in headers) {
+        result += item + ': ' + headers[item] + '\n';
+    }
+
+    return result;
+
 }
 
 module.exports = router;
