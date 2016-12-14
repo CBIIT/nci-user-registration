@@ -33,57 +33,56 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var sm_userdn = req.get('user_dn').toLowerCase().trim();
+        var user_dn = req.get('user_dn').toLowerCase().trim();
         var userAuthType = req.get('user_auth_type').toLowerCase();
         var dnTester = new RegExp(config.edir.dnTestRegex);
 
         if (!(username && email)) {
-            logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + sm_userdn);
+            logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + user_dn);
             res.redirect('/logoff?mappingerror=true');
         } else if (userAuthType !== 'federated') {
-            logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is not federated!');
-            db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is not federated.');
+            logger.error('Failed to map with uuid' + uuid + ': user_dn ' + user_dn + ' is not federated!');
+            db.log(userObject, 'Failed to map to user_dn ' + user_dn + '. user_dn is not federated.');
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
-        } else if (sm_userdn === '') {
-            logger.warn('User account was provisioned, but sm_userdn is empty. User will be advised to attempt mapping in 24 hours.');
-            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + headers);
-            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty sm_userdn registration attempt', 'Headers: ' + headers);
+        } else if (user_dn === '') {
+            logger.warn('User account was provisioned, but user_dn is empty. User will be advised to attempt mapping in 24 hours.');
+            db.log(userObject, 'User attempted registration with empty user_dn. Headers: ' + headers);
+            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty user_dn registration attempt', 'Headers: ' + headers);
             res.redirect('/logoff?pending=true');
         } else {
 
             var itrustInfo = {};
-            itrustInfo.sm_userdn = sm_userdn;
+            itrustInfo.sm_userdn = user_dn;
             itrustInfo.processed = false;
 
             var validDN = true;
 
-            if (!sm_userdn.match(dnTester)) {
+            if (!user_dn.match(dnTester)) {
                 validDN = false;
-                logger.warn('Registration attempted with invalid sm_userdn: ' + sm_userdn + '. Completing registration and setting processing to manual.');
+                logger.warn('Registration attempted with invalid user_dn: ' + user_dn + '. Completing registration and setting processing to manual.');
                 itrustInfo.processed = 'manual';
             }
-
 
             // check if iTrust info was already mapped to another account
             db.isSmUserDnRegistered(itrustInfo, function (err, result) {
                 if (err) {
-                    logger.error('Failed to map with uuid' + uuid + ': Error while checking for duplicate mapping of sm_userdn ' + sm_userdn);
+                    logger.error('Failed to map with uuid' + uuid + ': Error while checking for duplicate mapping of user_dn ' + user_dn);
                     res.redirect('/logoff?mappingerror=true');
                 } else if (result === true) {
-                    logger.error('Failed to map with uuid' + uuid + ': sm_userdn ' + sm_userdn + ' is already mapped to a different eDir account!');
-                    db.log(userObject, 'Failed to map to sm_userdn ' + sm_userdn + '. sm_userdn is already mapped to a different eDir account.');
+                    logger.error('Failed to map with uuid' + uuid + ': user_dn ' + user_dn + ' is already mapped to a different eDir account!');
+                    db.log(userObject, 'Failed to map to user_dn ' + user_dn + '. user_dn is already mapped to a different eDir account.');
                     res.redirect('/logoff/reattempt?duplicateregistration=true&uuid=' + uuid);
                 } else {
                     db.addMapping(userObject, itrustInfo, function (err) {
                         if (err) {
-                            logger.error('Failed to map ' + userObject.username + ' to userdn ' + sm_userdn);
+                            logger.error('Failed to map ' + userObject.username + ' to user_dn ' + user_dn);
                             res.redirect('/logoff?mappingerror=true');
                         } else {
-                            logger.info('Mapped ' + userObject.username + ' to userdn ' + sm_userdn);
+                            logger.info('Mapped ' + userObject.username + ' to user_dn ' + user_dn);
 
                             if (validDN) {
                                 logger.info('Praparing successful resistration email to ' + userObject.username);
-                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn);
+                                db.log(userObject, 'Mapped to user_dn ' + user_dn);
                                 var subject = config.mail.subjectPrefix + ' ### Your account was registered';
                                 var message = '<p>Your account was registered successfully.</p>' +
                                     '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
@@ -92,8 +91,8 @@ var router = function (logger, config, db, mailer) {
                                 res.redirect('/logoff?mapped=true');
                             } else {
 
-                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + headers);
-                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Registration with invalid sm_userdn', 'Headers: ' + headers);
+                                db.log(userObject, 'Mapped to user_dn ' + user_dn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + headers);
+                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Registration with invalid user_dn', 'Headers: ' + headers);
                                 res.redirect('/logoff?invaliddn=true');
                             }
                         }
@@ -114,28 +113,28 @@ var router = function (logger, config, db, mailer) {
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
             pubkeyInfo.processed = false;
-            var smUserDN = req.get('user_dn').toLowerCase();
+            var user_dn = req.get('user_dn').toLowerCase();
 
-            db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
+            db.updateSSHPublicKey(user_dn, pubkeyInfo, function (err, document) {
                 if (err) {
-                    logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN);
+                    logger.error('Failed to update public key of user with user_dn: ' + user_dn);
                     res.redirect('/logoff?updateerror=true');
                 } else if (document) {
 
                     if (document.matchedCount === 1) {
-                        logger.info('Updated public key for sm_userdn: ' + smUserDN);
-                        db.logWithDN(smUserDN, 'Updated public key: ' + pubkeyInfo.key);
+                        logger.info('Updated public key for user_dn: ' + user_dn);
+                        db.logWithDN(user_dn, 'Updated public key: ' + pubkeyInfo.key);
                         res.redirect('/logoff?updatesuccess=true');
                     } else if (document.matchedCount === -1) {
-                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count == -1');
+                        logger.error('Failed to update public key of user with user_dn: ' + user_dn + '. Modified count == -1');
                         res.redirect('/logoff?updateerrornf=true');
                     } else {
-                        logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '. Modified count != 1');
+                        logger.error('Failed to update public key of user with user_dn: ' + user_dn + '. Modified count != 1');
                         res.redirect('/logoff?updateerror=true');
                     }
 
                 } else {
-                    logger.error('Failed to update public key of user with sm_userdn: ' + smUserDN + '; unknown reason.');
+                    logger.error('Failed to update public key of user with user_dn: ' + user_dn + '; unknown reason.');
                     res.redirect('/logoff?updateerror=true');
                 }
             });
