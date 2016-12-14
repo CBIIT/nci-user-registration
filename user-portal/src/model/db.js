@@ -56,10 +56,10 @@ module.exports = {
         });
     },
 
-    logWithDN: function (smUserDN, message) {
+    logWithDN: function (user_dn, message) {
         var collection = db.collection(usersCollection);
         collection.updateOne({
-            'itrustinfo.sm_userdn': smUserDN
+            'itrustinfo.sm_userdn': user_dn
         }, {
             $push: {
                 logs: utilRef.ts() + message
@@ -146,7 +146,7 @@ module.exports = {
             'itrustinfo.sm_userdn': itrustInfo.sm_userdn
         }, function (err, result) {
             if (err) {
-                loggerRef.error('Failed to get count of sm_userdn ' + itrustInfo.sm_userdn + ' mappings');
+                loggerRef.error('Failed to get count of user_dn ' + itrustInfo.sm_userdn + ' mappings');
             }
             if (result === 0) {
                 cb(err, false);
@@ -157,18 +157,18 @@ module.exports = {
 
     },
 
-    updateSSHPublicKey: function (smUserDN, pubkeyInfo, cb) {
+    updateSSHPublicKey: function (user_dn, pubkeyInfo, cb) {
         var collection = db.collection(usersCollection);
 
         collection.updateOne({
-            'itrustinfo.sm_userdn': smUserDN
+            'itrustinfo.sm_userdn': user_dn
         }, {
             $set: {
                 pubkeyinfo: pubkeyInfo
             }
         }, function (err, document) {
             if (err) {
-                loggerRef.error('Failed to persist public key info for sm_userid' + smUserDN);
+                loggerRef.error('Failed to persist public key info for sm_userid' + user_dn);
             }
             cb(err, document);
         });
