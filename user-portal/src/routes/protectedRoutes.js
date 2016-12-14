@@ -10,7 +10,7 @@ var router = function (logger, config, db, mailer) {
 
     protectedRouter.route('/headers')
         .get(function (req, res) {
-            res.send(req.headers.join('\n'));
+            res.send(getHeaders(req.headers));
         });
 
 
@@ -18,6 +18,8 @@ var router = function (logger, config, db, mailer) {
 
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
+
+        var headers = getHeaders(req.headers);
 
         // do we still have an active session 
         var username = req.session.username;
@@ -43,8 +45,8 @@ var router = function (logger, config, db, mailer) {
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
         } else if (sm_userdn === '') {
             logger.warn('User account was provisioned, but sm_userdn is empty. User will be advised to attempt mapping in 24 hours.');
-            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + JSON.stringify(req.headers.join('\n')));
-            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty sm_userdn registration attempt', 'Headers: ' + JSON.stringify(req.headers));
+            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + headers);
+            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty sm_userdn registration attempt', 'Headers: ' + headers);
             res.redirect('/logoff?pending=true');
         } else {
 
@@ -88,8 +90,9 @@ var router = function (logger, config, db, mailer) {
                                 mailer.send(userObject.email, subject, message);
                                 res.redirect('/logoff?mapped=true');
                             } else {
-                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + JSON.stringify(req.headers));
-                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix +' ### Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers.join('\n')));
+
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + headers);
+                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Registration with invalid sm_userdn', 'Headers: ' + headers);
                                 res.redirect('/logoff?invaliddn=true');
                             }
                         }
@@ -141,5 +144,12 @@ var router = function (logger, config, db, mailer) {
 
     return protectedRouter;
 };
+
+function getHeaders(headers) {
+    var result = '';
+    headers.forEach(function (item) {
+        result += headers[item] + '\n';
+    });
+}
 
 module.exports = router;
