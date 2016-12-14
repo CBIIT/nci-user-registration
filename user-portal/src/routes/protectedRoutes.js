@@ -151,8 +151,11 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            var userDN = req.get('smuserdn').toLowerCase();
-            var displayName = req.get('user_displayname');
+            // var userDN = req.get('smuserdn').toLowerCase();
+            // var displayName = req.get('user_displayname');
+
+            var userDN = 'cn=test,ou=localhost';
+            var displayName = 'Svet';
 
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();

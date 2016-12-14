@@ -4,6 +4,7 @@ var appRouter = express.Router();
 var fs = require('fs');
 var tlsOptions;
 var objectId = require('mongodb').ObjectID;
+var uuid = require('node-uuid');
 
 var router = function (logger, config, db, util) {
 
@@ -28,7 +29,7 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    appRouter.route('/app/:id')
+    appRouter.route('/app/:id/a/:anchor')
         .get(function (req, res) {
             var alert = null;
             if (req.session.alert) {
@@ -37,11 +38,12 @@ var router = function (logger, config, db, util) {
             }
 
             var appId = new objectId(req.params.id);
+            var anchor = req.params.anchor === 'top' ? '#' : req.params.anchor;
 
             db.getApp(appId, function (err, results) {
                 res.render('apps', {
                     apps: results,
-                    anchor: '#',
+                    anchor: anchor,
                     alert: alert ? alert : null
                 });
             });
@@ -112,7 +114,7 @@ var router = function (logger, config, db, util) {
                     } else {
                         db.updateApplication(appIdObj, appObject, function (err) {
                             logger.info('Modified application ' + name);
-                            res.redirect('/apps/app/' + appIdStr);
+                            res.redirect('/apps/app/' + appIdStr + '/a/top');
                         });
                     }
                 });
@@ -128,21 +130,6 @@ var router = function (logger, config, db, util) {
                         res.redirect('/apps');
                     } else {
                         var roles = [];
-                        var role = {
-                            role_name: 'read_groups',
-                            groups: []
-                        };
-                        roles.push(role);
-                        role = {
-                            role_name: 'write_groups',
-                            groups: []
-                        };
-                        roles.push(role);
-                        role = {
-                            role_name: 'admin_groups',
-                            groups: []
-                        };
-                        roles.push(role);
                         appObject.roles = roles;
 
                         db.addApplication(appObject, function (err, result) {
@@ -150,7 +137,7 @@ var router = function (logger, config, db, util) {
                                 res.send('Failed to create application: ' + err);
                             } else {
                                 logger.info('Added application ' + name);
-                                res.redirect('/apps/app/' + result.insertedId);
+                                res.redirect('/apps/app/' + result.insertedId + '/a/top');
                             }
                         });
                     }
@@ -165,37 +152,69 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    appRouter.route('/app/:id/groups/:groupSetName/add')
-        .post(function (req, res) {
+    appRouter.route('/app/:id/roles')
+        .get(function (req, res) {
             var appId = new objectId(req.params.id);
-            var groupSetName = req.params.groupSetName;
-            var groupDN = req.body.group.toLowerCase().trim();
-
-            db.addGroup(appId, groupSetName, groupDN, function (err) {
-                db.getApp(appId, function (err, results) {
-                    var apps = results;
-                    res.render('apps', {
-                        apps: apps,
-                        anchor: req.params.id + '_' + req.params.groupSetName
-                    });
-                });
+            db.getSingleApp(appId, function (err, result) {
+                console.log(result.roles);
+                res.send(result.roles);
             });
         });
 
-    appRouter.route('/app/:id/groups/:groupSetName/remove/:dn')
+    appRouter.route('/app/roles/add')
+        .post(function (req, res) {
+            var appIdStr = req.body.appId.trim();
+            var appId = new objectId(appIdStr);
+
+            var roleName = req.body.roleName.trim().toLowerCase();
+            var role = {};
+            role.role_id = uuid.v4();
+            role.role_name = roleName;
+
+            role.groups = [];
+
+            db.containsRole(appId, roleName, function (err, result) {
+                if (result) {
+                    logger.error('Failed to add role to application with ID' + appIdStr + '. Role + ' + roleName + ' already exists.');
+                    var alert = {
+                        message: 'Error: Failed to add role! Role ' + roleName + ' already exists.',
+                        severity_class: 'alert-danger'
+                    };
+
+                    req.session.alert = alert;
+                    res.redirect('/apps/app/' + appId + '/a/top');
+
+                } else {
+                    db.addRole(appId, role, function () {
+                        logger.info('Role ' + roleName + ' added to application ID ' + appId);
+                        res.redirect('/apps/app/' + appId + '/a/top');
+                    });
+                }
+            });
+
+        });
+
+    appRouter.route('/app/:id/roles/:roleId/addGroup')
+        .post(function (req, res) {
+            var appId = new objectId(req.params.id);
+            var roleId = req.params.roleId;
+            var groupDN = req.body.group.toLowerCase().trim();
+
+            db.addGroupToRole(appId, roleId, groupDN, function (err) {
+                var anchor = appId + '_' + roleId;
+                res.redirect('/apps/app/' + appId + '/a/' + anchor);
+            });
+        });
+
+    appRouter.route('/app/:id/roles/:roleId/removeGroup/:groupdn')
         .get(function (req, res) {
             var appId = new objectId(req.params.id);
-            var groupSetName = req.params.groupSetName;
-            var groupDN = req.params.dn.toLowerCase().trim();
+            var roleId = req.params.roleId;
+            var groupDN = req.params.groupdn.toLowerCase().trim();
 
-            db.removeGroup(appId, groupSetName, groupDN, function (err) {
-                db.getApp(appId, function (err, results) {
-                    var apps = results;
-                    res.render('apps', {
-                        apps: apps,
-                        anchor: req.params.id + '_' + req.params.groupSetName
-                    });
-                });
+            db.removeGroupFromRole(appId, roleId, groupDN, function (err) {
+                var anchor = appId + '_' + roleId;
+                res.redirect('/apps/app/' + appId + '/a/' + anchor);
             });
         });
 

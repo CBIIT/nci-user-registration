@@ -520,14 +520,13 @@ module.exports = {
         });
     },
 
-    addGroup(appId, groupSetName, groupDN, cb) {
+    addGroupToRole(appId, roleId, groupDN, cb) {
         var collection = db.collection(appsCollection);
-        console.log('groupSetName: ' + groupSetName);
         collection.update({
             _id: appId,
             roles: {
                 $elemMatch: {
-                    role_name: groupSetName
+                    role_id: roleId
                 }
             }
         }, {
@@ -539,14 +538,50 @@ module.exports = {
         });
     },
 
-    removeGroup(appId, groupSetName, groupDN, cb) {
+    addRole(appId, role, cb) {
+        var collection = db.collection(appsCollection);
+        collection.update({
+            _id: appId,
+        }, {
+            $addToSet: {
+                roles: role
+            }
+        }, function (err) {
+            cb(err);
+        });
+    },
+
+    containsRole(appId, roleName, cb) {
+        var collection = db.collection(appsCollection);
+        collection.count({
+            _id: appId,
+            roles: {
+                $elemMatch: {
+                    role_name: roleName
+                }
+            }
+        }, function (err, count) {
+            if (count === 0) {
+                return cb(err, false);
+            } else {
+                return cb(err, true);
+            }
+        });
+    },
+
+    removeGroupFromRole(appId, roleId, groupDN, cb) {
         var collection = db.collection(appsCollection);
 
         collection.update({
-            _id: appId
+            _id: appId,
+            roles: {
+                $elemMatch: {
+                    role_id: roleId
+                }
+            }
         }, {
             $pull: {
-                [groupSetName]: groupDN
+                'roles.$.groups': groupDN
             }
         }, function (err) {
             cb(err);
