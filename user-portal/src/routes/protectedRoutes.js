@@ -6,12 +6,12 @@ var router = function (logger, config, db, mailer) {
 
     protectedRouter.route('/whoami')
         .get(function (req, res) {
-            res.send(req.get('sm_userdn'));
+            res.send(req.get('user_dn'));
         });
 
     protectedRouter.route('/headers')
         .get(function (req, res) {
-            res.send(req.headers);
+            res.send(getHeaders(req.headers));
         });
 
 
@@ -19,6 +19,8 @@ var router = function (logger, config, db, mailer) {
 
     .get(function (req, res) {
         logger.info('authenticated by iTrust');
+
+        var headers = getHeaders(req.headers);
 
         // do we still have an active session 
         var username = req.session.username;
@@ -31,7 +33,7 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var sm_userdn = req.get('sm_userdn').toLowerCase().trim();
+        var sm_userdn = req.get('user_dn').toLowerCase().trim();
         var userAuthType = req.get('user_auth_type').toLowerCase();
         var dnTester = new RegExp(config.edir.dnTestRegex);
 
@@ -44,8 +46,8 @@ var router = function (logger, config, db, mailer) {
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
         } else if (sm_userdn === '') {
             logger.warn('User account was provisioned, but sm_userdn is empty. User will be advised to attempt mapping in 24 hours.');
-            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + JSON.stringify(req.headers));
-            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty sm_userdn registration attempt', 'Headers: ' + JSON.stringify(req.headers));
+            db.log(userObject, 'User attempted registration with empty sm_userdn. Headers: ' + headers);
+            mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty sm_userdn registration attempt', 'Headers: ' + headers);
             res.redirect('/logoff?pending=true');
         } else {
 
@@ -89,8 +91,9 @@ var router = function (logger, config, db, mailer) {
                                 mailer.send(userObject.email, subject, message);
                                 res.redirect('/logoff?mapped=true');
                             } else {
-                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + JSON.stringify(req.headers));
-                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix +' ### Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers));
+
+                                db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + headers);
+                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Registration with invalid sm_userdn', 'Headers: ' + headers);
                                 res.redirect('/logoff?invaliddn=true');
                             }
                         }
@@ -111,7 +114,7 @@ var router = function (logger, config, db, mailer) {
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
             pubkeyInfo.processed = false;
-            var smUserDN = req.get('sm_userdn').toLowerCase();
+            var smUserDN = req.get('user_dn').toLowerCase();
 
             db.updateSSHPublicKey(smUserDN, pubkeyInfo, function (err, document) {
                 if (err) {
@@ -188,5 +191,15 @@ var router = function (logger, config, db, mailer) {
 
     return protectedRouter;
 };
+
+function getHeaders(headers) {
+    var result = '';
+    for (var item in headers) {
+        result += item + ': ' + headers[item] + '<br>';
+    }
+
+    return result;
+
+}
 
 module.exports = router;
