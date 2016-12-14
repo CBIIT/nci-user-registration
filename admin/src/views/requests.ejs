@@ -168,19 +168,7 @@
                                                             <div class="help-block with-errors"></div>
                                                         </div>
                                                         <div class="form-group" id="accLevels" name="accaLevels">
-                                                            <fieldset>
-                                                                <label>Access level:</label>
-                                                                <div class="checkbox">
-                                                                    <label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="read_access_checkbox" value="read_groups">READ</label>
-                                                                </div>
-                                                                <div class="checkbox">
-                                                                    <label for="write_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="write_access_checkbox" value="write_groups">READ/WRITE</label>
-                                                                </div>
-                                                                <div class="checkbox">
-                                                                    <label for="admin_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="admin_access_checkbox" value="admin_groups">ADMIN</label>
-                                                                </div>
-                                                                <div class="help-block with-errors"></div>
-                                                            </fieldset>
+                                                           
                                                         </div>
                                                         <div class="form-group">
                                                             <label for="notes">Notes</label>
@@ -207,7 +195,7 @@
                                                             <tr>
                                                                 <td>Access Roles</td>
                                                                 <td>
-                                                                    <%= request.approved_resource.access_level.join() %>
+                                                                    <%= request.approved_resource.access_level.join(', ') %>
                                                                 </td>
                                                             </tr>
                                                             <% var groups = [].concat.apply([], request.approved_resource.groups); %>
@@ -240,31 +228,37 @@
     </div>
     <script>
 
-$('#app').change(function () {
-    var appId=$(this).val();
-    console.log(appId);
-    console.log(location.protocol + '//' + location.host + '/apps/app/' + appId + '/roles');
-    $.ajax({
-        url: location.protocol + '//' + location.host + '/apps/app/' + appId + '/roles',
-        success: function(results) {
-            $('#accLevels').empty();
-            var str =  '<fieldset>';
-            str += '<label>Access level:</label>';
-                                                                
-            $.each(results, function() {
-               str += '<div class="checkbox">';
-               str += '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="' + this['role_id'] +'" value="' + this['role_name'] + '">' + this['role_name'] + '</label>';
-               str += '</div>';
-               str += ' <div class="help-block with-errors"></div>';
-               str += ' </fieldset>';
-            });
+    $('#app').change(function () {
+        var appId=$(this).val();
+        if (appId) {
+            $.ajax({
+                url: location.protocol + '//' + location.host + '/apps/app/' + appId + '/roles',
+                success: function(results) {
+                    $('#accLevels').empty();
+                    var str =  '<fieldset>';
+                    str += '<label>Access level:</label>';
+                                                                        
+                    $.each(results, function() {
+                    str += '<div class="checkbox">';
+                    str += '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="' + this['role_id'] +'" value="' + this['role_id'] + '">' + this['role_name'] + '</label>';
+                    str += '</div>';
+                    });
+                    str += '<div class="help-block with-errors"></div>';
+                    str += '</fieldset>';
 
-            $('#accLevels').append(str);
+                    $('#accLevels').append(str);
+                }
+            });
         }
     });
-});
 
-</script>
+    $(function() {
+        if ($('#app').length) {
+            $('#app').change();
+        }
+    });
+
+    </script>
 </body>
 
 </html>

@@ -75,12 +75,17 @@ var router = function (logger, config, db, util) {
 
                 approvedResource.app_id = appId;
                 approvedResource.app_name = app.name;
-                approvedResource.access_level = accessLevelArray;
+                approvedResource.access_level = [];
                 approvedResource.groups = [];
 
                 if (accessLevelArray) {
-                    accessLevelArray.forEach(function (accessLevel) {
-                        approvedResource.groups.push(app[accessLevel]);
+                    accessLevelArray.forEach(function (roleId) {
+                        app.roles.forEach(function (role) {
+                            if (role.role_id === roleId) {
+                                approvedResource.access_level.push(role.role_name);
+                                approvedResource.groups.push(role.groups);
+                            }
+                        });
                     });
 
                     db.approveRequest(requestId, approvedResource, function (err, result) {

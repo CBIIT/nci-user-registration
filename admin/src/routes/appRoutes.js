@@ -156,7 +156,6 @@ var router = function (logger, config, db, util) {
         .get(function (req, res) {
             var appId = new objectId(req.params.id);
             db.getSingleApp(appId, function (err, result) {
-                console.log(result.roles);
                 res.send(result.roles);
             });
         });
@@ -166,7 +165,7 @@ var router = function (logger, config, db, util) {
             var appIdStr = req.body.appId.trim();
             var appId = new objectId(appIdStr);
 
-            var roleName = req.body.roleName.trim().toLowerCase();
+            var roleName = req.body.roleName.trim();
             var role = {};
             role.role_id = uuid.v4();
             role.role_name = roleName;

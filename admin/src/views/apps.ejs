@@ -258,7 +258,6 @@ $('#roleModal').on('show.bs.modal', function (event) {
 
 function load() {
     var anchor = <%- JSON.stringify(anchor) %>;
-    console.log(anchor);
     window.location.hash = 'someHashThatDoesntExist';
     window.location.hash = anchor;
 }

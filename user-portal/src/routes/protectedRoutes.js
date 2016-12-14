@@ -90,7 +90,7 @@ var router = function (logger, config, db, mailer) {
                                 res.redirect('/logoff?mapped=true');
                             } else {
                                 db.log(userObject, 'Mapped to sm_userdn ' + sm_userdn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + JSON.stringify(req.headers));
-                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix +' ### Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers));
+                                mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Registration with invalid sm_userdn', 'Headers: ' + JSON.stringify(req.headers));
                                 res.redirect('/logoff?invaliddn=true');
                             }
                         }
@@ -164,7 +164,7 @@ var router = function (logger, config, db, mailer) {
             // record request and send email
             var requestObject = {};
             var requestId = uuid.v4();
-            requestObject.request_id = requestId; 
+            requestObject.request_id = requestId;
             requestObject.requested_app = app;
             requestObject.user_dn = userDN;
             requestObject.display_name = displayName;
@@ -172,16 +172,15 @@ var router = function (logger, config, db, mailer) {
             requestObject.justification = justification;
             requestObject.approval = 'unknown';
 
-            var subject = 'NCI Application Access Request';
+            var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
             var message = '<p>Access was requested for application: ' + app + '</p>' +
                 '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
                 '<p>User DN: the user DN' + userDN + '</p>' +
                 '<p>Access Level: ' + accessLevel + '</p>' +
                 '<p>Justification: ' + justification + '</p>';
 
-
             db.recordAccessRequest(requestObject, function (err, result) {
-                mailer.send('svetoslav.yankov@nih.gov, john.ribeiro@nih.gov', subject, message);
+                mailer.send(config.mail.request_recipient, subject, message);
                 logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
             });
 
