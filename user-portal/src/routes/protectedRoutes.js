@@ -148,7 +148,7 @@ var router = function (logger, config, db, mailer) {
 function getHeaders(headers) {
     var result = '';
     for (var item in headers) {
-        result += item + ': ' + headers[item] + '\n';
+        result += item + ': ' + headers[item] + '<br>';
     }
 
     return result;
