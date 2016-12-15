@@ -40,9 +40,9 @@ module.exports = {
 
     getUser: function (id, cb) {
         var collection = db.collection(usersCollection);
-        collection.findOne({
+        collection.find({
             _id: id
-        }, function (err, results) {
+        }).toArray(function (err, results) {
             cb(err, results);
         });
     },

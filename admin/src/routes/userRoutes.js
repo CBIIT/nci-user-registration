@@ -22,13 +22,40 @@ var router = function (logger, config, db, util) {
     userRouter.route('/user/:id')
         .get(function (req, res) {
             var id = new objectId(req.params.id);
+            var alert = null;
+            if (req.session.alert) {
+                alert = req.session.alert;
+                req.session.alert = null;
+            }
 
-            db.getUser(id, function (err, result) {
+            db.getUser(id, function (err, users) {
                 if (err) {
                     throw err;
                 }
-                res.send(result);
 
+                var stats = {};
+
+                db.userCount(function (err, count) {
+                    stats.totalUsers = count;
+                    db.externalUserCount(function (err, count) {
+                        stats.externalUserCount = count;
+                        db.selfRegisteredCount(function (err, count) {
+                            stats.selfRegisteredCount = count;
+                            db.processedCount(function (err, count) {
+                                stats.processedCount = count;
+                                db.pendingManualCount(function (err, count) {
+                                    stats.pendingManualCount = count;
+                                    res.render('index', {
+                                        users: users,
+                                        stats: stats,
+                                        alert: alert
+                                    });
+                                });
+                            });
+                        });
+                    });
+
+                });
             });
         });
 
@@ -210,7 +237,8 @@ var router = function (logger, config, db, util) {
         .post(function (req, res) {
             var userId = new objectId(req.params.id);
             var smUserDN = req.body.sm_userdn.trim().toLowerCase();
-
+            console.log('user ID: ' + userId);
+            var alert = null;
             db.getUser(userId, function (err, result) {
                 if (err) {
                     throw err;
@@ -245,7 +273,12 @@ var router = function (logger, config, db, util) {
                         });
 
                     } else {
-                        res.send('Nothing to change');
+                        alert = {
+                            message: 'Nothing to change',
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/users/user/' + userId);
                     }
                 } else {
                     // This is a new mapping performed by the admin, or an override of an unprocessed record.
@@ -254,17 +287,34 @@ var router = function (logger, config, db, util) {
 
                     db.isSmUserDnRegistered(newItrustInfo, function (err, result) {
                         if (err) {
-                            res.send('Error: Failed setting itrustInfo - ' + err);
+                            logger.error('Failed to set itrustinfo: ' + err);
+                            alert = {
+                                message: 'Error: Failed to set itrustinfo: ' + err,
+                                severity_class: 'alert-danger'
+                            };
+                            req.session.alert = alert;
+                            res.redirect('/users/user/' + userId);
                         } else {
                             if (result) {
-                                res.send('Error: sm_userdn is already maped to a different user. itrusInfo was not set!');
+                                logger.error('sm_userdn is already mapped to a different user. itrustInfo was not set! smUserdn: ' + smUserDN);
+                                alert = {
+                                    message: 'Error: sm_userdn is already mapped to a different user. itrusInfo was not set! smUserdn: ' + smUserDN,
+                                    severity_class: 'alert-danger'
+                                };
+                                req.session.alert = alert;
+                                res.redirect('/users/user/' + userId);
                             } else {
                                 db.setMappingByUserId(userId, newItrustInfo, function (err) {
                                     if (err) {
-                                        res.send('Error: Failed setting itrustInfo - ' + err);
+                                        logger.error('Failed setting itrustInfo - ' + err);
+                                        alert = {
+                                            message: 'Error: setting itrustinfo: ' + err,
+                                            severity_class: 'alert-danger'
+                                        };
+                                        res.redirect('/users/user/' + userId);
                                     } else {
                                         db.logWithUserID(userId, 'itrustinfo set by admin to ' + smUserDN);
-                                        res.send('ItrustInfo set successfully');
+                                        res.redirect('/users/user/' + userId);
                                     }
                                 });
                             }

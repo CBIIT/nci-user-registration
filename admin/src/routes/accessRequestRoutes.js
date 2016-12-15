@@ -77,6 +77,7 @@ var router = function (logger, config, db, util) {
 
             if (req.body.submit === 'Reject') {
                 db.rejectRequest(requestId, notes, function () {
+                    db.info('Request ' + requestId + ' rejected');
                     res.redirect('/requests');
                 });
 
@@ -104,10 +105,11 @@ var router = function (logger, config, db, util) {
                         });
 
                         db.approveRequest(requestId, approvedResource, notes, function (err, result) {
-
+                            logger.info('Request ' + requestId + ' has been approved');
                             res.redirect('/requests');
                         });
                     } else {
+                        logger.error('Failed to approve request ' + requestId + '. No roles selected or no roles configured for application ' + appId);
                         var alert = {
                             message: 'Error: No roles selected. Request was not approved.',
                             severity_class: 'alert-danger'
