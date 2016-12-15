@@ -160,6 +160,25 @@ var router = function (logger, config, db, util) {
             });
         });
 
+    appRouter.route('/app/:id/remove')
+        .get(function (req, res) {
+            var appId = new objectId(req.params.id);
+
+            db.removeApp(appId, function () {
+                res.redirect('/apps');
+            });
+        });
+
+    appRouter.route('/app/:id/roles/role/:roleId/remove')
+        .get(function (req, res) {
+            var appId = new objectId(req.params.id);
+            var roleId = req.params.roleId;
+            db.removeRoleFromApp(appId, roleId, function (err) {
+                res.redirect('/apps/app/' + appId + '/a/top');
+            });
+        });
+
+
     appRouter.route('/app/roles/add')
         .post(function (req, res) {
             var appIdStr = req.body.appId.trim();

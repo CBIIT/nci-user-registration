@@ -569,6 +569,32 @@ module.exports = {
         });
     },
 
+    removeApp(appId, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.remove({
+            _id: appId
+        }, function () {
+            cb();
+        });
+    },
+
+    removeRoleFromApp(appId, roleId, cb) {
+        var collection = db.collection(appsCollection);
+
+        collection.update({
+            _id: appId
+        }, {
+            $pull: {
+                roles: {
+                    role_id: roleId
+                }
+            }
+        }, function () {
+            cb();
+        });
+    },
+
     removeGroupFromRole(appId, roleId, groupDN, cb) {
         var collection = db.collection(appsCollection);
 
@@ -615,7 +641,7 @@ module.exports = {
         });
     },
 
-    rejectRequest(requestId, cb) {
+    rejectRequest(requestId, notes, cb) {
         var collection = db.collection(requestCollection);
 
         collection.updateOne({
@@ -623,7 +649,8 @@ module.exports = {
             approval: 'unknown'
         }, {
             $set: {
-                approval: 'rejected'
+                approval: 'rejected',
+                notes: notes
             }
         }, function () {
             cb();

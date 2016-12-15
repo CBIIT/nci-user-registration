@@ -109,8 +109,16 @@
                                                     <tr>
                                                         <td>User Name</td>
                                                         <td>
-                                                            <% if (request.display_name) {%>
-                                                                <%=request.display_name%>
+                                                            <% if (request.user_name) {%>
+                                                                <%=request.user_name%>
+                                                                    <%}%>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Email</td>
+                                                        <td>
+                                                            <% if (request.email) {%>
+                                                                <%=request.email%>
                                                                     <%}%>
                                                         </td>
                                                     </tr>
@@ -168,14 +176,14 @@
                                                             <div class="help-block with-errors"></div>
                                                         </div>
                                                         <div class="form-group" id="accLevels" name="accaLevels">
-                                                           
                                                         </div>
                                                         <div class="form-group">
                                                             <label for="notes">Notes</label>
                                                             <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
                                                         </div>
-                                                        <button type="submit" class="btn btn-primary">Approve</button>
-                                                        <a class="btn btn-danger" href="/requests/request/<%=request.request_id%>/reject" role="button">Reject</a>
+                                                        <button type="submit" class="btn btn-primary" value="Approve">Approve</button>
+                                                        <button type="submit" class="btn btn-primary" value="Cancel">Cancel</button>
+                                                        <!--<a class="btn btn-danger" href="/requests/request/<%=request.request_id%>/reject" role="button">Reject</a>-->
                                                     </form>
                                                 </p>
                                                 <% } else if (request.approval === 'approved') { %>
@@ -227,37 +235,38 @@
         </div>
     </div>
     <script>
+        $('#app').change(function () {
+            var appId = $(this).val();
+            if (appId) {
+                $.ajax({
+                    url: location.protocol + '//' + location.host + '/apps/app/' + appId + '/roles',
+                    success: function (results) {
+                        $('#accLevels').empty();
+                        var str = '<fieldset>';
+                        str += '<label>Access level:</label>';
 
-    $('#app').change(function () {
-        var appId=$(this).val();
-        if (appId) {
-            $.ajax({
-                url: location.protocol + '//' + location.host + '/apps/app/' + appId + '/roles',
-                success: function(results) {
-                    $('#accLevels').empty();
-                    var str =  '<fieldset>';
-                    str += '<label>Access level:</label>';
-                                                                        
-                    $.each(results, function() {
-                    str += '<div class="checkbox">';
-                    str += '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="' + this['role_id'] +'" value="' + this['role_id'] + '">' + this['role_name'] + '</label>';
-                    str += '</div>';
-                    });
-                    str += '<div class="help-block with-errors"></div>';
-                    str += '</fieldset>';
+                        $.each(results, function () {
+                            str += '<div class="checkbox">';
+                            str +=
+                                '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="' +
+                                this['role_id'] + '" value="' + this['role_id'] + '">' +
+                                this['role_name'] + '</label>';
+                            str += '</div>';
+                        });
+                        str += '<div class="help-block with-errors"></div>';
+                        str += '</fieldset>';
 
-                    $('#accLevels').append(str);
-                }
-            });
-        }
-    });
+                        $('#accLevels').append(str);
+                    }
+                });
+            }
+        });
 
-    $(function() {
-        if ($('#app').length) {
-            $('#app').change();
-        }
-    });
-
+        $(function () {
+            if ($('#app').length) {
+                $('#app').change();
+            }
+        });
     </script>
 </body>
 

@@ -122,6 +122,24 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="modal fade" id="confirm-remove" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirmation Requested</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h5 id="confirmation-text" name="confirmation-text">Click OK to confirm removal.</h5>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                            <a class="btn btn-danger btn-ok">Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <% if (apps.length > 0) {  var numApps = apps.length; %>
                             <div class="row">
@@ -145,9 +163,11 @@
                                                                 <%}%>
                                                     </p>
                                                     <p>
-                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>" data-description="<%=app.description%>"
-                                                            data-id="<%=app._id%>">Edit App Information</button>
-                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#roleModal" data-id="<%=app._id%>" >Add Role</button>
+                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>"
+                                                            data-description="<%=app.description%>" data-id="<%=app._id%>">Edit App Information</button>
+                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#roleModal" data-id="<%=app._id%>">Add Role</button>
+                                                        <button type="button" class="btn btn-danger btn-sm" data-href="/apps/app/<%=app._id%>/remove" data-toggle="modal" data-target="#confirm-remove"
+                                                            data-confirmation-text="Are you sure you want to remove application <%=app.name%>?">Remove Application</button>
                                                     </p>
                                                     <% for (var r = 0; r < app.roles.length; r++) { 
                                                 var role = app.roles[r]; 
@@ -157,7 +177,10 @@
                                                         <table class="table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th><%=role.role_name%></th>
+                                                                    <th>
+                                                                        <%=role.role_name%>  <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/roles/role/<%=role.role_id%>/remove" data-toggle="modal" data-target="#confirm-remove"
+                                                            data-confirmation-text="Are you sure you want to remove role <%=role.role_name%> and all of its groups?">Remove Role</button>
+                                                                    </th>
                                                                     <a name="<%=app._id%>_<%=role.role_id%>"></a>
                                                                 </tr>
                                                             </thead>
@@ -169,8 +192,10 @@
                                                     %>
                                                                     <tr>
                                                                         <td>
-                                                                            <%=group%> <a href="/apps/app/<%=app._id%>/roles/<%=role.role_id%>/removeGroup/<%=group%>"
-                                                                                    class="btn btn-link btn-xs" role="button">Remove</a>
+                                                                            <%=group%>
+                                                                                <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/roles/<%=role.role_id%>/removeGroup/<%=group%>"
+                                                                                    data-toggle="modal" data-target="#confirm-remove"
+                                                                                    data-confirmation-text="Are you sure you want to remove group <%=group%>?">&times;</button>
                                                                         </td>
                                                                     </tr>
                                                                     <%}%>
@@ -205,66 +230,69 @@
                 </div>
     </div>
     <script>
+        var groups = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            prefetch: {
+                url: location.protocol + '//' + location.host + '/apps/getAllGroups',
+                cache: false,
+                cacheKey: groups,
+                transform: function (response) {
+                    return $.map(response, function (groupObj) {
+                        return groupObj.dn;
+                    });
+                }
+            }
+        });
 
-var groups = new Bloodhound({
-  datumTokenizer: Bloodhound.tokenizers.whitespace,
-  queryTokenizer: Bloodhound.tokenizers.whitespace,
-  prefetch: {
-      url: location.protocol + '//' + location.host + '/apps/getAllGroups',
-      cache: false,
-      cacheKey: groups,
-      transform: function(response) {
-          return $.map(response, function(groupObj) {
-              return groupObj.dn;
-          });
-      }
-  }
-});
+        $('#groupInput .typeahead').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 1
+        }, {
+            name: 'groups',
+            source: groups,
+            limit: 8
+        });
 
-$('#groupInput .typeahead').typeahead({
-  hint: true,
-  highlight: true,
-  minLength: 1
-},
-{
-  name: 'groups',
-  source: groups,
-  limit: 8
-});
+        $('#appModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            var appName = button.data('app')
+            var appId = button.data('id');
+            var appDescription = button.data('description');
 
-$('#appModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget) 
-  var appName = button.data('app') 
-  var appId = button.data('id');
-  var appDescription = button.data('description');
-  
-  var modal = $(this)
-  var title = appName ? 'Edit Application ' + appName : 'New Application';
-  modal.find('.modal-title').text(title)
-  modal.find('.modal-body #name').val(appName)
-  modal.find('.modal-body #appId').val(appId)
-  modal.find('.modal-body #description').val(appDescription)
-})
+            var modal = $(this)
+            var title = appName ? 'Edit Application ' + appName : 'New Application';
+            modal.find('.modal-title').text(title)
+            modal.find('.modal-body #name').val(appName)
+            modal.find('.modal-body #appId').val(appId)
+            modal.find('.modal-body #description').val(appDescription)
+        });
 
-$('#roleModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget) 
-  var appId = button.data('id');
-  
-  var modal = $(this)
-  var title = 'Add Role';
-  modal.find('.modal-title').text(title)
-  modal.find('.modal-body #appId').val(appId)
-})
+        $('#roleModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            var appId = button.data('id');
 
-function load() {
-    var anchor = <%- JSON.stringify(anchor) %>;
-    window.location.hash = 'someHashThatDoesntExist';
-    window.location.hash = anchor;
-}
+            var modal = $(this)
+            var title = 'Add Role';
+            modal.find('.modal-title').text(title)
+            modal.find('.modal-body #appId').val(appId)
+        });
 
+        $('#confirm-remove').on('show.bs.modal', function (event) {
+            var modal = $(this);
+            var button = $(event.relatedTarget);
+            console.log(button.data('confirmation-text'));
+            modal.find('.modal-body #confirmation-text').text(button.data('confirmation-text'));
+            modal.find('.btn-ok').attr('href', $(event.relatedTarget).data('href'));
+        });
 
-
-        </script>
+        function load() {
+            var anchor = <%- JSON.stringify(anchor) %>;
+            window.location.hash = 'someHashThatDoesntExist';
+            window.location.hash = anchor;
+        }
+    </script>
 </body>
 
 </html>

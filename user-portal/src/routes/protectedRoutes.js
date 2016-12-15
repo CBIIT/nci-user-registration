@@ -152,15 +152,12 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            // var userDN = req.get('smuserdn').toLowerCase();
-            // var displayName = req.get('user_displayname');
-
-            var userDN = 'cn=test,ou=localhost';
-            var displayName = 'Svet';
+            var userDN = req.get('smuserdn').toLowerCase();
+            var userName = req.get('user_firstname') + ' ' + req.get('user_lastname');
+            var email = req.get('user_email');
 
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
-
 
             // record request and send email
             var requestObject = {};
@@ -168,7 +165,8 @@ var router = function (logger, config, db, mailer) {
             requestObject.request_id = requestId;
             requestObject.requested_app = app;
             requestObject.user_dn = userDN;
-            requestObject.display_name = displayName;
+            requestObject.user_name = userName;
+            requestObject.email = email;
             requestObject.requested_access_level = accessLevel;
             requestObject.justification = justification;
             requestObject.approval = 'unknown';
@@ -176,7 +174,9 @@ var router = function (logger, config, db, mailer) {
             var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
             var message = '<p>Access was requested for application: ' + app + '</p>' +
                 '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
-                '<p>User DN: the user DN' + userDN + '</p>' +
+                '<p>User DN: ' + userDN + '</p>' +
+                '<p>Display Name: ' + userName + '</p>' +
+                '<p>Email: ' + email + '</p>' +
                 '<p>Access Level: ' + accessLevel + '</p>' +
                 '<p>Justification: ' + justification + '</p>';
 

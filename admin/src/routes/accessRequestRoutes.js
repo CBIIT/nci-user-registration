@@ -66,47 +66,57 @@ var router = function (logger, config, db, util) {
         .post(function (req, res) {
             var requestId = req.params.id;
             var appId = new objectId(req.body.app);
-            var accessLevelArray = req.body.acclevel;
+            var notes = req.body.notes;
 
-            var approvedResource = {};
+            if (req.body.submit === 'Reject') {
+                db.rejectRequest(requestId, notes, function () {
+                    res.redirect('/requests');
+                });
 
-            db.getSingleApp(appId, function (err, result) {
-                var app = result;
+            } else if (req.body.submit === 'Approve') {
 
-                approvedResource.app_id = appId;
-                approvedResource.app_name = app.name;
-                approvedResource.access_level = [];
-                approvedResource.groups = [];
+                var accessLevelArray = req.body.acclevel;
+                var approvedResource = {};
 
-                if (accessLevelArray) {
-                    accessLevelArray.forEach(function (roleId) {
-                        app.roles.forEach(function (role) {
-                            if (role.role_id === roleId) {
-                                approvedResource.access_level.push(role.role_name);
-                                approvedResource.groups.push(role.groups);
-                            }
+                db.getSingleApp(appId, function (err, result) {
+                    var app = result;
+
+                    approvedResource.app_id = appId;
+                    approvedResource.app_name = app.name;
+                    approvedResource.access_level = [];
+                    approvedResource.groups = [];
+                    approvedResource.notes = notes;
+
+                    if (accessLevelArray) {
+                        accessLevelArray.forEach(function (roleId) {
+                            app.roles.forEach(function (role) {
+                                if (role.role_id === roleId) {
+                                    approvedResource.access_level.push(role.role_name);
+                                    approvedResource.groups.push(role.groups);
+                                }
+                            });
                         });
-                    });
 
-                    db.approveRequest(requestId, approvedResource, function (err, result) {
+                        db.approveRequest(requestId, approvedResource, function (err, result) {
 
-                        res.redirect('/requests');
-                    });
-                } else {
-                    res.send('Error: No access roles selected!');
-                }
+                            res.redirect('/requests');
+                        });
+                    } else {
+                        res.send('Error: No access roles selected!');
+                    }
 
-            });
+                });
+            }
 
         });
 
-    accessRequestRouter.route('/request/:id/reject')
-        .get(function (req, res) {
-            var requestId = req.params.id;
-            db.rejectRequest(requestId, function () {
-                res.redirect('/requests');
-            });
-        });
+    // accessRequestRouter.route('/request/:id/reject')
+    //     .get(function (req, res) {
+    //         var requestId = req.params.id;
+    //         db.rejectRequest(requestId, function () {
+    //             res.redirect('/requests');
+    //         });
+    //     });
 
     accessRequestRouter.route('/search')
         .post(function (req, res) {

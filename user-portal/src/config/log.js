@@ -12,10 +12,17 @@ if (process.env.NODE_ENV === 'development') {
 var logger = new(winston.Logger)({
     level: logLevel,
     transports: [
-        new(winston.transports.Console)(),
+        new(winston.transports.Console)({
+            timestamp: function () {
+                return new Date().toLocaleString();
+            }
+        }),
         new(winston.transports.File)({
             filename: process.env.NODE_LOG_FILE,
-            maxsize: rotationSize
+            maxsize: rotationSize,
+            timestamp: function () {
+                return new Date().toLocaleString();
+            }
         })
     ]
 });
