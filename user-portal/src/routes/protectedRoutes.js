@@ -152,7 +152,11 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            var userDN = req.get('smuserdn').toLowerCase();
+            // var userDN = req.get('smuserdn').toLowerCase();
+            // var userName = req.get('user_firstname') + ' ' + req.get('user_lastname');
+            // var email = req.get('user_email');
+
+            var userDN = 'cn=yankovsr';
             var userName = req.get('user_firstname') + ' ' + req.get('user_lastname');
             var email = req.get('user_email');
 

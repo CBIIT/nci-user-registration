@@ -46,122 +46,134 @@
                 <%=stats.pendingApprovalCount%>
             </div>
             <div class="col-sm-8 main-content">
-                <div class="row">
-                    <div>
-                        <form class="form-inline" action="/requests/search" method="post" data-toggle="validator">
-                            <div class="form-group">
-                                <label for="query">Request Search</label>
-                                <input type="text" class="form-control" id="query" name="query">
-                            </div>
-                            <div class="form-group">
-                                <fieldset>
-                                    <label for="disposition">Status:</label>
-                                    <div class="radio">
-                                        <label for="disposition_unknown"><input type="radio" name="disposition" id="disposition_unknown" value="unknown" required <% if (disposition === 'unknown') { %> checked="checked" <% }  %> >Pending Approval</label>
-                                    </div>
-                                    <div class="radio">
-                                        <label for="disposition_approved"><input type="radio" name="disposition" id="disposition_approved" value="approved" required <% if (disposition === 'approved') { %> checked="checked" <% }  %> >Approved</label>
-                                    </div>
-                                    <div class="radio">
-                                        <label for="disposition_rejected"><input type="radio" name="disposition" id="disposition_rejected" value="rejected" required <% if (disposition === 'rejected') { %> checked="checked" <% }  %> >Rejected</label>
-                                    </div>
-                                </fieldset>
-                            </div>
-                            <button type="submit" class="btn btn-default">Search</button>
-                        </form>
-                    </div>
-                </div>
-                <% if (requests.length > 0) {  var numReqs = requests.length; %>
+                <% if (typeof alert !== 'undefined' && alert !== null) { %>
                     <div class="row">
-                        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                            <% for(var i=0; i < numReqs; i++) { var request = requests[i];  %>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="heading<%=i%>">
-                                        <h4 class="panel-title">
-                                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
-                                                aria-expanded=<% if (numReqs===1 ) { %>"true"<%} else {%>"false"<%}%> >
-                                           <%= request.display_name ?  request.display_name : request.user_dn %> | <%=request.requested_app%> | <%=request.request_id%></a>
-                                        </h4>
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <div class="alert <%=alert.severity_class%> alert-dismissible fade in" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                                <strong><%=alert.message%></strong>
+                            </div>
+                        </div>
+                    </div>
+                    <%}%>
+                        <div class="row">
+                            <div>
+                                <form class="form-inline" action="/requests/search" method="post" data-toggle="validator">
+                                    <div class="form-group">
+                                        <label for="query">Request Search</label>
+                                        <input type="text" class="form-control" id="query" name="query">
                                     </div>
-                                    <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numReqs === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
-                                        <div class="panel-body">
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="40%">Access Request Information</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Request Status</td>
-                                                        <td>
-                                                            <%=request.approval === 'unknown' ? 'Pending Approval' : request.approval.toUpperCase()%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Request ID</td>
-                                                        <td>
-                                                            <% if (request.request_id) {%>
-                                                                <%=request.request_id%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>User Name</td>
-                                                        <td>
-                                                            <% if (request.user_name) {%>
-                                                                <%=request.user_name%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Email</td>
-                                                        <td>
-                                                            <% if (request.email) {%>
-                                                                <%=request.email%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Requested Application</td>
-                                                        <td>
-                                                            <% if (request.requested_app) {%>
-                                                                <%=request.requested_app%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>User DN</td>
-                                                        <td>
-                                                            <% if (request.user_dn) {%>
-                                                                <%=request.user_dn%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Requested Access Level</td>
-                                                        <td>
-                                                            <% if (request.requested_access_level) {%>
-                                                                <%=request.requested_access_level%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>User Justification</td>
-                                                        <td>
-                                                            <% if (request.justification) {%>
-                                                                <%=request.justification%>
-                                                                    <%}%>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                            <%if (request.approval === 'unknown') { %>
-                                                <p>
-                                                    <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
-                                                        <div class="form-group">
-                                                            <label for="app">Select approved App:</label>
-                                                            <select class="form-control" id="app" name="app" data-error="Select the app which was approved" required>
+                                    <div class="form-group">
+                                        <fieldset>
+                                            <label for="disposition">Status:</label>
+                                            <div class="radio">
+                                                <label for="disposition_unknown"><input type="radio" name="disposition" id="disposition_unknown" value="unknown" required <% if (disposition === 'unknown') { %> checked="checked" <% }  %> >Pending Approval</label>
+                                            </div>
+                                            <div class="radio">
+                                                <label for="disposition_approved"><input type="radio" name="disposition" id="disposition_approved" value="approved" required <% if (disposition === 'approved') { %> checked="checked" <% }  %> >Approved</label>
+                                            </div>
+                                            <div class="radio">
+                                                <label for="disposition_rejected"><input type="radio" name="disposition" id="disposition_rejected" value="rejected" required <% if (disposition === 'rejected') { %> checked="checked" <% }  %> >Rejected</label>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <button type="submit" class="btn btn-default">Search</button>
+                                </form>
+                            </div>
+                        </div>
+                        <% if (requests.length > 0) {  var numReqs = requests.length; %>
+                            <div class="row">
+                                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                    <% for(var i=0; i < numReqs; i++) { var request = requests[i];  %>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading" role="tab" id="heading<%=i%>">
+                                                <h4 class="panel-title">
+                                                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
+                                                        aria-expanded=<% if (numReqs===1 ) { %>"true"<%} else {%>"false"<%}%> >
+                                           <%= request.display_name ?  request.display_name : request.user_dn %> | <%=request.requested_app%> | <%=request.request_id%></a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numReqs === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
+                                                <div class="panel-body">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="40%">Access Request Information</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Request Status</td>
+                                                                <td>
+                                                                    <%=request.approval === 'unknown' ? 'Pending Approval' : request.approval.toUpperCase()%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Request ID</td>
+                                                                <td>
+                                                                    <% if (request.request_id) {%>
+                                                                        <%=request.request_id%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>User Name</td>
+                                                                <td>
+                                                                    <% if (request.user_name) {%>
+                                                                        <%=request.user_name%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Email</td>
+                                                                <td>
+                                                                    <% if (request.email) {%>
+                                                                        <%=request.email%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Requested Application</td>
+                                                                <td>
+                                                                    <% if (request.requested_app) {%>
+                                                                        <%=request.requested_app%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>User DN</td>
+                                                                <td>
+                                                                    <% if (request.user_dn) {%>
+                                                                        <%=request.user_dn%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Requested Access Level</td>
+                                                                <td>
+                                                                    <% if (request.requested_access_level) {%>
+                                                                        <%=request.requested_access_level%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>User Justification</td>
+                                                                <td>
+                                                                    <% if (request.justification) {%>
+                                                                        <%=request.justification%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <%if (request.approval === 'unknown') { %>
+                                                        <p>
+                                                            <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
+                                                                <div class="form-group">
+                                                                    <label for="app">Select approved App:</label>
+                                                                    <select class="form-control" id="app" name="app" data-error="Select the app which was approved" required>
                                                             <option value=""></option>
                                                             <% for (var j=0; j<apps.length; j++) { var app = apps[j]; %>
                                                             <option value="<%=app._id%>" 
@@ -173,64 +185,82 @@
                                                                 ><%=app.name%></option>
                                                             <% } %>
                                                         </select>
-                                                            <div class="help-block with-errors"></div>
-                                                        </div>
-                                                        <div class="form-group" id="accLevels" name="accaLevels">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="notes">Notes</label>
-                                                            <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
-                                                        </div>
-                                                        <button type="submit" class="btn btn-primary" value="Approve">Approve</button>
-                                                        <button type="submit" class="btn btn-primary" value="Cancel">Cancel</button>
-                                                        <!--<a class="btn btn-danger" href="/requests/request/<%=request.request_id%>/reject" role="button">Reject</a>-->
-                                                    </form>
-                                                </p>
-                                                <% } else if (request.approval === 'approved') { %>
-                                                    <table class="table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th width="40%">Approved Resources</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>Application</td>
-                                                                <td>
-                                                                    <%=request.approved_resource.app_name%>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Access Roles</td>
-                                                                <td>
-                                                                    <%= request.approved_resource.access_level.join(', ') %>
-                                                                </td>
-                                                            </tr>
-                                                            <% var groups = [].concat.apply([], request.approved_resource.groups); %>
-                                                                <tr>
-                                                                    <td>Groups</td>
-                                                                    <td>
-                                                                        <%=groups[0]%>
-                                                                    </td>
-                                                                </tr>
-                                                                <% for (var g=1; g < groups.length; g++) { %>
-                                                                    <tr>
-                                                                        <td></td>
-                                                                        <td>
-                                                                            <%=groups[g]%>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <%}%>
-                                                        </tbody>
-                                                    </table>
-                                                    <% } %>
+                                                                    <div class="help-block with-errors"></div>
+                                                                </div>
+                                                                <div class="form-group" id="accLevels" name="accaLevels">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label for="notes">Notes</label>
+                                                                    <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
+                                                                </div>
+                                                                <button type="submit" class="btn btn-primary" name="submit" value="Approve">Approve</button>
+                                                                <button type="submit" class="btn btn-danger" name="submit" value="Reject">Reject</button>
+                                                            </form>
+                                                        </p>
+                                                        <% } else {  %>
+                                                            <% if (request.approval === 'approved') { %>
+                                                                <table class="table">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th width="40%">Approved Resources</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>Application</td>
+                                                                            <td>
+                                                                                <%=request.approved_resource.app_name%>
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>Access Roles</td>
+                                                                            <td>
+                                                                                <%= request.approved_resource.access_level.join(', ') %>
+                                                                            </td>
+                                                                        </tr>
+                                                                        <% var groups = [].concat.apply([], request.approved_resource.groups); %>
+                                                                            <tr>
+                                                                                <td>Groups</td>
+                                                                                <td>
+                                                                                    <%=groups[0]%>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <% for (var g=1; g < groups.length; g++) { %>
+                                                                                <tr>
+                                                                                    <td></td>
+                                                                                    <td>
+                                                                                        <%=groups[g]%>
+                                                                                    </td>
+                                                                                </tr>
+                                                                                <%}%>
+                                                                    </tbody>
+                                                                </table>
+                                                                <% } %>
+                                                                    <table class="table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th width="40%">Admin Section</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td>Admin Notes</td>
+                                                                                <td>
+                                                                                    <% if (request.notes) { %>
+                                                                                        <%=request.notes%>
+                                                                                            <% } %>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <% } %>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <%}%>
                                 </div>
-                                <%}%>
-                        </div>
-                    </div>
-                    <%}%>
+                            </div>
+                            <%}%>
             </div>
         </div>
     </div>

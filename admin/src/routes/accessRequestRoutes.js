@@ -43,6 +43,12 @@ var router = function (logger, config, db, util) {
             var disposition = 'unknown';
             var stats = {};
 
+            var alert = null;
+            if (req.session.alert) {
+                alert = req.session.alert;
+                req.session.alert = null;
+            }
+
             db.pendingApprovalCount(function (err, count) {
                 stats.pendingApprovalCount = count;
                 db.getRequest(uuid, function (err, result) {
@@ -54,7 +60,8 @@ var router = function (logger, config, db, util) {
                             requests: requests,
                             stats: stats,
                             apps: apps,
-                            disposition: disposition
+                            disposition: disposition,
+                            alert: alert ? alert : null
                         });
                     });
                 });
@@ -85,7 +92,6 @@ var router = function (logger, config, db, util) {
                     approvedResource.app_name = app.name;
                     approvedResource.access_level = [];
                     approvedResource.groups = [];
-                    approvedResource.notes = notes;
 
                     if (accessLevelArray) {
                         accessLevelArray.forEach(function (roleId) {
@@ -97,26 +103,23 @@ var router = function (logger, config, db, util) {
                             });
                         });
 
-                        db.approveRequest(requestId, approvedResource, function (err, result) {
+                        db.approveRequest(requestId, approvedResource, notes, function (err, result) {
 
                             res.redirect('/requests');
                         });
                     } else {
-                        res.send('Error: No access roles selected!');
+                        var alert = {
+                            message: 'Error: No roles selected. Request was not approved.',
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/requests/request/' + requestId);
                     }
 
                 });
             }
 
         });
-
-    // accessRequestRouter.route('/request/:id/reject')
-    //     .get(function (req, res) {
-    //         var requestId = req.params.id;
-    //         db.rejectRequest(requestId, function () {
-    //             res.redirect('/requests');
-    //         });
-    //     });
 
     accessRequestRouter.route('/search')
         .post(function (req, res) {

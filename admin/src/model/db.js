@@ -625,7 +625,7 @@ module.exports = {
             });
     },
 
-    approveRequest(requestId, approvedResource, cb) {
+    approveRequest(requestId, approvedResource, notes, cb) {
         var collection = db.collection(requestCollection);
 
         collection.updateOne({
@@ -634,7 +634,8 @@ module.exports = {
         }, {
             $set: {
                 approval: 'approved',
-                approved_resource: approvedResource
+                approved_resource: approvedResource,
+                notes: notes
             }
         }, function (err, result) {
             cb(err, result);
