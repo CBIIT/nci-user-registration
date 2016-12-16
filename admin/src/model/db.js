@@ -38,12 +38,21 @@ module.exports = {
             });
     },
 
-    getUser: function (id, cb) {
+    findUsers: function (id, cb) {
         var collection = db.collection(usersCollection);
         collection.find({
             _id: id
         }).toArray(function (err, results) {
             cb(err, results);
+        });
+    },
+
+    getSingleUser: function (id, cb) {
+        var collection = db.collection(usersCollection);
+        collection.findOne({
+            _id: id
+        }, function (err, result) {
+            cb(err, result);
         });
     },
 
@@ -154,9 +163,12 @@ module.exports = {
         });
     },
 
-    isSmUserDnRegistered(itrustInfo, cb) {
+    isSmUserDnRegisteredToAnotherUser(userId, itrustInfo, cb) {
         var collection = db.collection(usersCollection);
         collection.count({
+            '_id': {
+                $ne: userId
+            },
             'itrustinfo.sm_userdn': itrustInfo.sm_userdn
         }, function (err, result) {
             if (err) {

@@ -101,6 +101,11 @@ var router = function (logger, config, db, mailer) {
         }
     });
 
+    protectedRouter.route('/myaccount')
+        .get(function (req, res) {
+            res.render('myaccount');
+        });
+
 
     protectedRouter.route('/update')
         .get(function (req, res) {
@@ -143,7 +148,6 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .get(function (req, res) {
             var app = req.query.app;
-            console.log(req.headers);
             res.render('accessRequestForm', {
                 app: app
             });

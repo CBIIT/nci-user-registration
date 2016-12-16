@@ -28,7 +28,7 @@ var router = function (logger, config, db, util) {
                 req.session.alert = null;
             }
 
-            db.getUser(id, function (err, users) {
+            db.findUsers(id, function (err, users) {
                 if (err) {
                     throw err;
                 }
@@ -45,7 +45,7 @@ var router = function (logger, config, db, util) {
                                 stats.processedCount = count;
                                 db.pendingManualCount(function (err, count) {
                                     stats.pendingManualCount = count;
-                                    res.render('index', {
+                                    res.render('users', {
                                         users: users,
                                         stats: stats,
                                         alert: alert
@@ -237,9 +237,9 @@ var router = function (logger, config, db, util) {
         .post(function (req, res) {
             var userId = new objectId(req.params.id);
             var smUserDN = req.body.sm_userdn.trim().toLowerCase();
-            console.log('user ID: ' + userId);
+
             var alert = null;
-            db.getUser(userId, function (err, result) {
+            db.getSingleUser(userId, function (err, result) {
                 if (err) {
                     throw err;
                 }
@@ -253,19 +253,35 @@ var router = function (logger, config, db, util) {
                         newItrustInfo.processed = false;
                         newItrustInfo.override = true;
 
-                        db.isSmUserDnRegistered(newItrustInfo, function (err, result) {
+                        db.isSmUserDnRegisteredToAnotherUser(userId, newItrustInfo, function (err, result) {
                             if (err) {
-                                res.send('Error: Failed setting itrustInfo - ' + err);
+                                alert = {
+                                    message: 'Error: Failed to set itrustinfo: ' + err,
+                                    severity_class: 'alert-danger'
+                                };
+                                req.session.alert = alert;
+                                res.redirect('/users/user/' + userId);
                             } else {
                                 if (result) {
-                                    res.send('Error: sm_userdn is already maped to a different user. iTrustInfo was not changed!');
+                                    logger.error('sm_userdn is already mapped to a different user. itrustInfo was not set! smUserdn: ' + smUserDN);
+                                    alert = {
+                                        message: 'Error: sm_userdn is already mapped to a different user. itrusInfo was not set! smUserdn: ' + smUserDN,
+                                        severity_class: 'alert-danger'
+                                    };
+                                    req.session.alert = alert;
+                                    res.redirect('/users/user/' + userId);
                                 } else {
                                     db.setMappingByUserId(userId, newItrustInfo, function (err) {
                                         if (err) {
-                                            res.send('Error: Failed setting itrustInfo - ' + err);
+                                            logger.error('Failed setting itrustInfo - ' + err);
+                                            alert = {
+                                                message: 'Error: setting itrustinfo: ' + err,
+                                                severity_class: 'alert-danger'
+                                            };
+                                            res.redirect('/users/user/' + userId);
                                         } else {
                                             db.log(user, 'itrustinfo mapping changed from ' + user.itrustinfo.sm_userdn + ' to ' + smUserDN);
-                                            res.send('Override completed successfully');
+                                            res.redirect('/users/user/' + userId);
                                         }
                                     });
                                 }
@@ -273,6 +289,7 @@ var router = function (logger, config, db, util) {
                         });
 
                     } else {
+                        // The same user_dn was submitted as the one on file
                         alert = {
                             message: 'Nothing to change',
                             severity_class: 'alert-danger'
@@ -282,44 +299,54 @@ var router = function (logger, config, db, util) {
                     }
                 } else {
                     // This is a new mapping performed by the admin, or an override of an unprocessed record.
-                    newItrustInfo.sm_userdn = smUserDN;
-                    newItrustInfo.processed = false;
+                    if (user.itrustinfo && (smUserDN === user.itrustinfo.sm_userdn)) {
+                        // The same user_dn was submitted as the one on file
+                        alert = {
+                            message: 'Nothing to change',
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/users/user/' + userId);
+                    } else {
+                        newItrustInfo.sm_userdn = smUserDN;
+                        newItrustInfo.processed = false;
 
-                    db.isSmUserDnRegistered(newItrustInfo, function (err, result) {
-                        if (err) {
-                            logger.error('Failed to set itrustinfo: ' + err);
-                            alert = {
-                                message: 'Error: Failed to set itrustinfo: ' + err,
-                                severity_class: 'alert-danger'
-                            };
-                            req.session.alert = alert;
-                            res.redirect('/users/user/' + userId);
-                        } else {
-                            if (result) {
-                                logger.error('sm_userdn is already mapped to a different user. itrustInfo was not set! smUserdn: ' + smUserDN);
+                        db.isSmUserDnRegisteredToAnotherUser(userId, newItrustInfo, function (err, result) {
+                            if (err) {
+                                logger.error('Failed to set itrustinfo: ' + err);
                                 alert = {
-                                    message: 'Error: sm_userdn is already mapped to a different user. itrusInfo was not set! smUserdn: ' + smUserDN,
+                                    message: 'Error: Failed to set itrustinfo: ' + err,
                                     severity_class: 'alert-danger'
                                 };
                                 req.session.alert = alert;
                                 res.redirect('/users/user/' + userId);
                             } else {
-                                db.setMappingByUserId(userId, newItrustInfo, function (err) {
-                                    if (err) {
-                                        logger.error('Failed setting itrustInfo - ' + err);
-                                        alert = {
-                                            message: 'Error: setting itrustinfo: ' + err,
-                                            severity_class: 'alert-danger'
-                                        };
-                                        res.redirect('/users/user/' + userId);
-                                    } else {
-                                        db.logWithUserID(userId, 'itrustinfo set by admin to ' + smUserDN);
-                                        res.redirect('/users/user/' + userId);
-                                    }
-                                });
+                                if (result) {
+                                    logger.error('sm_userdn is already mapped to a different user. itrustInfo was not set! smUserdn: ' + smUserDN);
+                                    alert = {
+                                        message: 'Error: sm_userdn is already mapped to a different user. itrusInfo was not set! smUserdn: ' + smUserDN,
+                                        severity_class: 'alert-danger'
+                                    };
+                                    req.session.alert = alert;
+                                    res.redirect('/users/user/' + userId);
+                                } else {
+                                    db.setMappingByUserId(userId, newItrustInfo, function (err) {
+                                        if (err) {
+                                            logger.error('Failed setting itrustInfo - ' + err);
+                                            alert = {
+                                                message: 'Error: setting itrustinfo: ' + err,
+                                                severity_class: 'alert-danger'
+                                            };
+                                            res.redirect('/users/user/' + userId);
+                                        } else {
+                                            db.logWithUserID(userId, 'itrustinfo set by admin to ' + smUserDN);
+                                            res.redirect('/users/user/' + userId);
+                                        }
+                                    });
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             });
         });

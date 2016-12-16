@@ -30,7 +30,8 @@
 	<div class="container-fluid">
 		<div class="row top-20">
 			<div class="col-sm-6 col-sm-offset-3">
-				<a href="/edir"><img class="img-responsive" src="/images/nci-logo-full.svg" alt="National Cancer Institute"></a>
+				<a href="/edir">
+					<img class="img-responsive" src="/images/nci-logo-full.svg" alt="National Cancer Institute"></a>
 			</div>
 		</div>
 		<div class="row">
@@ -49,57 +50,12 @@
 				<p> Sat - Sun : 8.30am - 5pm EST<br> Mon - Fri : 6pm - midnight EST
 				</p>
 			</div>
-			<div class="col-sm-6 main-content">
-				<div class="row">
-					<div class="col-sm-offset-1">
-						<h4>Welcome to the NCI User Registration Portal. </h4>
-					</div>
-				</div>
-				<div class="row">
-					<div class="text_padding col-sm-offset-1">
-						<p> You can use this site to transfer your existing access authorizations from an NCI account to an InCommon Federation
-							account (see <a href="https://www.incommon.org/participants/">https://www.incommon.org/participants/</a> for a list
-							of participating institutions) or a business or personal Google account.
-						</p>
-						<p>
-							Existing NCI accounts will be deactivated on December 16, 2016. While it will be possible for you to register a new federated
-							account after this date, you should register your new federated account as soon as possible to avoid disruption to
-							your NCI application access.
-						</p>
-						<p>
-							If you encounter any difficulties completing this process, please contact the NIH IT Service Desk using the information in
-							the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request
-							is routed to the appropriate technical support team.
-						</p>
-						<p><strong>Who should use this?</strong></p>
-						<ul>
-							<li>
-								<p>Non-NIH users who have an existing NCI account and wish to continue accessing NCI applications and services.</p>
-							</li>
-						</ul>
-						<p><strong>Who should NOT use this?</strong></p>
-						<ul>
-							<li>
-								NIH users who have a NCI account – These accounts will be migrated using a separate process.
-							</li>
-							<li>
-								Non-NIH users who do not have a NCI account – A separate new user registration process is under development and will be announced
-								shortly.
-							</li>
-						</ul>
-						<p><strong>Choose one of the options below to begin.</strong></p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-sm-offset-1">
-						<p>
-							<a class="btn btn-primary" href="/authForm">Register My Account</a>
-							<a class="btn btn-secondary" href="/protected/itrust/myaccount">My Account</a>
-						</p>
-					</div>
-				</div>
-				<div class="form-group">
-				</div>
+			<div class="col-sm-6 main-content bg-info">
+				<ul>
+					<li>
+						<a href="/protected/itrust/update">Update SSH Public Key</a>
+					</li>
+				</ul>
 			</div>
 		</div>
 		<div class="row">
@@ -122,6 +78,20 @@
 			</div>
 		</div>
 	</footer>
+	<script>
+		$('#update-form').validator({
+			custom: {
+				pmatch: function ($el) {
+					var exp = /^ssh-rsa\s+[A-Za-z0-9\+\/]+(={0,2})(\s+.*)?$/;
+					var value = $el.val().trim();
+					var result = exp.test(value);
+
+					// has to return true to fail validation !?
+					return !result;
+				}
+			}
+		});
+	</script>
 </body>
 
 </html>
