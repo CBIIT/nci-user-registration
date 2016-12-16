@@ -45,16 +45,18 @@ var router = function (logger, config, db, util) {
                                 stats.processedCount = count;
                                 db.pendingManualCount(function (err, count) {
                                     stats.pendingManualCount = count;
-                                    res.render('users', {
-                                        users: users,
-                                        stats: stats,
-                                        alert: alert
+                                    db.pendingCount(function (err, count) {
+                                        stats.pendingCount = count;
+                                        res.render('users', {
+                                            users: users,
+                                            stats: stats,
+                                            alert: alert
+                                        });
                                     });
                                 });
                             });
                         });
                     });
-
                 });
             });
         });
@@ -79,20 +81,57 @@ var router = function (logger, config, db, util) {
                             stats.processedCount = count;
                             db.pendingManualCount(function (err, count) {
                                 stats.pendingManualCount = count;
-                                if (!searchObject.cn && !searchObject.email) {
-                                    res.render('index', {
-                                        users: users,
-                                        stats: stats
-                                    });
-                                } else {
-                                    db.search(searchObject, function (err, results) {
+                                db.pendingCount(function (err, count) {
+                                    stats.pendingCount = count;
+                                    if (!searchObject.cn && !searchObject.email) {
+                                        res.render('users', {
+                                            users: users,
+                                            stats: stats
+                                        });
+                                    } else {
+                                        db.search(searchObject, function (err, results) {
+                                            users = results;
+                                            res.render('users', {
+                                                users: users,
+                                                stats: stats
+                                            });
+                                        });
+                                    }
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+
+    userRouter.route('/pending')
+        .get(function (req, res) {
+
+            var users = [];
+            var stats = {};
+
+            db.userCount(function (err, count) {
+                stats.totalUsers = count;
+                db.externalUserCount(function (err, count) {
+                    stats.externalUserCount = count;
+                    db.selfRegisteredCount(function (err, count) {
+                        stats.selfRegisteredCount = count;
+                        db.processedCount(function (err, count) {
+                            stats.processedCount = count;
+                            db.pendingManualCount(function (err, count) {
+                                stats.pendingManualCount = count;
+                                db.pendingCount(function (err, count) {
+                                    stats.pendingCount = count;
+                                    db.getPendingUsers(function (err, results) {
                                         users = results;
                                         res.render('users', {
                                             users: users,
                                             stats: stats
                                         });
                                     });
-                                }
+
+                                });
                             });
                         });
                     });
@@ -115,9 +154,12 @@ var router = function (logger, config, db, util) {
                                 stats.processedCount = count;
                                 db.pendingManualCount(function (err, count) {
                                     stats.pendingManualCount = count;
-                                    res.render('users', {
-                                        users: users,
-                                        stats: stats
+                                    db.pendingCount(function (err, count) {
+                                        stats.pendingCount = count;
+                                        res.render('users', {
+                                            users: users,
+                                            stats: stats
+                                        });
                                     });
                                 });
                             });
@@ -189,6 +231,22 @@ var router = function (logger, config, db, util) {
             });
         });
 
+    userRouter.route('/flagItrustOverrides')
+        .post(function (req, res) {
+
+            var data = req.body.userids.value;
+            var convertedUserIds = [];
+            for (var i = 0; i < data.length; i++) {
+                convertedUserIds.push(new objectId(data[i]));
+            }
+            logger.info('The following users have been reported as processed and will now be flagged: ' + convertedUserIds);
+            db.setItrustOverridesProcessed(convertedUserIds, function (err, result) {
+                logger.info('Flagging result: ' + JSON.stringify(result));
+                res.set('Content-Type', 'text/xml');
+                res.send(js2xmlparser('result', result, parserOptions));
+            });
+        });
+
     userRouter.route('/flagItrustUpdates')
         .post(function (req, res) {
 
@@ -245,7 +303,7 @@ var router = function (logger, config, db, util) {
                 }
                 var user = result;
                 var newItrustInfo = {};
-                if (user.itrustinfo && user.itrustinfo.processed) {
+                if (user.itrustinfo && user.itrustinfo.processed === true) {
                     // This is an override
                     logger.info('Overriding itrustinfo mapping for user DN' + user.dn);
                     if (smUserDN !== user.itrustinfo.sm_userdn) {

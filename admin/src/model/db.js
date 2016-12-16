@@ -38,6 +38,20 @@ module.exports = {
             });
     },
 
+    getPendingUsers: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.find({
+            $or: [{
+                'itrustinfo.processed': 'pending'
+            }, {
+                'itrustinfo.processed': 'manual'
+            }]
+        }).toArray(
+            function (err, results) {
+                cb(err, results);
+            });
+    },
+
     findUsers: function (id, cb) {
         var collection = db.collection(usersCollection);
         collection.find({
@@ -337,6 +351,29 @@ module.exports = {
             return cb(err, result.toJSON());
         });
     },
+
+    setItrustOverridesProcessed: function (userIds, cb) {
+        var collection = db.collection(usersCollection);
+        var bulk = collection.initializeUnorderedBulkOp();
+        bulk.find({
+            _id: {
+                $in: userIds
+            }
+        }).update({
+            $set: {
+                'itrustinfo.processed': true,
+
+            },
+            $unset: {
+                'itrustinfo.override': ''
+            }
+        });
+        bulk.execute(function (err, result) {
+            return cb(err, result.toJSON());
+        });
+    },
+
+
 
     setPubKeyProcessed: function (userIds, cb) {
         var collection = db.collection(usersCollection);
@@ -713,6 +750,14 @@ module.exports = {
         var collection = db.collection(usersCollection);
         collection.count({
             'itrustinfo.processed': 'manual'
+        }, function (err, count) {
+            return cb(err, count);
+        });
+    },
+    pendingCount: function (cb) {
+        var collection = db.collection(usersCollection);
+        collection.count({
+            'itrustinfo.processed': 'pending'
         }, function (err, count) {
             return cb(err, count);
         });
