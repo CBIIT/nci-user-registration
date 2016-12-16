@@ -60,12 +60,13 @@ var router = function (logger) {
             } else if (req.query.prevregistration) {
                 message = 'Your account has already been registered. No further action is required.';
             } else if (req.query.pending) {
-                message = 'Your federated account has been provisioned but is not yet available for registration with NCI. Please try again in 24 hours.';
-                bg_class = 'bg-danger';
+                message = 'Your federated account has been provisioned but is not yet available for registration with NCI. This process can take up to one business day to complete. We will process the registration and send you an email notification once you can access the system.';
+                bg_class = 'bg-success';
             } else if (req.query.invaliddn) {
                 message = 'Your NCI registration request could not be processed automatically. We will process it manually and let you know when the registration has been completed.';
                 bg_class = 'bg-danger';
-                
+            } else if (req.query.requestconfirmation) {
+                message = 'Your request has been recorded. You will be contacted once the request has been fulfilled.';
             } else if (req.query.error) {
                 message = 'An error occurred while registering your account. Please try again later.';
                 bg_class = 'bg-danger';

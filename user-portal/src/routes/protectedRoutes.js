@@ -37,6 +37,8 @@ var router = function (logger, config, db, mailer) {
         var userAuthType = req.get('user_auth_type').toLowerCase();
         var dnTester = new RegExp(config.edir.dnTestRegex);
 
+        var itrustInfo = {};
+
         if (!(username && email)) {
             logger.error('Failed to map with uuid' + uuid + '. Registration session expired. userdn: ' + user_dn);
             res.redirect('/logoff?mappingerror=true');
@@ -45,13 +47,19 @@ var router = function (logger, config, db, mailer) {
             db.log(userObject, 'Failed to map to user_dn ' + user_dn + '. user_dn is not federated.');
             res.redirect('/logoff/reattempt?notfederated=true&uuid=' + uuid);
         } else if (user_dn === '') {
-            logger.warn('User account was provisioned, but user_dn is empty. User will be advised to attempt mapping in 24 hours.');
+            logger.warn('User account was provisioned, but user_dn is empty. itrustinfo will be set to pending until user_dn becomes available.');
             db.log(userObject, 'User attempted registration with empty user_dn. Headers: ' + headers);
             mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Empty user_dn registration attempt', 'Headers: ' + headers);
-            res.redirect('/logoff?pending=true');
+
+            itrustInfo.processed = 'pending';
+
+            db.addMapping(userObject, itrustInfo, function (err) {
+                res.redirect('/logoff?pending=true');
+            });
+
         } else {
 
-            var itrustInfo = {};
+
             itrustInfo.sm_userdn = user_dn;
             itrustInfo.processed = false;
 
@@ -86,11 +94,11 @@ var router = function (logger, config, db, mailer) {
                                 var subject = config.mail.subjectPrefix + ' ### Your account was registered';
                                 var message = '<p>Your account was registered successfully.</p>' +
                                     '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
-                                    '<p>It will take up to 3 hours to complete the transfer of all your account information.</p>';
+                                    '<p>It will take up to one business day to complete the transfer of all your account information.</p>';
                                 mailer.send(userObject.email, subject, message);
                                 res.redirect('/logoff?mapped=true');
                             } else {
-                                db.log(userObject, 'Mapped to user_dn ' + user_dn + ', which is and invalid DN. Record was flagged for manual processing. Headers: ' + headers);
+                                db.log(userObject, 'Mapped to user_dn ' + user_dn + ', which is an invalid DN. Record was flagged for manual processing. Headers: ' + headers);
                                 mailer.send(config.mail.admin_list, config.mail.subjectPrefix + ' ### Registration with invalid user_dn', 'Headers: ' + headers);
                                 res.redirect('/logoff?invaliddn=true');
                             }
@@ -189,7 +197,7 @@ var router = function (logger, config, db, mailer) {
                 logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
             });
 
-            res.redirect('/logoff');
+            res.redirect('/logoff?requestconfirmation=true');
 
         });
 
