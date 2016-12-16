@@ -274,7 +274,6 @@
                         $('#accLevels').empty();
                         var str = '<fieldset>';
                         str += '<label>Access level:</label>';
-
                         $.each(results, function () {
                             str += '<div class="checkbox">';
                             str +=
@@ -285,13 +284,11 @@
                         });
                         str += '<div class="help-block with-errors"></div>';
                         str += '</fieldset>';
-
                         $('#accLevels').append(str);
                     }
                 });
             }
         });
-
         $(function () {
             if ($('#app').length) {
                 $('#app').change();

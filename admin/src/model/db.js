@@ -373,8 +373,6 @@ module.exports = {
         });
     },
 
-
-
     setPubKeyProcessed: function (userIds, cb) {
         var collection = db.collection(usersCollection);
         var bulk = collection.initializeUnorderedBulkOp();
