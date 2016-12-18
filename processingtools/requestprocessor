@@ -1,0 +1,307 @@
+#!/usr/bin/perl
+
+use Net::LDAP;
+use Authen::SASL;
+use XML::LibXML;
+use LWP::UserAgent;
+use Data::Dumper;
+use Config::Properties;
+use Log::Log4perl;
+use Mail::Sendmail qw/sendmail/;
+
+use strict;
+
+my $timestamp = sub{sprintf '%04d%02d%02d%02d%02d%02d', $_[5]+1900, $_[4]+1, $_[3], $_[2] ,$_[1] ,$_[0]}->(localtime);
+
+Log::Log4perl::init('/local/content/requestprocessor/conf/log4perl.properties');
+
+my $xpc=XML::LibXML::XPathContext->new;
+my $conf = Config::Properties->
+    new(file => '/local/content/requestprocessor/conf/requestprocessor.properties')->getProperties;
+my $logger = Log::Log4perl->get_logger('requestprocessor');
+$logger->info("Starting");
+sub warning ($$) {
+    my $warnings=shift;
+    my $message=shift;
+    push @$warnings,$message;
+}
+
+sub abort($$) {
+    my $error=shift;
+    my $note=shift;
+
+    $logger->info("Critical error encountered. Sending alert.");
+    $logger->error($error);
+    my $message=<<"HERE";
+Encountered a critical error during request processing:
+
+$error
+
+Processing cannot proceed until this issue is resolved.
+
+Please review application logs for more details and increase logging level as needed to capture further details during subsequent attempts.
+HERE
+    my %mail = (
+        To => $conf->{'mail.to'},
+        From => $conf->{'mail.from'},
+        Subject => $conf->{'mail.subject.error'},
+        Message => $message);
+    if (!sendmail(%mail)) {
+        $logger->error($Mail::Sendmail::error);
+    } else {
+        $logger->info("Message queued successfully.");
+        $logger->debug($Mail::Sendmail::log);
+    }
+    die "$note\n";
+}
+
+sub alert($) {
+    my $error=shift;
+    $logger->info("Warning condition encountered. Sending alert.");
+    $logger->warn($error);
+    my $message=<<"HERE";
+Batch processing completed with errors:
+
+$error
+
+Please review application logs for more details and increase logging level as needed to capture further details during subsequent attempts.
+HERE
+    my %mail = (
+        To => $conf->{'mail.to'},
+        From => $conf->{'mail.from'},
+        Subject => $conf->{'mail.subject.warn'},
+        Message => $message);
+    if (!sendmail(%mail)) {
+        $logger->error($Mail::Sendmail::error);
+    } else {
+        $logger->info("Message queued successfully.");
+        $logger->debug($Mail::Sendmail::log);
+    }
+}
+
+sub healthcheck($) {
+    my $struct={};
+    my $result;
+    eval {
+        $logger->info("Running preflight checks");
+        $logger->debug("Trying to connect to $conf->{'proxy.host'}");
+        my @proxyhost = split / +/,$conf->{'proxy.host'};
+        my $proxy = Net::LDAP->new(@proxyhost, port => '389', onerror => 'die') or die "LDAP Proxy Connection failed: $@\n";
+        $logger->debug("Trying to start TLS to $conf->{'proxy.host'}");
+        $result=$proxy->start_tls(
+            verify => 'require', sslversion => 'tlsv1', clientcert => $conf->{'ssl.cert'},
+            clientkey => $conf->{'ssl.key'}, capath => $conf->{'ssl.capath'}
+        );
+        $result->code && die "Unable to start TLS for Proxy LDAP connection: ", $result->error, "\n";
+        $logger->debug("Trying to establish SASL/EXTERNAL bind to $conf->{'proxy.host'}");
+        my $proxysasl=Authen::SASL->new(mechanism => 'EXTERNAL', callback => { user => ''}) or die "$@";
+        $result=$proxy->bind(sasl => $proxysasl);
+
+        $logger->info("Preflight checks passed.");
+        $struct->{"proxy"}=$proxy
+    };
+
+    if ($@) {
+        $struct->{'error'}=1;
+        $struct->{'message'}=$@;
+    }
+
+    return $struct;
+}
+
+my @warnings=();
+
+my $result;
+
+my $ldap=healthcheck($conf);
+
+if ($ldap->{'error'}) {
+    abort($ldap->{'error'},"Preflight checks failed.");
+}
+
+my @services = split(/\s+/,$conf->{'services'});
+
+SERVICE: for my $service (@services) {
+    my @updated=();
+    $logger->info("Checking for new ",$conf->{"$service.title"});
+    my @attrlist = split(/\s+/,$conf->{"$service.attributes"});
+
+    my $ua=LWP::UserAgent->new;
+    my $response=$ua->get($conf->{"$service.get"});
+    if (!$response) {
+        $logger->warn("$service endpoint unavailable, skipping service for now.");
+        warning(\@warnings,"Service unreachable: ".($conf->{"$service.get"})."; skipping...");
+        next SERVICE;
+    }
+    my $xmldoc;
+    if ($response->is_success) {
+        $xmldoc=$response->decoded_content;
+    } else {
+        $logger->warn("$service endpoint returned invalid XML content, skipping service for now.");
+        warning(\@warnings,"Service error: ".($conf->{"$service.get"})."\n\tError retrieving XML data: ".($response->status_line));
+        next SERVICE;
+    }
+
+    my $dom=XML::LibXML->load_xml(string => $xmldoc);
+    my @records = $xpc->findnodes("/requests/item",$dom);
+    $logger->info("There are ".(scalar @records)." records waiting to be processed");
+
+    RECORD: for my $record (@records) {
+        my $userdn=$xpc->find("user_dn",$record);
+        $logger->info("User DN: $userdn");
+        my $userdn=$xpc->find($conf->{"$service.xpath.dn"},$record);
+        my @changes=();
+        eval {
+            $result=$ldap->{'proxy'}->search(
+                base => "$userdn",
+                scope => 'base',
+                filter => '(objectclass=*)',
+                attrs => \@attrlist,
+            );
+        };
+        if ($@) {
+            $logger->warn("Unexpected error while searching proxy for DN $userdn, skipping for now. $@");
+            warning(\@warnings,"Warning: Unexpected error while searching proxy for DN $userdn. Skipping. $@");
+            next RECORD;
+        } elsif (! $result->count ) {
+            $logger->warn("$userdn not found in LDAP. Request invalid. Skipping");
+            warning(\@warnings,"Warning: $userdn not found in LDAP. Request invalid. Skipping.");
+            next RECORD;
+        }
+
+
+
+        my $ldaprecord=$result->entry(0);
+
+        $logger->info("User DN: $userdn");
+        $logger->debug(Dumper($result));
+        my $scope="Unknown";
+        for my $realm (split /\s+/, $conf->{'realms'}) {
+            my $userregex = $conf->{"regex.user.$realm"};
+            if ($userdn=~/,$userregex/i) {
+                $logger->info("Class: $realm user");
+                $scope=$realm;
+                last;
+            }
+        }
+        if ($scope eq 'Unknown') {
+            $logger->warn("$userdn did not match any known user DN suffix, could not determine scope. Skipping");
+            warning(\@warnings,"Warning: $userdn did not match any known user DN suffix, could not determine scope. Skipping.");
+            next RECORD;
+        }
+        $logger->info("$userdn has scope $scope. Same scope will be applied to requested groups.");
+
+        my @groups=$xpc->findnodes($conf->{"$service.xpath.memberOf"},$record);
+        my %groups=map {lc($_) => 1 } $ldaprecord->get_value("memberOf");
+        my @inscopegroups=();
+        $logger->debug("Requested groups for $userdn:");
+        $logger->debug(Dumper(@groups));
+        my $groupregex = $conf->{"regex.group.$scope"};
+        for my $group (@groups) {
+            if ($groups{lc($group)}) {
+                $logger->info("$userdn is already a member of $group, skipping");
+            } elsif ($group =~ /,$groupregex/i) {
+                $logger->debug("$group matched $groupregex and is in scope");
+                push @inscopegroups,"$group";
+            } else {
+                $logger->debug("$group did not match $groupregex and is out of scope, ignoring");
+            }
+        }
+
+        for my $attr (@attrlist) {
+            next unless ($attr=~/^x-nci-/ && $conf->{"$service.xpath.$attr"});
+            my $xpath=$conf->{"$service.xpath.$attr"};
+            my $value=$xpc->find($xpath,$record);
+            if ($value ne "" ) {
+                $logger->info("\tReplace:\t$attr: $value");
+                push @changes,(replace => [$attr,$value]);
+            } elsif ($conf->{"clear.$attr"} =~/^true$/i) {
+                if (scalar $ldaprecord->get_value($attr)) {
+                    push @changes,(delete => [$attr => [] ]);
+                }
+            }
+        }
+
+        if (@changes) {
+            $logger->info("Applying updated attributes for $userdn");
+            $logger->debug(Dumper(@changes));
+            eval {
+                $result=$ldap->{'proxy'}->modify( "$userdn", changes => \@changes );
+            };
+            if ( $@ ) {
+                $logger->warn("Attribute update failed for $userdn: $@");
+                warning(\@warnings, "Unable to apply changes to $userdn.\nError: $@");
+                next RECORD;
+            } else {
+                $logger->info("Successfully updated attributes for $userdn");
+            }
+        } else {
+            $logger->info("No changed attributes for $userdn");
+        }
+
+        for my $group (@inscopegroups) {
+
+            eval {
+                $result = $ldap->{'proxy'}->search(
+                    base => $group,
+                    scope => 'base',
+                    filter => "(\&(objectclass=group)(!(member=$userdn)))",
+                    attrs => ['dn']
+                );
+            };
+            if ((!$@) && $result->count) {
+                my $groupdn=$result->entry(0)->dn;
+                $logger->info("Adding $userdn to $groupdn... ");
+                $logger->debug("Entering group addition routine.");
+                open TMP, ">/tmp/requestprocessor.$timestamp.ldif";
+                print TMP "dn: $groupdn\nchangetype:modify\nadd: member\nmember: $userdn\n\n\n";
+                close TMP;
+                my $targethost=$conf->{"$scope.host"};
+                `/usr/local/openldap2.4/bin/ldapmodify -Q -ZZ -Y EXTERNAL -H "$targethost" -c -f /tmp/requestprocessor.$timestamp.ldif -S /tmp/requestprocessor.$timestamp.errors.ldif`;
+                $logger->debug("Exited group addition routine.");
+                if ( -s "/tmp/requestprocessor.$timestamp.errors.ldif") {
+                    $logger->warn("Unable to add $userdn to group $groupdn. Skipping remaining groups.");
+                    unlink "/tmp/requestprocessor.$timestamp.errors.ldif";
+                    unlink "/tmp/requestprocessor.$timestamp.ldif";
+                    next RECORD;
+                } else {
+                    $logger->info("Success");
+                    unlink "/tmp/requestprocessor.$timestamp.errors.ldif";
+                    unlink "/tmp/requestprocessor.$timestamp.ldif";
+                }
+            } elsif ($@) {
+                $logger->warn("Unexpected error while locating group $group: $@");
+                warning(\@warnings,"Unexpected error while locating group $group: $@");
+                next RECORD;
+            } else {
+                $logger->warn("Couldn't find a group with DN $group that did not already contain $userdn as a member.");
+                warning(\@warnings,"Couldn't find a group with DN $group that did not already contain $userdn as a member.");
+            }
+        }
+        push @updated, scalar ($xpc->find('_id',$record));
+    }
+
+    if (scalar @updated) {
+        my $message="<requestids>\n";
+        map {$message.="<value>$_</value>\n"} @updated;
+        $message.="</requestids>";
+        $logger->info("Sending update message to $service endpoint");
+        $logger->debug($message);
+        my $response=$ua->post($conf->{"$service.post"},Content_Type => 'application/xml',Content=>$message);
+        if ($response->is_success) {
+            $logger->info("Successfully posted update to portal service interface.");
+        } else {
+            $logger->warn("Unable to post update to $service endpoint");
+            warning(\@warnings,"Unable to post the following message to ".$conf->{"$service.post"}.":\n$message");
+        }
+    }
+
+}
+$ldap->{'proxy'}->unbind();
+$logger->info("End of batch.");
+
+if (scalar @warnings) {
+    $logger->info("Batch ended with warnings. Sending alert.");
+    my $warnings=join "\n",@warnings;
+    alert($warnings);
+}
