@@ -409,7 +409,35 @@ var router = function (logger, config, db, util) {
             });
         });
 
+    userRouter.route('/user/:id/setEmail')
+        .post(function (req, res) {
+            var userId = new objectId(req.params.id);
+            var email = req.body.mail.trim().toLowerCase();
+
+            db.emailExistsCheck(userId, email, function (err, result) {
+                if (result) {
+                    logger.error('email ' + email + '  is already registered to a different user. Could not set email for userId ' + userId);
+                    var alert = {
+                        message: 'Error: email ' + email + ' is already registered to a different user. ',
+                        severity_class: 'alert-danger'
+                    };
+                    req.session.alert = alert;
+                    res.redirect('/users/user/' + userId);
+                } else {
+                    db.getSingleUser(userId, function (err, result) {
+                        var currentEmail = result.mail;
+                        db.setEmail(userId, email, function () {
+                            db.logWithUserID(userId, 'email changed by admin from ' + currentEmail + ' to ' + email);
+                            res.redirect('/users/user/' + userId);
+                        });
+                    });
+
+                }
+            });
+        });
+
     return userRouter;
+
 };
 
 module.exports = router;

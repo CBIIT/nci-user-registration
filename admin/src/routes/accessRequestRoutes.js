@@ -86,39 +86,52 @@ var router = function (logger, config, db, util) {
                 var accessLevelArray = req.body.acclevel;
                 var approvedResource = {};
 
-                db.getSingleApp(appId, function (err, result) {
-                    var app = result;
+                if (!appId) {
+                    db.error('No app selected for request ' + requestId);
+                    var alert = {
+                        message: 'Error: No app selected. Request was not approved.',
+                        severity_class: 'alert-danger'
+                    };
+                    req.session.alert = alert;
+                    res.redirect('/requests/request/' + requestId);
+                } else {
 
-                    approvedResource.app_id = appId;
-                    approvedResource.app_name = app.name;
-                    approvedResource.access_level = [];
-                    approvedResource.groups = [];
+                    db.getSingleApp(appId, function (err, result) {
+                        var app = result;
 
-                    if (accessLevelArray) {
-                        accessLevelArray.forEach(function (roleId) {
-                            app.roles.forEach(function (role) {
-                                if (role.role_id === roleId) {
-                                    approvedResource.access_level.push(role.role_name);
-                                    approvedResource.groups.push(role.groups);
-                                }
+                        approvedResource.app_id = appId;
+                        approvedResource.app_name = app.name;
+                        approvedResource.access_level = [];
+                        approvedResource.groups = [];
+
+                        if (accessLevelArray) {
+                            accessLevelArray.forEach(function (roleId) {
+                                app.roles.forEach(function (role) {
+                                    if (role.role_id === roleId) {
+                                        approvedResource.access_level.push(role.role_name);
+                                        approvedResource.groups.push(role.groups);
+                                    }
+                                });
                             });
-                        });
 
-                        db.approveRequest(requestId, approvedResource, notes, function (err, result) {
-                            logger.info('Request ' + requestId + ' has been approved');
-                            res.redirect('/requests');
-                        });
-                    } else {
-                        logger.error('Failed to approve request ' + requestId + '. No roles selected or no roles configured for application ' + appId);
-                        var alert = {
-                            message: 'Error: No roles selected. Request was not approved.',
-                            severity_class: 'alert-danger'
-                        };
-                        req.session.alert = alert;
-                        res.redirect('/requests/request/' + requestId);
-                    }
+                            db.approveRequest(requestId, approvedResource, notes, function (err, result) {
+                                logger.info('Request ' + requestId + ' has been approved');
+                                res.redirect('/requests');
+                            });
+                        } else {
+                            logger.error('Failed to approve request ' + requestId + '. No roles selected or no roles configured for application ' + appId);
+                            var alert = {
+                                message: 'Error: No roles selected. Request was not approved.',
+                                severity_class: 'alert-danger'
+                            };
+                            req.session.alert = alert;
+                            res.redirect('/requests/request/' + requestId);
+                        }
 
-                });
+                    });
+
+                }
+
             }
 
         });

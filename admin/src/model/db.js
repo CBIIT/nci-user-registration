@@ -530,6 +530,34 @@ module.exports = {
         });
     },
 
+    emailExistsCheck: function (id, mail, cb) {
+        var collection = db.collection(usersCollection);
+
+        collection.count({
+            _id: {
+                $ne: id
+            },
+            mail: mail.trim().toLowerCase()
+        }, function (err, count) {
+            var result = count === 0 ? false : true;
+            return cb(err, result);
+        });
+    },
+
+    setEmail: function (id, mail, cb) {
+        var collection = db.collection(usersCollection);
+
+        collection.updateOne({
+            _id: id
+        }, {
+            $set: {
+                mail: mail.trim().toLowerCase()
+            }
+        }, function (err, result) {
+            return cb(err, result);
+        });
+    },
+
     getApp: function (id, cb) {
         var collection = db.collection(appsCollection);
         collection.find({

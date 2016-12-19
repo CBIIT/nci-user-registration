@@ -46,9 +46,9 @@
                 <%=stats.totalUsers%> <br> External:
                     <%=stats.externalUserCount%> <br> Registered:
                         <%=stats.selfRegisteredCount%> <br> Processed:
-                            <%=stats.processedCount%> <br> Pending user_dn: 
-                            <%=stats.pendingCount%> <br> Pending manual resolution:
-                            <%=stats.pendingManualCount%>
+                            <%=stats.processedCount%> <br> Pending user_dn:
+                                <%=stats.pendingCount%> <br> Pending manual resolution:
+                                    <%=stats.pendingManualCount%>
             </div>
             <div class="col-sm-8 main-content">
                 <% if (typeof alert !== 'undefined' && alert !== null) { %>
@@ -142,7 +142,9 @@
                                                                 </td>
                                                             </tr>
                                                             <tr>
-                                                                <td>mail</td>
+                                                                <td>mail <button type="button" class="btn btn-primary btn-xs"
+                                                                        data-toggle="modal" data-target="#changeEmailModal" data-user-id="<%=user._id%>"
+                                                                        data-mail="<%=user.mail %>">Change</button></td>
                                                                 <td>
                                                                     <%=user.mail%>
                                                                 </td>
@@ -360,16 +362,51 @@
         </div>
     </div>
     <!-- End Modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="changeEmailModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Change Email
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form name="change_email_form" id="change_email_form" action="" method="post" data-toggle="validator">
+                        <div class="form-group">
+                            <label for="mail" class="form-control-label">user_dn:</label>
+                            <input type="text" class="form-control" name="mail" id="mail" data-error="email is required." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                        <p>Caution: submitting the form will change the user's email on file.
+                        </p>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Modal -->
     <script>
         $('#iTrustModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget)
             var currentDn = button.data('dn');
             var userId = button.data('user-id');
-            console.log('user id ' + userId);
-
             var modal = $(this);
             modal.find('.modal-body #sm_userdn').val(currentDn);
             modal.find('.modal-body #user_dn_form').attr('action', '/users/user/' + userId + '/setItrustInfo');
+        });
+        $('#changeEmailModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            var currentEmail = button.data('mail');
+            var userId = button.data('user-id');
+            var modal = $(this);
+            modal.find('.modal-body #mail').val(currentEmail);
+            modal.find('.modal-body #change_email_form').attr('action', '/users/user/' + userId + '/setEmail');
         });
     </script>
 </body>

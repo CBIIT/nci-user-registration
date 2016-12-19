@@ -173,7 +173,7 @@
                                                             <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
                                                                 <div class="form-group">
                                                                     <label for="app">Select approved App:</label>
-                                                                    <select class="form-control" id="app" name="app" data-error="Select the app which was approved" required>
+                                                                    <select class="form-control" id="app" name="app" data-error="Select the app which was approved">
                                                             <option value=""></option>
                                                             <% for (var j=0; j<apps.length; j++) { var app = apps[j]; %>
                                                             <option value="<%=app._id%>" 

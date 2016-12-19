@@ -22,6 +22,8 @@ var router = function (logger, config, db, mailer) {
 
         var headers = getHeaders(req.headers);
 
+        var user_dn = req.get('user_dn').toLowerCase().trim();
+        var userAuthType = req.get('user_auth_type').toLowerCase();
         // do we still have an active session 
         var username = req.session.username;
         var email = req.session.email;
@@ -33,8 +35,6 @@ var router = function (logger, config, db, mailer) {
             email: email
         };
 
-        var user_dn = req.get('user_dn').toLowerCase().trim();
-        var userAuthType = req.get('user_auth_type').toLowerCase();
         var dnTester = new RegExp(config.edir.dnTestRegex);
 
         var itrustInfo = {};

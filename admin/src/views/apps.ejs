@@ -64,7 +64,7 @@
                                     </div>
                                     <button type="submit" class="btn btn-default">Search</button>
                                     <button type="button" class="btn btn-default" data-toggle="modal" data-target="#appModal" data-app="" data-description=""
-                                        dat-id="">New App</button>
+                                        data-id="" data-backdrop="static" data-keyboard="false">New App</button>
                                 </form>
                             </div>
                             <!-- Modal New/Edit app form -->
@@ -165,9 +165,9 @@
                                                     <p>
                                                         <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>"
                                                             data-description="<%=app.description%>" data-id="<%=app._id%>">Edit App Information</button>
-                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#roleModal" data-id="<%=app._id%>">Add Role</button>
+                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#roleModal" data-id="<%=app._id%>" data-backdrop="static" data-keyboard="false">Add Role</button>
                                                         <button type="button" class="btn btn-danger btn-sm" data-href="/apps/app/<%=app._id%>/remove" data-toggle="modal" data-target="#confirm-remove"
-                                                            data-confirmation-text="Are you sure you want to remove application <%=app.name%>?">Remove Application</button>
+                                                            data-confirmation-text="Are you sure you want to remove application <%=app.name%>?" data-backdrop="static" data-keyboard="false">Remove Application</button>
                                                     </p>
                                                     <% for (var r = 0; r < app.roles.length; r++) { 
                                                 var role = app.roles[r]; 
