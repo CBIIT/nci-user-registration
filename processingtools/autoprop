@@ -1,0 +1,201 @@
+#!/usr/bin/perl
+
+use Net::LDAP;
+use Authen::SASL;
+use Array::Diff;
+use Data::Dumper;
+use Config::Properties;
+use Log::Log4perl;
+use Mail::Sendmail qw/sendmail/;
+
+use strict;
+
+Log::Log4perl::init('/local/content/autoprop/conf/log4perl.properties');
+
+my $conf = Config::Properties->
+    new(file => '/local/content/autoprop/conf/autoprop.properties')->getProperties;
+my $logger = Log::Log4perl->get_logger('autoprop');
+
+sub expandString ($$) {
+    my $format = shift;
+    my $sourceldap = shift;
+    if ($format =~ /^lc:(.*)$/) {
+        return lc(expandString($1,$sourceldap));
+    } elsif ($format =~ /^literal:(.*)$/) {
+        return $1;
+    } else {
+        my $value=$sourceldap->get_value($format);
+        return "$value";
+    }
+}
+
+sub warning ($$) {
+    my $warnings=shift;
+    my $message=shift;
+    push @$warnings,$message;
+}
+
+sub abort($$) {
+    my $error=shift;
+    my $note=shift;
+
+    $logger->info("Critical error encountered. Sending alert.");
+    $logger->error($error);
+    my $message=<<"HERE";
+Encountered a critical error during batch processing:
+
+$error
+
+Processing cannot proceed until this issue is resolved.
+
+Please review application logs for more details and increase logging level as needed to capture further details during subsequent attempts.
+HERE
+    my %mail = (
+        To => $conf->{'mail.to'},
+        From => $conf->{'mail.from'},
+        Subject => $conf->{'mail.subject.error'},
+        Message => $message);
+    if (!sendmail(%mail)) {
+        $logger->error($Mail::Sendmail::error);
+    } else {
+        $logger->info("Message queued successfully.");
+        $logger->debug($Mail::Sendmail::log);
+    }
+    die "$note\n";
+}
+
+sub alert($) {
+    my $error=shift;
+    $logger->info("Warning condition encountered. Sending alert.");
+    $logger->warn($error);
+    my $message=<<"HERE";
+Batch processing completed with errors:
+
+$error
+
+Please review application logs for more details and increase logging level as needed to capture further details during subsequent attempts.
+HERE
+    my %mail = (
+        To => $conf->{'mail.to'},
+        From => $conf->{'mail.from'},
+        Subject => $conf->{'mail.subject.warn'},
+        Message => $message);
+    if (!sendmail(%mail)) {
+        $logger->error($Mail::Sendmail::error);
+    } else {
+        $logger->info("Message queued successfully.");
+        $logger->debug($Mail::Sendmail::log);
+    }
+}
+
+sub healthcheck($) {
+    my $struct={};
+    my $result;
+    eval {
+
+        $logger->info("Running preflight checks");
+        my $server="proxy";
+        $logger->debug("Trying to connect to $server...");
+
+        my $ldap = Net::LDAP->new(split (/\s+/,$conf->{"$server.host"}));
+        if ($conf->{"$server.starttls"} ne "false") {
+            $logger->debug("Trying to start TLS for $server"); 
+            $result=$ldap->start_tls(
+                verify => 'require', sslversion => 'tlsv1', clientcert => $conf->{'ssl.cert'},
+                clientkey => $conf->{'ssl.key'}, capath => $conf->{'ssl.capath'}
+            );
+            $result->code && die "Unable to start TLS for $server: ".$result->error."\n";
+        }
+        if ($conf->{"$server.binddn"}) {
+            $logger->debug("Trying to establish a simple bind to $server");
+            $result=$ldap->bind($conf->{"$server.binddn"}, password => $conf->{"$server.password"}) or die "$@";
+        } else {
+            $logger->debug("Trying to establish SASL/EXTERNAL bind to $server");
+            my $ldapsasl=Authen::SASL->new(mechanism => 'EXTERNAL', callback => { user => ''}) or die "$@";
+            $result=$ldap->bind(sasl => $ldapsasl) or die "$@";
+        }
+
+        $logger->debug("Searching for basedn for $server");
+        $result=$ldap->search(
+            base => $conf->{"$server.basedn"},
+            scope => 'base',
+            filter => '(objectclass=*)',
+            attrs => [ 'objectclass', ] ,
+        );
+        if (!$result->count) {
+            die "Unable to find ".($conf->{"$server.basedn"})." on $server!\n";
+        }
+        $logger->debug(Dumper($result));
+        $struct->{$server}=$ldap;
+
+        $logger->info("Preflight checks passed!");
+
+    };
+
+    if ($@) {
+        my $error=$@;
+        abort($error,"Preflight checks failed.");
+    }
+
+    return $struct;
+}
+
+my @warnings=();
+
+my $result;
+
+my $ldap=healthcheck($conf);
+
+TASK: for my $task (split /\s+/,$conf->{tasks}) {
+    $logger->info("Starting task $task");
+    my $basedn = $conf->{"proxy.basedn"};
+    my $scope = "sub";
+    my $filter = $conf->{"$task.filter"};
+    my @sourceattrlist = split /\s+/,$conf->{"$task.attributes"};
+    eval {
+        $logger->debug("Running LDAP search for task $task");
+        $result=$ldap->{"proxy"}->search(
+            base => $basedn,
+            scope => $scope,
+            filter => $filter,
+            attrs => \@sourceattrlist,
+        );
+        $logger->debug(Dumper($result));
+    };
+    if ($@) {
+        $logger->warn("Unexpected error while searching proxy for monitored filter for task $task, skipping for now. $@");
+        warning(\@warnings,"Warning: Unexpected error while searching proxy for monitored filter for task $task, skipping for now. $@");
+        next TASK;
+    } else {
+        for my $item ($result->entries) {
+            my $userdn=$item->dn;
+            $logger->debug("Checking $userdn..."); 
+            for my $attribute (@sourceattrlist) {
+                $logger->debug("Checking $attribute");
+                if ($item->get_value($attribute) eq "" && defined $conf->{"$task.default.$attribute"}) {
+                    my $value=expandString($conf->{"$task.default.$attribute"},$item);
+                    $logger->info("User $userdn is missing required attribute $attribute. Setting to $value");
+                    eval {
+                        $ldap->{"proxy"}->modify($userdn,"replace", [$attribute,$value]);
+                    };
+                    if (!$@) {
+                        $logger->info("Attribute set successfully.");
+                    } else {
+                        $logger->warn("Unable to modify $userdn to replace $attribute value with $attribute. Skipping. $@");
+                        warning(\@warnings,"Warning: Unable to modify $userdn to replace $attribute value with $attribute. Skipping. $@");
+                    }
+                }
+            }
+        }
+    }
+}
+
+$ldap->{'proxy'}->unbind();
+$logger->info("End of batch.");
+
+if (scalar @warnings) {
+    $logger->info("Batch ended with warnings. Sending alert.");
+    my $warnings=join "\n",@warnings;
+    alert($warnings);
+}
+
