@@ -92,7 +92,7 @@
                                                 <h4 class="panel-title">
                                                     <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseElem<%=i%>" aria-controls="collapse<%=i%>"
                                                         aria-expanded=<% if (numReqs===1 ) { %>"true"<%} else {%>"false"<%}%> >
-                                           <%= request.display_name ?  request.user_name : request.user_dn %> | <%=request.requested_app%> | <%=request.request_id%></a>
+                                           <%= request.user_name ?  request.user_name : request.user_dn %> | <%=request.requested_app%> | <%=request.request_id%></a>
                                                 </h4>
                                             </div>
                                             <div id="collapseElem<%=i%>" class="panel-collapse collapse <% if (numReqs === 1) { %>in<%}%>" role="tabpanel" aria-labelledby="heading<%=i%>">
