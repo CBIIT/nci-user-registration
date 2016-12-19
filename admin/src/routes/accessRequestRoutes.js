@@ -72,7 +72,10 @@ var router = function (logger, config, db, util) {
     accessRequestRouter.route('/request/:id/approve')
         .post(function (req, res) {
             var requestId = req.params.id;
-            var appId = new objectId(req.body.app);
+            var appId;
+            if (req.body.app) {
+                appId = new objectId(req.body.app);
+            }
             var notes = req.body.notes;
 
             if (req.body.submit === 'Reject') {
