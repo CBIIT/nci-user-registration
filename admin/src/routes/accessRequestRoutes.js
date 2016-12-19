@@ -80,7 +80,7 @@ var router = function (logger, config, db, util) {
 
             if (req.body.submit === 'Reject') {
                 db.rejectRequest(requestId, notes, function () {
-                    db.info('Request ' + requestId + ' rejected');
+                    logger.info('Request ' + requestId + ' rejected');
                     res.redirect('/requests');
                 });
 
