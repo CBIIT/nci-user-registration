@@ -194,10 +194,9 @@ SERVICE: for my $service (@services) {
         my @groups=$xpc->findnodes($conf->{"$service.xpath.memberOf"},$record);
         my %groups=map {lc($_) => 1 } $ldaprecord->get_value("memberOf");
         my @inscopegroups=();
-        $logger->debug("Requested groups for $userdn:");
-        $logger->debug(Dumper(@groups));
         my $groupregex = $conf->{"regex.group.$scope"};
         for my $group (@groups) {
+            $logger->debug("Checking whether to add $userdn to $group...");
             if ($groups{lc($group)}) {
                 $logger->info("$userdn is already a member of $group, skipping");
             } elsif ($group =~ /,$groupregex/i) {
