@@ -173,7 +173,7 @@
                                                             <form action="/requests/request/<%=request.request_id%>/approve" method="post" data-toggle="validator">
                                                                 <div class="form-group">
                                                                     <label for="app">Select approved App:</label>
-                                                                    <select class="form-control" id="app" name="app" data-error="Select the app which was approved">
+                                                                    <select class="form-control app_selector" id="app_<%=request.request_id%>" name="app_<%=request.request_id%>" data-error="Select the app which was approved">
                                                             <option value=""></option>
                                                             <% for (var j=0; j<apps.length; j++) { var app = apps[j]; %>
                                                             <option value="<%=app._id%>" 
@@ -187,7 +187,7 @@
                                                         </select>
                                                                     <div class="help-block with-errors"></div>
                                                                 </div>
-                                                                <div class="form-group" id="accLevels" name="accaLevels">
+                                                                <div class="form-group" id="accLevels_<%=request.request_id%>" name="accLevels_<%=request.request_id%>">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label for="notes">Notes</label>
@@ -265,26 +265,29 @@
         </div>
     </div>
     <script>
-        $('#app').change(function () {
+        $('.app_selector').change(function () {
             var appId = $(this).val();
+            var requestId = $(this).attr('id').split('_')[1];
+            var rolesLabel = '#accLevels_' + requestId;
+
+            $(rolesLabel).empty();
             if (appId) {
                 $.ajax({
                     url: location.protocol + '//' + location.host + '/apps/app/' + appId + '/roles',
                     success: function (results) {
-                        $('#accLevels').empty();
                         var str = '<fieldset>';
                         str += '<label>Access level:</label>';
                         $.each(results, function () {
                             str += '<div class="checkbox">';
                             str +=
-                                '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel[]" id="' +
+                                '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel_' + requestId + '[]" id="' +
                                 this['role_id'] + '" value="' + this['role_id'] + '">' +
                                 this['role_name'] + '</label>';
                             str += '</div>';
                         });
                         str += '<div class="help-block with-errors"></div>';
                         str += '</fieldset>';
-                        $('#accLevels').append(str);
+                        $(rolesLabel).append(str);
                     }
                 });
             }

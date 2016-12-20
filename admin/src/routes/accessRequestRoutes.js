@@ -72,9 +72,13 @@ var router = function (logger, config, db, util) {
     accessRequestRouter.route('/request/:id/approve')
         .post(function (req, res) {
             var requestId = req.params.id;
+            var appLabel = 'app_' + requestId;
+            var rolesLabel = 'acclevel_' + requestId;
             var appId;
-            if (req.body.app) {
-                appId = new objectId(req.body.app);
+
+            if (req.body[appLabel]) {
+                appId = new objectId(req.body[appLabel]);
+                console.log(appId);
             }
             var notes = req.body.notes;
 
@@ -86,7 +90,7 @@ var router = function (logger, config, db, util) {
 
             } else if (req.body.submit === 'Approve') {
 
-                var accessLevelArray = req.body.acclevel;
+                var accessLevelArray = req.body[rolesLabel];
                 var approvedResource = {};
 
                 if (!appId) {
