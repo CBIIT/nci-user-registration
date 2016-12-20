@@ -292,7 +292,10 @@ module.exports = {
             'gidnumber': 1,
             'homedirectory': 1,
             'loginshell': 1,
-            'itrustinfo': 1
+            'itrustinfo': 1,
+            'fullName': 1,
+            'givenName': 1,
+            'telephoneNumber': 1
         }).toArray(function (err, results) {
             return cb(err, results);
         });
@@ -316,7 +319,10 @@ module.exports = {
             'gidnumber': 1,
             'homedirectory': 1,
             'loginshell': 1,
-            'itrustinfo': 1
+            'itrustinfo': 1,
+            'fullName': 1,
+            'givenName': 1,
+            'telephoneNumber': 1
         }).toArray(function (err, results) {
             return cb(err, results);
         });
