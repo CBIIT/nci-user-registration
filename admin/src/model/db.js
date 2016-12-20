@@ -305,7 +305,8 @@ module.exports = {
             'itrustinfo': 1,
             'fullName': 1,
             'givenName': 1,
-            'telephoneNumber': 1
+            'telephoneNumber': 1,
+            'sn': 1
         }).toArray(function (err, results) {
             return cb(err, results);
         });
@@ -332,7 +333,8 @@ module.exports = {
             'itrustinfo': 1,
             'fullName': 1,
             'givenName': 1,
-            'telephoneNumber': 1
+            'telephoneNumber': 1,
+            'sn': 1
         }).toArray(function (err, results) {
             return cb(err, results);
         });
