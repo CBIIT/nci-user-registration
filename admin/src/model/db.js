@@ -70,15 +70,25 @@ module.exports = {
         });
     },
 
-    search: function (searchObject, cb) {
+    search: function (searchStr, cb) {
         var collection = db.collection(usersCollection);
+
         collection.find({
-            extracted_dn_username: searchObject.cn ? searchObject.cn : {
-                $regex: /.*/
-            },
-            mail: searchObject.email ? searchObject.email : {
-                $regex: /.*/
-            }
+            $or: [{
+                extracted_dn_username: searchStr
+            }, {
+                mail: searchStr
+            }, {
+                fullName: {
+                    $regex: searchStr,
+                    $options: 'i'
+                }
+            }, {
+                givenName: {
+                    $regex: searchStr,
+                    $options: 'i'
+                }
+            }]
         }).toArray(
             function (err, results) {
                 cb(err, results);

@@ -63,10 +63,7 @@ var router = function (logger, config, db, util) {
 
     userRouter.route('/search')
         .post(function (req, res) {
-            var searchObject = {
-                cn: req.body.cn.toLowerCase().trim(),
-                email: req.body.email.toLowerCase().trim()
-            };
+            var searchStr = req.body.searchstr.toLowerCase().trim();
 
             var users = [];
             var stats = {};
@@ -83,13 +80,13 @@ var router = function (logger, config, db, util) {
                                 stats.pendingManualCount = count;
                                 db.pendingCount(function (err, count) {
                                     stats.pendingCount = count;
-                                    if (!searchObject.cn && !searchObject.email) {
+                                    if (!searchStr) {
                                         res.render('users', {
                                             users: users,
                                             stats: stats
                                         });
                                     } else {
-                                        db.search(searchObject, function (err, results) {
+                                        db.search(searchStr, function (err, results) {
                                             users = results;
                                             res.render('users', {
                                                 users: users,
