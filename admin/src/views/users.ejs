@@ -93,7 +93,9 @@
                                                     <table class="table">
                                                         <thead>
                                                             <tr>
-                                                                <th width="40%">LDAP Attributes</th>
+                                                                <th width="30%">LDAP Attribute</th>
+                                                                <th width="60%">Value</th>
+                                                                <th width="10%">Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -102,17 +104,23 @@
                                                                 <td>
                                                                     <%=user.entrustuser%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>DN</td>
                                                                 <td>
                                                                     <%=user.dn%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Extracrted username (from DN)</td>
                                                                 <td>
                                                                     <%=user.extracted_dn_username%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -122,11 +130,15 @@
                                                                 <td>
                                                                     <%=user.nciNihIC%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>nciNihUID</td>
                                                                 <td>
                                                                     <%=user.nciNihUID%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -134,53 +146,61 @@
                                                                 <td>
                                                                     <%=user.workforceID%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
-                                                                <td>mail <button type="button" class="btn btn-primary btn-xs"
-                                                                        data-toggle="modal" data-target="#changeEmailModal" data-user-id="<%=user._id%>"
-                                                                        data-mail="<%=user.mail %>">Change</button></td>
+                                                                <td>mail</td>
                                                                 <td>
                                                                     <%=user.mail%>
                                                                 </td>
+                                                                <td><button type="button" class="btn btn-primary btn-xs" data-toggle="modal"
+                                                                        data-target="#changeEmailModal" data-user-id="<%=user._id%>"
+                                                                        data-mail="<%=user.mail %>">Change</button>
+                                                                </td>
                                                             </tr>
                                                             <tr>
-                                                                <td>Given Name <button type="button" class="btn btn-primary btn-xs"
-                                                                        data-toggle="modal" data-target="#changeSinglePropertyModal"
-                                                                        data-user-id="<%=user._id%>" data-current-value="<%=user.givenName %>"
-                                                                        data-action-property="givenName" data-property-title="Change of Given Name"
-                                                                        data-property-label="Given Name">Change</button></td>
+                                                                <td>Given Name</td>
                                                                 <td>
                                                                     <%=user.givenName%>
                                                                 </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#changeSinglePropertyModal" data-user-id="<%=user._id%>"
+                                                                        data-current-value="<%=user.givenName %>" data-action-property="givenName"
+                                                                        data-property-title="Change of Given Name" data-property-label="Given Name">Change</button>
+                                                                </td>
                                                             </tr>
                                                             <tr>
-                                                                <td>Full Name <button type="button" class="btn btn-primary btn-xs"
-                                                                        data-toggle="modal" data-target="#changeSinglePropertyModal"
-                                                                        data-user-id="<%=user._id%>" data-current-value="<%=user.fullName %>"
-                                                                        data-action-property="fullName" data-property-title="Change of Full Name"
-                                                                        data-property-label="Full Name">Change</button></td>
+                                                                <td>Full Name</td>
                                                                 <td>
                                                                     <%=user.fullName%>
                                                                 </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>Telephone Number <button type="button" class="btn btn-primary btn-xs"
-                                                                        data-toggle="modal" data-target="#changeSinglePropertyModal"
-                                                                        data-user-id="<%=user._id%>" data-current-value="<%=user.telephoneNumber %>"
-                                                                        data-action-property="telephoneNumber" data-property-title="Change of Telephone Number"
-                                                                        data-property-label="Telephone Number">Change</button></td>
                                                                 <td>
-                                                                    <%=user.telephoneNumber%>
+                                                                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#changeSinglePropertyModal" data-user-id="<%=user._id%>"
+                                                                        data-current-value="<%=user.fullName %>" data-action-property="fullName"
+                                                                        data-property-title="Change of Full Name" data-property-label="Full Name">Change</button>
                                                                 </td>
                                                             </tr>
                                                             <tr>
-                                                                <td>SN <button type="button" class="btn btn-primary btn-xs"
-                                                                        data-toggle="modal" data-target="#changeSinglePropertyModal"
-                                                                        data-user-id="<%=user._id%>" data-current-value="<%=user.sn %>"
-                                                                        data-action-property="sn" data-property-title="Change of SN"
-                                                                        data-property-label="SN">Change</button></td>
+                                                                <td>Telephone Number</td>
+                                                                <td>
+                                                                    <%=user.telephoneNumber%>
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#changeSinglePropertyModal" data-user-id="<%=user._id%>"
+                                                                        data-current-value="<%=user.telephoneNumber %>" data-action-property="telephoneNumber"
+                                                                        data-property-title="Change of Telephone Number" data-property-label="Telephone Number">Change</button>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>SN</td>
                                                                 <td>
                                                                     <%=user.sn%>
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#changeSinglePropertyModal" data-user-id="<%=user._id%>"
+                                                                        data-current-value="<%=user.sn %>" data-action-property="sn"
+                                                                        data-property-title="Change of SN" data-property-label="SN">Change</button>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -195,6 +215,8 @@
                                                                                 <%}%>
                                                                                     <%}%>
                                                                     </ul>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -212,11 +234,15 @@
                                                                                     <%}%>
                                                                     </ul>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>CN</td>
                                                                 <td>
                                                                     <%=user.cn%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -224,11 +250,15 @@
                                                                 <td>
                                                                     <%=user.uid%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>uidnumber</td>
                                                                 <td>
                                                                     <%=user.uidnumber%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -236,17 +266,23 @@
                                                                 <td>
                                                                     <%=user.gidnumber%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>homedirectory</td>
                                                                 <td>
                                                                     <%=user.homedirectory%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>loginshell</td>
                                                                 <td>
                                                                     <%=user.loginshell%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -257,16 +293,11 @@
                                                                             <%= new Date(user.uuid.expires)%>
                                                                                 <% } %>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
-                                                                <td>Mapping
-                                                                    <% if (user.itrustinfo) {%>
-                                                                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal" data-user-id="<%=user._id%>"
-                                                                            data-dn="<%=user.itrustinfo? user.itrustinfo.sm_userdn : '' %>">Override</button>
-                                                                        <%} else { %>
-                                                                            <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal" data-user-id="<%=user._id%>">Set Mapping</button>
-                                                                            <% } %>
-                                                                </td>
+                                                                <td>Mapping</td>
                                                                 <td>
                                                                     <% if (user.itrustinfo) {%>
                                                                         <ul>
@@ -284,6 +315,14 @@
                                                                                     <%}%>
                                                                         </ul>
                                                                         <%} %>
+                                                                </td>
+                                                                <td>
+                                                                    <% if (user.itrustinfo) {%>
+                                                                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal" data-user-id="<%=user._id%>"
+                                                                            data-dn="<%=user.itrustinfo? user.itrustinfo.sm_userdn : '' %>">Override</button>
+                                                                        <%} else { %>
+                                                                            <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#iTrustModal" data-user-id="<%=user._id%>">Set Mapping</button>
+                                                                            <% } %>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -304,6 +343,8 @@
                                                                         </ul>
                                                                         <% } %>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>
@@ -311,6 +352,8 @@
                                                                 </td>
                                                                 <td>
                                                                     <%=user.updated%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                         </tbody>
@@ -459,7 +502,8 @@
             modal.find('.modal-body #propertyLabel').text(label);
             modal.find('.modal-body #propertyName').text(label);
             modal.find('.modal-body #propertyValue').val(currentValue);
-            modal.find('.modal-body #change_single_value_form').attr('action', '/users/user/' + userId + '/setProperty/' + actionProperty);
+            modal.find('.modal-body #change_single_value_form').attr('action', '/users/user/' + userId +
+                '/setProperty/' + actionProperty);
         });
     </script>
 </body>

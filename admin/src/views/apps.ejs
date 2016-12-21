@@ -163,23 +163,37 @@
                                                                 <%}%>
                                                     </p>
                                                     <p>
-                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>"
+                                                        <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#roleModal" data-id="<%=app._id%>"
+                                                            data-backdrop="static" data-keyboard="false">Add Role</button>
+                                                        <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#appModal" data-app="<%=app.name%>"
                                                             data-description="<%=app.description%>" data-id="<%=app._id%>">Edit App Information</button>
-                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#roleModal" data-id="<%=app._id%>" data-backdrop="static" data-keyboard="false">Add Role</button>
-                                                        <button type="button" class="btn btn-danger btn-sm" data-href="/apps/app/<%=app._id%>/remove" data-toggle="modal" data-target="#confirm-remove"
-                                                            data-confirmation-text="Are you sure you want to remove application <%=app.name%>?" data-backdrop="static" data-keyboard="false">Remove Application</button>
+                                                        <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/remove" data-toggle="modal" data-target="#confirm-remove"
+                                                            data-confirmation-text="Are you sure that you want to remove application <%=app.name%>?"
+                                                            data-backdrop="static" data-keyboard="false">Remove Application</button>
                                                     </p>
+                                                    <hr>
+                                                       <h5>Roles:</h5>
                                                     <% for (var r = 0; r < app.roles.length; r++) { 
                                                 var role = app.roles[r]; 
                                                 var groups = role.groups;
                                                 var numGroups = groups.length;
                                                 %>
+                                                    
+                                                     <div class="boxed">
+                                                         
                                                         <table class="table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>
-                                                                        <%=role.role_name%>  <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/roles/role/<%=role.role_id%>/remove" data-toggle="modal" data-target="#confirm-remove"
-                                                            data-confirmation-text="Are you sure you want to remove role <%=role.role_name%> and all of its groups?">Remove Role</button>
+                                                                    <th width="45%">
+                                                                        <%=role.role_name%>
+                                                                    </th>
+                                                                    <th width="10%">
+                                                                        <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/roles/role/<%=role.role_id%>/remove"
+                                                                            data-toggle="modal" data-target="#confirm-remove"
+                                                                            data-confirmation-text="Are you sure that you want to remove <strong>role <%=role.role_name%></strong> and all of its groups?">&times;</button>
+                                                                    </th>
+                                                                    <th widt="45%">
+                                                                        
                                                                     </th>
                                                                     <a name="<%=app._id%>_<%=role.role_id%>"></a>
                                                                 </tr>
@@ -193,14 +207,17 @@
                                                                     <tr>
                                                                         <td>
                                                                             <%=group%>
-                                                                                <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/roles/<%=role.role_id%>/removeGroup/<%=group%>"
-                                                                                    data-toggle="modal" data-target="#confirm-remove"
-                                                                                    data-confirmation-text="Are you sure you want to remove group <%=group%>?">&times;</button>
+                                                                        </td>
+                                                                        <td>
+                                                                            <button type="button" class="btn btn-danger btn-xs" data-href="/apps/app/<%=app._id%>/roles/<%=role.role_id%>/removeGroup/<%=group%>"
+                                                                                data-toggle="modal" data-target="#confirm-remove"
+                                                                                data-confirmation-text="Are you sure that you want to remove group <%=group%> from role <%=role.role_name%>?">&times;</button>
                                                                         </td>
                                                                     </tr>
                                                                     <%}%>
                                                                         <tr>
-                                                                            <td width="50%"></td>
+                                                                            <td></td>
+                                                                            <td></td>
                                                                             <td>
                                                                                 <form action="/apps/app/<%=app._id%>/roles/<%=role.role_id%>/addGroup" method="post" data-toggle="validator">
                                                                                     <div id="groupInput">
@@ -218,6 +235,7 @@
                                                                         </tr>
                                                             </tbody>
                                                         </table>
+                                                     </div>
                                                         <% } %>
                                                 </div>
                                             </div>
@@ -282,7 +300,6 @@
         $('#confirm-remove').on('show.bs.modal', function (event) {
             var modal = $(this);
             var button = $(event.relatedTarget);
-            console.log(button.data('confirmation-text'));
             modal.find('.modal-body #confirmation-text').text(button.data('confirmation-text'));
             modal.find('.btn-ok').attr('href', $(event.relatedTarget).data('href'));
         });
