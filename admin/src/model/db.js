@@ -575,6 +575,19 @@ module.exports = {
             return cb(err, result);
         });
     },
+    setProperty: function (id, property, value, cb) {
+        var collection = db.collection(usersCollection);
+
+        collection.updateOne({
+            _id: id
+        }, {
+            $set: {
+                [property]: value.trim()
+            }
+        }, function (err, result) {
+            return cb(err, result);
+        });
+    },
 
     getApp: function (id, cb) {
         var collection = db.collection(appsCollection);

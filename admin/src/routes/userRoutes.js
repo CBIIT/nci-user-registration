@@ -433,6 +433,17 @@ var router = function (logger, config, db, util) {
             });
         });
 
+    userRouter.route('/user/:id/setProperty/:property')
+        .post(function (req, res) {
+            var userId = new objectId(req.params.id);
+            var property = req.params.property.trim();
+            var value = req.body.propertyValue.trim();
+
+            db.setProperty(userId, property, value, function () {
+                res.redirect('/users/user/' + userId);
+            });
+        });
+
     return userRouter;
 
 };
