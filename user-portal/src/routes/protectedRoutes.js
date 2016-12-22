@@ -186,7 +186,7 @@ var router = function (logger, config, db, mailer) {
             requestObject.approval = 'unknown';
 
             var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
-            var message = '<p>Access was requested for application: ' + app + '</p>' +
+            var message = '<p>Access was requested for application: <strong>' + app + '</strong></p>' +
                 '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
                 '<p>User DN: ' + userDN + '</p>' +
                 '<p>Referrer Application: ' + referer + '</p>' +
