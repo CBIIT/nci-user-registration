@@ -157,8 +157,7 @@ var router = function (logger, config, db, mailer) {
         .get(function (req, res) {
             var app = req.query.app;
             res.render('accessRequestForm', {
-                app: app,
-                referer: req.get('referer')
+                app: app
             });
         });
 
