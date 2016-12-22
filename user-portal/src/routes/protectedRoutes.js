@@ -157,7 +157,8 @@ var router = function (logger, config, db, mailer) {
         .get(function (req, res) {
             var app = req.query.app;
             res.render('accessRequestForm', {
-                app: app
+                app: app,
+                referer: req.get('referer')
             });
         });
 
@@ -165,6 +166,7 @@ var router = function (logger, config, db, mailer) {
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
             var userDN = req.get('smuserdn').toLowerCase().trim();
+            var referer = req.body.referer;
             var userName = (req.get('user_firstname') + ' ' + req.get('user_lastname')).trim();
             var email = req.get('user_email').trim();
 
@@ -177,6 +179,7 @@ var router = function (logger, config, db, mailer) {
             requestObject.request_id = requestId;
             requestObject.requested_app = app;
             requestObject.user_dn = userDN;
+            requestObject.referer = referer;
             requestObject.user_name = userName;
             requestObject.email = email;
             requestObject.requested_access_level = accessLevel;
@@ -187,6 +190,7 @@ var router = function (logger, config, db, mailer) {
             var message = '<p>Access was requested for application: ' + app + '</p>' +
                 '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
                 '<p>User DN: ' + userDN + '</p>' +
+                '<p>Referrer Application: ' + referer + '</p>' +
                 '<p>Display Name: ' + userName + '</p>' +
                 '<p>Email: ' + email + '</p>' +
                 '<p>Access Level: ' + accessLevel + '</p>' +

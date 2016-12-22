@@ -151,6 +151,14 @@
                                                                 </td>
                                                             </tr>
                                                             <tr>
+                                                                <td>Referer</td>
+                                                                <td>
+                                                                    <% if (request.referer) {%>
+                                                                        <%=request.referer%>
+                                                                            <%}%>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
                                                                 <td>Requested Access Level</td>
                                                                 <td>
                                                                     <% if (request.requested_access_level) {%>
