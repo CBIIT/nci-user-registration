@@ -27,7 +27,7 @@ var router = function (logger) {
                     '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-danger';
             } else if (req.query.mapped) {
-                message = 'Your account was registered successfully. It will take up to 3 hours to transfer all your information.';
+                message = 'Your account was registered successfully. It will take up to one business day to transfer all your information.';
             } else if (req.query.previouslymapped) {
                 message = '<p>Our records show that you are already registered and do not need to complete this process again. No further information is required from you at this time.</p>' +
                     '<p>If you have questions please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';

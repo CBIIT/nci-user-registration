@@ -93,7 +93,7 @@ var router = function (logger, config, db, mailer) {
                                 db.log(userObject, 'Mapped to user_dn ' + user_dn);
                                 var subject = config.mail.subjectPrefix + ' ### Your account was registered';
                                 var message = '<p>Your account was registered successfully.</p>' +
-                                    '<p>The NCI account ' + userObject.username + ' was linked to your new NIH External account.</p>' +
+                                    '<p>Your previous NCI account ' + userObject.username + ' was linked to your federated account.</p>' +
                                     '<p>It will take up to one business day to complete the transfer of all your account information.</p>';
                                 mailer.send(userObject.email, subject, message);
                                 res.redirect('/logoff?mapped=true');
