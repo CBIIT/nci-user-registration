@@ -166,10 +166,13 @@ var router = function (logger, config, db, mailer) {
             var app = req.query.app;
             var userDN = req.get('smuserdn').toLowerCase().trim();
             var userAuthType = req.get('user_auth_type').toLowerCase();
+            var baseDN = userAuthType === 'federated' ? config.ldapproxy.federated_users_dn : config.ldapproxy.internal_users_dn;
 
             // Perform LDAP Proxy query to get the user's information display name
+            console.log('base DN: ' + baseDN);
+            console.log('userDN: ' + userDN);
 
-            getUser(userDN, logger, config)
+            getUser(baseDN, userDN, logger, config)
                 .then(function (users) {
                     var user = users[0];
                     res.render('accessRequestForm', {
@@ -177,8 +180,6 @@ var router = function (logger, config, db, mailer) {
                         user: user
                     });
                 });
-
-
         });
 
     protectedRouter.route('/access-request')
@@ -237,7 +238,7 @@ function getHeaders(headers) {
 
 }
 
-function getUser(dn, logger, config) {
+function getUser(dn, userDN, logger, config) {
 
     return new Promise(function (resolve, reject) {
 
@@ -261,7 +262,7 @@ function getUser(dn, logger, config) {
                 reject(Error(err.message));
             }
 
-            ldapClient.search(dn, userSearchOptions, function (err, ldapRes) {
+            ldapClient.search(userDN, userSearchOptions, function (err, ldapRes) {
                 ldapRes.on('searchEntry', function (entry) {
                     var user = entry.object;
                     users.push(user);
