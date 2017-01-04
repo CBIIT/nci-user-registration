@@ -165,15 +165,11 @@ var router = function (logger, config, db, mailer) {
         .get(function (req, res) {
             var app = req.query.app;
             var userDN = req.get('smuserdn').toLowerCase().trim();
-            var userAuthType = req.get('user_auth_type').toLowerCase();
-            var baseDN = userAuthType === 'federated' ? config.ldapproxy.federated_users_dn : config.ldapproxy.internal_users_dn;
 
             // Perform LDAP Proxy query to get the user's information display name
-            console.log('base DN: ' + baseDN);
-            console.log('userDN: ' + userDN);
-
-            getUser(baseDN, userDN, logger, config)
+            getUser(userDN, logger, config)
                 .then(function (users) {
+
                     var user = users[0];
                     res.render('accessRequestForm', {
                         app: app,
@@ -238,11 +234,11 @@ function getHeaders(headers) {
 
 }
 
-function getUser(dn, userDN, logger, config) {
+function getUser(userDN, logger, config) {
 
     return new Promise(function (resolve, reject) {
 
-        logger.info('Looking up user with DN: ' + dn);
+        logger.info('Looking up user with DN: ' + userDN);
         var users = [];
 
         var ldapClient = ldap.createClient({
@@ -254,8 +250,8 @@ function getUser(dn, userDN, logger, config) {
             scope: 'base',
             attributes: config.ldapproxy.user_attributes
         };
-
-        ldapClient.bind(dn, config.ldapproxy.password, function (err) {
+        
+        ldapClient.bind(config.ldapproxy.dn, config.ldapproxy.password, function (err) {
             if (err) {
                 logger.error(err);
                 ldapClient.unbind();
