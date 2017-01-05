@@ -169,10 +169,11 @@ var router = function (logger, config, db, mailer) {
 
             // Perform LDAP Proxy query to get the user's information display name
             getUser(userDN, logger, config)
-                .then(function (users) {
+                .then(function (user) {
+                    user.type = userAuthType;
 
-                    var user = users[0];
                     var displayName = userAuthType === 'federated' ? user['x-nci-displayName'] : user.displayName;
+
                     res.render('accessRequestForm', {
                         app: app,
                         displayName: displayName
@@ -241,7 +242,7 @@ function getUser(userDN, logger, config) {
     return new Promise(function (resolve, reject) {
 
         logger.info('Looking up user with DN: ' + userDN);
-        var users = [];
+        var user;
 
         var ldapClient = ldap.createClient({
             url: config.ldapproxy.host,
@@ -250,9 +251,10 @@ function getUser(userDN, logger, config) {
 
         var userSearchOptions = {
             scope: 'base',
-            attributes: config.ldapproxy.user_attributes
+            attributes: config.ldapproxy.user_attributes,
+            sizeLimit: 1
         };
-        
+
         ldapClient.bind(config.ldapproxy.dn, config.ldapproxy.password, function (err) {
             if (err) {
                 logger.error(err);
@@ -262,8 +264,7 @@ function getUser(userDN, logger, config) {
 
             ldapClient.search(userDN, userSearchOptions, function (err, ldapRes) {
                 ldapRes.on('searchEntry', function (entry) {
-                    var user = entry.object;
-                    users.push(user);
+                    user = entry.object;
                 });
                 ldapRes.on('searchReference', function () {});
                 ldapRes.on('error', function (err) {
@@ -272,7 +273,7 @@ function getUser(userDN, logger, config) {
                 });
                 ldapRes.on('end', function () {
                     ldapClient.unbind();
-                    resolve(users);
+                    resolve(user);
                 });
             });
         });
