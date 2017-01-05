@@ -165,15 +165,17 @@ var router = function (logger, config, db, mailer) {
         .get(function (req, res) {
             var app = req.query.app;
             var userDN = req.get('smuserdn').toLowerCase().trim();
+            var userAuthType = req.get('user_auth_type').toLowerCase();
 
             // Perform LDAP Proxy query to get the user's information display name
             getUser(userDN, logger, config)
                 .then(function (users) {
 
                     var user = users[0];
+                    var displayName = userAuthType === 'federated' ? user['x-nci-displayName'] : user.displayName;
                     res.render('accessRequestForm', {
                         app: app,
-                        user: user
+                        user: displayName
                     });
                 });
         });
