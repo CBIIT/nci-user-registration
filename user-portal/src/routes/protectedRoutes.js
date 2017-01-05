@@ -175,7 +175,7 @@ var router = function (logger, config, db, mailer) {
                     var displayName = userAuthType === 'federated' ? user['x-nci-displayName'] : user.displayName;
                     res.render('accessRequestForm', {
                         app: app,
-                        user: displayName
+                        displayName: displayName
                     });
                 });
         });
