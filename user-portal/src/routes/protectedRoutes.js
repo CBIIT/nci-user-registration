@@ -185,6 +185,8 @@ var router = function (logger, config, db, mailer) {
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
             var userDN = req.get('smuserdn').toLowerCase().trim();
+            var userAuthType = req.get('user_auth_type').toLowerCase();
+
             var referer = req.body.referer;
             var userName = (req.get('user_firstname') + ' ' + req.get('user_lastname')).trim();
             var email = req.get('user_email').trim();
@@ -192,36 +194,42 @@ var router = function (logger, config, db, mailer) {
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
 
-            // record request and send email
-            var requestObject = {};
-            var requestId = uuid.v4();
-            requestObject.request_id = requestId;
-            requestObject.requested_app = app;
-            requestObject.user_dn = userDN;
-            requestObject.referer = referer;
-            requestObject.user_name = userName;
-            requestObject.email = email;
-            requestObject.requested_access_level = accessLevel;
-            requestObject.justification = justification;
-            requestObject.approval = 'unknown';
+            getUser(userDN, logger, config)
+                .then(function (user) {
 
-            var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
-            var message = '<p>Access was requested for application: <strong>' + app + '</strong></p>' +
-                '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
-                '<p>User DN: ' + userDN + '</p>' +
-                '<p>Referrer Application: ' + referer + '</p>' +
-                '<p>Display Name: ' + userName + '</p>' +
-                '<p>Email: ' + email + '</p>' +
-                '<p>Access Level: ' + accessLevel + '</p>' +
-                '<p>Justification: ' + justification + '</p>';
+                    // record request and send email
+                    var requestObject = {};
+                    var requestId = uuid.v4();
+                    requestObject.request_id = requestId;
+                    requestObject.requested_app = app;
+                    requestObject.user_dn = userDN;
+                    requestObject.referer = referer;
+                    requestObject.user_name = userName;
+                    requestObject.email = email;
+                    requestObject.requested_access_level = accessLevel;
+                    requestObject.justification = justification;
+                    requestObject.approval = 'unknown';
+                    if (userAuthType === 'federated' && !user['x-nci-alias']) {
+                        requestObject.approvalDisabled = true;
+                    }
 
-            db.recordAccessRequest(requestObject, function (err, result) {
-                mailer.send(config.mail.request_recipient, subject, message);
-                logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
-            });
+                    var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
+                    var message = '<p>Access was requested for application: <strong>' + app + '</strong></p>' +
+                        '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
+                        '<p>User DN: ' + userDN + '</p>' +
+                        '<p>Referrer Application: ' + referer + '</p>' +
+                        '<p>Display Name: ' + userName + '</p>' +
+                        '<p>Email: ' + email + '</p>' +
+                        '<p>Access Level: ' + accessLevel + '</p>' +
+                        '<p>Justification: ' + justification + '</p>';
 
-            res.redirect('/logoff?requestconfirmation=true');
+                    db.recordAccessRequest(requestObject, function (err, result) {
+                        mailer.send(config.mail.request_recipient, subject, message);
+                        logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
+                    });
 
+                    res.redirect('/logoff?requestconfirmation=true');
+                });
         });
 
     return protectedRouter;

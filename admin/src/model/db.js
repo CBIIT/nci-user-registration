@@ -731,6 +731,29 @@ module.exports = {
             });
     },
 
+    getSingleRequest(uuid, cb) {
+        var collection = db.collection(requestCollection);
+        collection.findOne({
+            request_id: uuid
+        }, function (err, result) {
+            cb(err, result);
+        });
+    },
+
+    unlockRequestApproval(uuid, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: uuid
+        }, {
+            $unset: {
+                approvalDisabled: ''
+            }
+        }, function (err, result) {
+            cb(err, result);
+        });
+    },
+
     approveRequest(requestId, approvedResource, notes, cb) {
         var collection = db.collection(requestCollection);
 

@@ -201,7 +201,13 @@
                                                                     <label for="notes">Notes</label>
                                                                     <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
                                                                 </div>
-                                                                <button type="submit" class="btn btn-primary" name="submit" value="Approve">Approve</button>
+                                                                <% if (request.approvalDisabled) {  %>
+                                                                    <p>
+                                                                        This request was submitted by a user whose account does not have the x-nci-alias property set in the LDAP Proxy directory. Please work to transfer their account from eDir if one exists. 
+                                                                        In case this is a new account you have to set the x-nci properties on the account in LDAP Proxy manually. Once the account is configured click <a class="btn btn-primary btn-xs" href="/requests/unlockApproval/<%=request.request_id%>" role="button">Unlock</a> to unlock approval. 
+                                                                    </p>
+                                                                <% } %>
+                                                                <button type="submit" class="btn btn-primary" name="submit" value="Approve" <% if (request.approvalDisabled) {  %> disabled <% } %> > Approve</button>
                                                                 <button type="submit" class="btn btn-danger" name="submit" value="Reject">Reject</button>
                                                             </form>
                                                         </p>
