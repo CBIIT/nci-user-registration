@@ -179,7 +179,7 @@ var router = function (logger, config, db, mailer) {
                         displayName: displayName
                     });
                 }).catch((err) => {
-                    logger.error('Failed looking up user with user DN ' + userDN + ' in LDAP Proxy');
+                    logger.error('Failed looking up user with user DN ' + userDN + ' in LDAP Proxy: ' + err.message);
                     res.render('accessRequestForm', {
                         app: app
                     });
@@ -237,7 +237,7 @@ var router = function (logger, config, db, mailer) {
 
                 }).catch((err) => {
                     // LDAP error. The user DN has not been fully provisioned yet. Disable request approval until this is resolved
-                    logger.error('Lookup of user with user DN ' + userDN + ' failed in LDAP: ' + err);
+                    logger.error('Lookup of user with user DN ' + userDN + ' failed in LDAP: ' + err.message);
                     requestObject.approvalDisabled = true;
                     db.recordAccessRequest(requestObject, function () {
                         mailer.send(config.mail.request_recipient, subject, message);
