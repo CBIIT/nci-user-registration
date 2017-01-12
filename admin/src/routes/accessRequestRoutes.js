@@ -208,38 +208,73 @@ var router = function (logger, config, db, util) {
             });
         });
 
-    accessRequestRouter.route('/unlockApproval/:id')
+    accessRequestRouter.route('/setApprovalStatus/:id')
         .get(function (req, res) {
             var requestId = req.params.id;
             db.getSingleRequest(requestId, function (err, result) {
 
                 var userDN = result.user_dn;
-                console.log('USer DN: ' + userDN);
 
-                getUser(userDN, logger, config)
-                    .then(function (user) {
-                        if (user['x-nci-alias']) {
-                            logger.info('Unlocking request ' + requestId + '. x-nci-alias property found for user DN ' + userDN);
-                            db.unlockRequestApproval(requestId, function () {
+                if (userDN.match(config.ldapproxy.dnTestRegex)) {
+                    getUser(userDN, logger, config)
+                        .then(function (user) {
+
+                            if (user['x-nci-alias']) {
+                                logger.info('Unlocking request ' + requestId + '. x-nci-alias property found for user DN ' + userDN);
+                                db.unlockRequestApproval(requestId, function () {
+                                    var alert = {
+                                        message: 'Approval unlocked.',
+                                        severity_class: 'alert-success'
+                                    };
+                                    req.session.alert = alert;
+                                    res.redirect('/requests/request/' + requestId);
+                                });
+                            } else {
+                                logger.info('Locking request ' + requestId + '. x-nci-alias property not found for user DN ' + userDN);
+
+                                db.lockRequestApproval(requestId, function () {
+                                    var alert = {
+                                        message: 'Approval locked: x-nci-alias property not found for user DN ' + userDN,
+                                        severity_class: 'alert-danger'
+                                    };
+                                    req.session.alert = alert;
+                                    res.redirect('/requests/request/' + requestId);
+                                });
+                            }
+                        }).catch((err) => {
+                            db.lockRequestApproval(requestId, function () {
                                 var alert = {
-                                    message: 'The request is unlocked for approval.',
-                                    severity_class: 'alert-success'
+                                    message: 'Approval locked because of LDAP error: ' + err.message,
+                                    severity_class: 'alert-danger'
                                 };
                                 req.session.alert = alert;
                                 res.redirect('/requests/request/' + requestId);
                             });
-                        } else {
-                            var alert = {
-                                message: 'Approval could not be unlocled: x-nci-alias property was not found on this account.',
-                                severity_class: 'alert-danger'
-                            };
-                            req.session.alert = alert;
-                            res.redirect('/requests/request/' + requestId);
-                        }
+                        });
+                } else {
+                    logger.info('Locking request ' + requestId + '. Invalid User DN format: ' + userDN);
+                    db.lockRequestApproval(requestId, function () {
+                        var alert = {
+                            message: 'Approval locked: Invalid User DN format: ' + userDN,
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/requests/request/' + requestId);
                     });
-
+                }
             });
 
+        });
+
+    accessRequestRouter.route('/request/:id/setProperty/:property')
+        .post(function (req, res) {
+            var requestId = req.params.id;
+            var property = req.params.property.trim();
+            var value = req.body.propertyValue.trim().toLowerCase();
+            logger.info('Changing property ' + property + ' for request ' + requestId + ' to ' + value);
+            db.setAccessRequestProperty(requestId, property, value, function () {
+                res.redirect('/requests/setApprovalStatus/' + requestId);
+            });
         });
 
     return accessRequestRouter;
@@ -263,7 +298,7 @@ function getUser(userDN, logger, config) {
             sizeLimit: 1
         };
 
-        ldapClient.bind(config.ldapproxy.dn, config.ldapproxy.password, function (err) {
+        ldapClient.bind(config.ldapproxy.dn, config.ldapproxy.password, function (err, result) {
             if (err) {
                 logger.error(err);
                 ldapClient.unbind();

@@ -73,10 +73,6 @@ textarea { resize:vertical; }
   background-color: #5bc0de;
 }
 
-.panel-body  {
-    word-break:break-all;
-}
-
 .twitter-typeahead, .tt-hint, .tt-input, .tt-menu { width: 100%; }
 
 .boxed {

@@ -589,6 +589,20 @@ module.exports = {
         });
     },
 
+    setAccessRequestProperty: function (id, property, value, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: id
+        }, {
+            $set: {
+                [property]: value.trim()
+            }
+        }, function (err, result) {
+            return cb(err, result);
+        });
+    },
+
     getApp: function (id, cb) {
         var collection = db.collection(appsCollection);
         collection.find({
@@ -748,6 +762,20 @@ module.exports = {
         }, {
             $unset: {
                 approvalDisabled: ''
+            }
+        }, function (err, result) {
+            cb(err, result);
+        });
+    },
+
+    lockRequestApproval(uuid, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: uuid
+        }, {
+            $set: {
+                approvalDisabled: true
             }
         }, function (err, result) {
             cb(err, result);
