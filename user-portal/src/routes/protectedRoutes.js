@@ -178,6 +178,11 @@ var router = function (logger, config, db, mailer) {
                         app: app,
                         displayName: displayName
                     });
+                }).catch((err) => {
+                    logger.error('Failed looking up user with user DN ' + userDN + ' in LDAP Proxy');
+                    res.render('accessRequestForm', {
+                        app: app
+                    });
                 });
         });
 
@@ -193,42 +198,52 @@ var router = function (logger, config, db, mailer) {
 
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
+            // record request and send email
+            var requestObject = {};
+            var requestId = uuid.v4();
+            requestObject.request_id = requestId;
+            requestObject.requested_app = app;
+            requestObject.user_dn = userDN;
+            requestObject.referer = referer;
+            requestObject.user_name = userName;
+            requestObject.email = email;
+            requestObject.requested_access_level = accessLevel;
+            requestObject.justification = justification;
+            requestObject.approval = 'unknown';
+
+
+            var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
+            var message = '<p>Access was requested for application: <strong>' + app + '</strong></p>' +
+                '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
+                '<p>User DN: ' + userDN + '</p>' +
+                '<p>Referrer Application: ' + referer + '</p>' +
+                '<p>Display Name: ' + userName + '</p>' +
+                '<p>Email: ' + email + '</p>' +
+                '<p>Access Level: ' + accessLevel + '</p>' +
+                '<p>Justification: ' + justification + '</p>';
 
             getUser(userDN, logger, config)
                 .then(function (user) {
 
-                    // record request and send email
-                    var requestObject = {};
-                    var requestId = uuid.v4();
-                    requestObject.request_id = requestId;
-                    requestObject.requested_app = app;
-                    requestObject.user_dn = userDN;
-                    requestObject.referer = referer;
-                    requestObject.user_name = userName;
-                    requestObject.email = email;
-                    requestObject.requested_access_level = accessLevel;
-                    requestObject.justification = justification;
-                    requestObject.approval = 'unknown';
-                    if (userAuthType === 'federated' && !user['x-nci-alias']) {
+                    if (!userDN.match(config.ldapproxy.dnTestRegex) || (userAuthType === 'federated' && !user['x-nci-alias'])) {
                         requestObject.approvalDisabled = true;
                     }
 
-                    var subject = config.mail.subjectPrefix + ' NCI Application Access Request ';
-                    var message = '<p>Access was requested for application: <strong>' + app + '</strong></p>' +
-                        '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
-                        '<p>User DN: ' + userDN + '</p>' +
-                        '<p>Referrer Application: ' + referer + '</p>' +
-                        '<p>Display Name: ' + userName + '</p>' +
-                        '<p>Email: ' + email + '</p>' +
-                        '<p>Access Level: ' + accessLevel + '</p>' +
-                        '<p>Justification: ' + justification + '</p>';
-
-                    db.recordAccessRequest(requestObject, function (err, result) {
+                    db.recordAccessRequest(requestObject, function () {
                         mailer.send(config.mail.request_recipient, subject, message);
                         logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
+                        res.redirect('/logoff?requestconfirmation=true');
                     });
 
-                    res.redirect('/logoff?requestconfirmation=true');
+                }).catch((err) => {
+                    // LDAP error. The user DN has not been fully provisioned yet. Disable request approval until this is resolved
+                    logger.error('Lookup of user with user DN ' + userDN + ' failed in LDAP: ' + err);
+                    requestObject.approvalDisabled = true;
+                    db.recordAccessRequest(requestObject, function () {
+                        mailer.send(config.mail.request_recipient, subject, message);
+                        logger.info('Access request submitted for application: ' + app + ', User DN: ' + userDN + ', access level requested: ' + accessLevel);
+                        res.redirect('/logoff?requestconfirmation=true');
+                    });
                 });
         });
 
