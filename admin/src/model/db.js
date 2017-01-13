@@ -589,6 +589,20 @@ module.exports = {
         });
     },
 
+    setAccessRequestProperty: function (id, property, value, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: id
+        }, {
+            $set: {
+                [property]: value.trim()
+            }
+        }, function (err, result) {
+            return cb(err, result);
+        });
+    },
+
     getApp: function (id, cb) {
         var collection = db.collection(appsCollection);
         collection.find({
@@ -729,6 +743,43 @@ module.exports = {
             function (err, results) {
                 cb(err, results);
             });
+    },
+
+    getSingleRequest(uuid, cb) {
+        var collection = db.collection(requestCollection);
+        collection.findOne({
+            request_id: uuid
+        }, function (err, result) {
+            cb(err, result);
+        });
+    },
+
+    unlockRequestApproval(uuid, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: uuid
+        }, {
+            $unset: {
+                approvalDisabled: ''
+            }
+        }, function (err, result) {
+            cb(err, result);
+        });
+    },
+
+    lockRequestApproval(uuid, cb) {
+        var collection = db.collection(requestCollection);
+
+        collection.updateOne({
+            request_id: uuid
+        }, {
+            $set: {
+                approvalDisabled: true
+            }
+        }, function (err, result) {
+            cb(err, result);
+        });
     },
 
     approveRequest(requestId, approvedResource, notes, cb) {

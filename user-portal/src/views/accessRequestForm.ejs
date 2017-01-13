@@ -33,6 +33,12 @@
                 <a href="/edir">
                     <img class="img-responsive" src="/images/nci-logo-full.svg" alt="National Cancer Institute"></a>
             </div>
+            <% if (displayName) { %>
+            <div class="col-sm-3">
+                You are logged in as:<br>
+                <%=displayName%>
+            </div>
+            <% } %>
         </div>
         <div class="row">
             <div class="col-sm-3 side-panel">

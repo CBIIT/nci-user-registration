@@ -9,7 +9,16 @@ var parserOptions = {
     }
 };
 
+var ldap = require('ldapjs');
+var fs = require('fs');
+var tlsOptions;
+
+
 var router = function (logger, config, db, util) {
+
+    tlsOptions = {
+        ca: [fs.readFileSync(config.ldapproxy.cacert)]
+    };
 
     accessRequestRouter.route('/')
         .get(function (req, res) {
@@ -94,7 +103,7 @@ var router = function (logger, config, db, util) {
                 var approvedResource = {};
 
                 if (!appId) {
-                    db.error('No app selected for request ' + requestId);
+                    logger.error('No app selected for request ' + requestId);
                     var alert = {
                         message: 'Error: No app selected. Request was not approved.',
                         severity_class: 'alert-danger'
@@ -199,7 +208,123 @@ var router = function (logger, config, db, util) {
             });
         });
 
+    accessRequestRouter.route('/setApprovalStatus/:id')
+        .get(function (req, res) {
+            var requestId = req.params.id;
+            db.getSingleRequest(requestId, function (err, result) {
+
+                var userDN = result.user_dn;
+
+                if (userDN.match(config.ldapproxy.dnTestRegex)) {
+                    getUser(userDN, logger, config)
+                        .then(function (user) {
+
+                            if (user['x-nci-alias']) {
+                                logger.info('Unlocking request ' + requestId + '. x-nci-alias property found for user DN ' + userDN);
+                                db.unlockRequestApproval(requestId, function () {
+                                    var alert = {
+                                        message: 'Approval unlocked.',
+                                        severity_class: 'alert-success'
+                                    };
+                                    req.session.alert = alert;
+                                    res.redirect('/requests/request/' + requestId);
+                                });
+                            } else {
+                                logger.info('Locking request ' + requestId + '. x-nci-alias property not found for user DN ' + userDN);
+
+                                db.lockRequestApproval(requestId, function () {
+                                    var alert = {
+                                        message: 'Approval locked: x-nci-alias property not found for user DN ' + userDN,
+                                        severity_class: 'alert-danger'
+                                    };
+                                    req.session.alert = alert;
+                                    res.redirect('/requests/request/' + requestId);
+                                });
+                            }
+                        }).catch((err) => {
+                            db.lockRequestApproval(requestId, function () {
+                                var alert = {
+                                    message: 'Approval locked because of LDAP error: ' + err.message,
+                                    severity_class: 'alert-danger'
+                                };
+                                req.session.alert = alert;
+                                res.redirect('/requests/request/' + requestId);
+                            });
+                        });
+                } else {
+                    logger.info('Locking request ' + requestId + '. Invalid User DN format: ' + userDN);
+                    db.lockRequestApproval(requestId, function () {
+                        var alert = {
+                            message: 'Approval locked: Invalid User DN format: ' + userDN,
+                            severity_class: 'alert-danger'
+                        };
+                        req.session.alert = alert;
+                        res.redirect('/requests/request/' + requestId);
+                    });
+                }
+            });
+
+        });
+
+    accessRequestRouter.route('/request/:id/setProperty/:property')
+        .post(function (req, res) {
+            var requestId = req.params.id;
+            var property = req.params.property.trim();
+            var value = req.body.propertyValue.trim().toLowerCase();
+            logger.info('Changing property ' + property + ' for request ' + requestId + ' to ' + value);
+            db.setAccessRequestProperty(requestId, property, value, function () {
+                res.redirect('/requests/setApprovalStatus/' + requestId);
+            });
+        });
+
     return accessRequestRouter;
 };
+
+function getUser(userDN, logger, config) {
+
+    return new Promise(function (resolve, reject) {
+
+        logger.info('Looking up user with DN: ' + userDN);
+        var user;
+
+        var ldapClient = ldap.createClient({
+            url: config.ldapproxy.host,
+            tlsOptions: tlsOptions
+        });
+
+        var userSearchOptions = {
+            scope: 'base',
+            attributes: config.ldapproxy.user_attributes,
+            sizeLimit: 1
+        };
+
+        ldapClient.bind(config.ldapproxy.dn, config.ldapproxy.password, function (err, result) {
+            if (err) {
+                logger.error(err);
+                ldapClient.unbind();
+                reject(Error(err.message));
+            }
+
+            ldapClient.search(userDN, userSearchOptions, function (err, ldapRes) {
+                ldapRes.on('searchEntry', function (entry) {
+                    user = entry.object;
+                });
+                ldapRes.on('searchReference', function () {});
+                ldapRes.on('error', function (err) {
+                    ldapClient.unbind();
+                    if (err.code === 32) {
+                        resolve({});
+                    } else {
+                        reject(Error(err.message));
+                    }
+                });
+                ldapRes.on('end', function () {
+                    ldapClient.unbind();
+                    resolve(user);
+                });
+            });
+        });
+    });
+}
 
 module.exports = router;

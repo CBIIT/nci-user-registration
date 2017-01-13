@@ -109,6 +109,8 @@
                                                                 <td>
                                                                     <%=request.approval === 'unknown' ? 'Pending Approval' : request.approval.toUpperCase()%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Request ID</td>
@@ -116,6 +118,8 @@
                                                                     <% if (request.request_id) {%>
                                                                         <%=request.request_id%>
                                                                             <%}%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -125,6 +129,8 @@
                                                                         <%=request.user_name%>
                                                                             <%}%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Email</td>
@@ -132,6 +138,8 @@
                                                                     <% if (request.email) {%>
                                                                         <%=request.email%>
                                                                             <%}%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -141,6 +149,8 @@
                                                                         <%=request.requested_app%>
                                                                             <%}%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>User DN</td>
@@ -148,6 +158,13 @@
                                                                     <% if (request.user_dn) {%>
                                                                         <%=request.user_dn%>
                                                                             <%}%>
+                                                                </td>
+                                                                <td>
+                                                                    <% if (request.approval === 'unknown') { %>
+                                                                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#changeSinglePropertyModal" data-request-id="<%=request.request_id%>"
+                                                                            data-current-value="<%=request.user_dn %>" data-action-property="user_dn"
+                                                                            data-property-title="Change of User DN" data-property-label="User DN">Change</button>
+                                                                        <% } %>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -157,6 +174,8 @@
                                                                         <%=request.referer%>
                                                                             <%}%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Requested Access Level</td>
@@ -165,6 +184,8 @@
                                                                         <%=request.requested_access_level%>
                                                                             <%}%>
                                                                 </td>
+                                                                <td>
+                                                                </td>
                                                             </tr>
                                                             <tr>
                                                                 <td>User Justification</td>
@@ -172,6 +193,8 @@
                                                                     <% if (request.justification) {%>
                                                                         <%=request.justification%>
                                                                             <%}%>
+                                                                </td>
+                                                                <td>
                                                                 </td>
                                                             </tr>
                                                         </tbody>
@@ -201,8 +224,36 @@
                                                                     <label for="notes">Notes</label>
                                                                     <textarea class="form-control" rows="12" id="notes" name="notes"></textarea>
                                                                 </div>
-                                                                <button type="submit" class="btn btn-primary" name="submit" value="Approve">Approve</button>
-                                                                <button type="submit" class="btn btn-danger" name="submit" value="Reject">Reject</button>
+                                                                <% if (request.approvalDisabled) {  %>
+                                                                    <p>
+                                                                        Approval is currently disabled for this request. All of the following criteria have to be fulfilled to unlock request approval:
+                                                                        <ul>
+                                                                            <li>
+                                                                                The user account must have the x-nci-alias property set in the LDAP Proxy directory. If a legacy account for this user exists
+                                                                                in eDir please work with the user to transfer
+                                                                                the account, which will set the x-nci-alias
+                                                                                property. In case this is a new account you
+                                                                                have to set the x-nci properties on the account
+                                                                                in LDAP Proxy manually.
+                                                                            </li>
+                                                                            <li>
+                                                                                The user DN in the access request has to be a valid user DN. The DN can be invalid when new users who joined through certain
+                                                                                federation providers submit an access request
+                                                                                within the first 24 hours of account creation.
+                                                                                During this time their real DN has not been
+                                                                                propagated to LDAP Proxy. To resolve this,
+                                                                                find their account in LDAP Proxy on the next
+                                                                                day of account creation and change the user
+                                                                                DN in the access request to the updated user
+                                                                                DN.
+                                                                            </li>
+                                                                        </ul>
+                                                                        Once the above criteria are checked and fulfilled, click
+                                                                        <a class="btn btn-primary btn-xs" href="/requests/setApprovalStatus/<%=request.request_id%>" role="button">Unlock</a>                                                                        to unlock approval.
+                                                                    </p>
+                                                                    <% } %>
+                                                                        <button type="submit" class="btn btn-primary" name="submit" value="Approve" <% if (request.approvalDisabled) { %> disabled <% } %> > Approve</button>
+                                                                        <button type="submit" class="btn btn-danger" name="submit" value="Reject">Reject</button>
                                                             </form>
                                                         </p>
                                                         <% } else {  %>
@@ -272,6 +323,52 @@
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="changeSinglePropertyModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="propertyTitle">
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form name="change_single_value_form" id="change_single_value_form" action="" method="post" data-toggle="validator">
+                        <div class="form-group">
+                            <label for="propertyValue" class="form-control-label" id="propertyLabel"></label>
+                            <input type="text" class="form-control" name="propertyValue" id="propertyValue" data-error="value is required." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                        <p>Caution: submitting the form will change the user's <strong id="propertyName"></strong> on file.
+                        </p>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Modal -->
+    <script>
+        $('#changeSinglePropertyModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            var currentValue = button.data('current-value');
+            var requestId = button.data('request-id');
+            var actionProperty = button.data('action-property');
+            var title = button.data('property-title');
+            var label = button.data('property-label');
+            var modal = $(this);
+            modal.find('.modal-content #propertyTitle').text(title);
+            modal.find('.modal-body #propertyLabel').text(label);
+            modal.find('.modal-body #propertyName').text(label);
+            modal.find('.modal-body #propertyValue').val(currentValue);
+            modal.find('.modal-body #change_single_value_form').attr('action', '/requests/request/' + requestId +
+                '/setProperty/' + actionProperty);
+        });
+    </script>
     <script>
         $('.app_selector').change(function () {
             var appId = $(this).val();
@@ -288,7 +385,8 @@
                         $.each(results, function () {
                             str += '<div class="checkbox">';
                             str +=
-                                '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel_' + requestId + '[]" id="' +
+                                '<label for="read_access_checkbox" class="form-check-label"><input class="form-check-input" type="checkbox" name="acclevel_' +
+                                requestId + '[]" id="' +
                                 this['role_id'] + '" value="' + this['role_id'] + '">' +
                                 this['role_name'] + '</label>';
                             str += '</div>';
