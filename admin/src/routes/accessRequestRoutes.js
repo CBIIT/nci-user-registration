@@ -312,7 +312,11 @@ function getUser(userDN, logger, config) {
                 ldapRes.on('searchReference', function () {});
                 ldapRes.on('error', function (err) {
                     ldapClient.unbind();
-                    reject(Error(err.message));
+                    if (err.code === 32) {
+                        resolve({});
+                    } else {
+                        reject(Error(err.message));
+                    }
                 });
                 ldapRes.on('end', function () {
                     ldapClient.unbind();

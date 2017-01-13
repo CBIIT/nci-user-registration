@@ -164,14 +164,16 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .get(function (req, res) {
             var app = req.query.app;
-            var userDN = req.get('smuserdn').toLowerCase().trim();
-            var userAuthType = req.get('user_auth_type').toLowerCase();
+            // var userDN = req.get('smuserdn').toLowerCase().trim();
+            // var userAuthType = req.get('user_auth_type').toLowerCase();
+
+            var userDN = 'cn=doesntexist,ou=ext,ou=com';
+            var userAuthType = 'federated';
 
             // Perform LDAP Proxy query to get the user's information display name
             getUser(userDN, logger, config)
                 .then(function (user) {
                     user.type = userAuthType;
-
                     var displayName = userAuthType === 'federated' ? user['x-nci-displayName'] : user.displayName;
 
                     res.render('accessRequestForm', {
@@ -179,9 +181,11 @@ var router = function (logger, config, db, mailer) {
                         displayName: displayName
                     });
                 }).catch((err) => {
-                    logger.error('Failed looking up user with user DN ' + userDN + ' in LDAP Proxy: ' + err.message);
+                    // LDAP error. Continue, but disable request approval until this is resolved.
+                    logger.error('Failed LDAP lookup of user with user DN ' + userDN + ': ' + err.message);
                     res.render('accessRequestForm', {
-                        app: app
+                        app: app,
+                        displayName: null
                     });
                 });
         });
@@ -189,12 +193,19 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            var userDN = req.get('smuserdn').toLowerCase().trim();
-            var userAuthType = req.get('user_auth_type').toLowerCase();
+            // var userDN = req.get('smuserdn').toLowerCase().trim();
+            // var userAuthType = req.get('user_auth_type').toLowerCase();
+
+            var userDN = 'cn=doesntexist,ou=ext,ou=com';
+            var userAuthType = 'federated';
+
 
             var referer = req.body.referer;
-            var userName = (req.get('user_firstname') + ' ' + req.get('user_lastname')).trim();
-            var email = req.get('user_email').trim();
+            // var userName = (req.get('user_firstname') + ' ' + req.get('user_lastname')).trim();
+            // var email = req.get('user_email').trim();
+
+            var userName = 'Goofy';
+            var email = 'goofy@disney.com';
 
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
@@ -236,8 +247,8 @@ var router = function (logger, config, db, mailer) {
                     });
 
                 }).catch((err) => {
-                    // LDAP error. The user DN has not been fully provisioned yet. Disable request approval until this is resolved
-                    logger.error('Lookup of user with user DN ' + userDN + ' failed in LDAP: ' + err.message);
+                    // LDAP error. Continue, but disable request approval until this is resolved.
+                    logger.error('Failed LDAP lookup of user with user DN ' + userDN + ': ' + err.message);
                     requestObject.approvalDisabled = true;
                     db.recordAccessRequest(requestObject, function () {
                         mailer.send(config.mail.request_recipient, subject, message);
@@ -292,7 +303,13 @@ function getUser(userDN, logger, config) {
                 ldapRes.on('searchReference', function () {});
                 ldapRes.on('error', function (err) {
                     ldapClient.unbind();
-                    reject(Error(err.message));
+                    if (err.code === 32) {
+                        // Object doesn't exist. The user DN is most likely not fully provisioned yet.
+                        logger.info('Failed LDAP lookup of user with user DN ' + userDN + '. Continuing with new user object.');
+                        resolve({});
+                    } else {
+                        reject(Error(err.message));
+                    }
                 });
                 ldapRes.on('end', function () {
                     ldapClient.unbind();
