@@ -5,6 +5,7 @@ var confirmTimeout;
 var loggerRef;
 var usersCollection;
 var requestCollection;
+var updatesCollection;
 var utilRef;
 
 module.exports = {
@@ -15,6 +16,7 @@ module.exports = {
         utilRef = util;
         usersCollection = config.db.users_collection;
         requestCollection = config.db.request_collection;
+        updatesCollection = config.db.updates_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
                 throw err;
@@ -175,6 +177,28 @@ module.exports = {
             cb(err, document);
         });
     },
+
+    updateSSHPublicKeyNew: function (user_dn, publicKey, cb) {
+        var collection = db.collection(updatesCollection);
+
+        collection.updateOne({
+            sm_userdn: user_dn,
+            field: 'ssh_public_key'
+        }, {
+            $set: {
+                public_key: publicKey,
+                processed: false
+            }
+        }, {
+            upsert: true
+        }, function (err, result) {
+            if (err) {
+                loggerRef.error('Failed to persist public key info for sm_userid' + user_dn);
+            }
+            cb(err, result);
+        });
+    },
+
 
     recordAccessRequest: function (requestObject, cb) {
         var collection = db.collection(requestCollection);

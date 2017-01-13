@@ -161,6 +161,56 @@ var router = function (logger, config, db, mailer) {
 
         });
 
+    protectedRouter.route('/update-new')
+        .post(function (req, res) {
+            var publicKey = req.body.pubkey.trim();
+            var userDN = req.get('user_dn').trim().toLowerCase();
+
+            if (userDN.match(config.ldapproxy.dnTestRegex)) {
+
+                getUser(userDN, logger, config)
+                    .then(function (user) {
+                        // make sure we have the correct user in LDAP Proxy
+                        if (userDN === user.dn) {
+                            db.updateSSHPublicKeyNew(userDN, publicKey, function (err, document) {
+                                if (err) {
+                                    logger.error('Failed to update public key of user with user_dn: ' + userDN);
+                                    res.redirect('/logoff?updateerror=true');
+                                } else if (document) {
+
+                                    if (document.matchedCount === 1) {
+                                        logger.info('Updated public key for user_dn: ' + userDN);
+                                        db.logWithDN(userDN, 'Updated public key: ' + publicKey);
+                                        res.redirect('/logoff?updatesuccess=true');
+                                    } else if (document.matchedCount === -1) {
+                                        logger.error('Failed to update public key of user with user_dn: ' + userDN + '. Modified count == -1');
+                                        res.redirect('/logoff?updateerrornf=true');
+                                    } else {
+                                        logger.error('Failed to update public key of user with user_dn: ' + userDN + '. Modified count != 1');
+                                        res.redirect('/logoff?updateerror=true');
+                                    }
+
+                                } else {
+                                    logger.error('Failed to update public key of user with user_dn: ' + userDN + '; unknown reason.');
+                                    res.redirect('/logoff?updateerror=true');
+                                }
+                            });
+                        } else {
+                            logger.error('Failed to update SSH jey for user with user DN  ' + userDN + ': User not found in LDAP Proxy.');
+                            res.redirect('/logoff?updateerrorinc=true');
+                        }
+                    }).catch((err) => {
+                        // LDAP error.
+                        logger.error('Failed LDAP lookup of user with user DN ' + userDN + ': during SSH key update attempt. Error: ' + err.message);
+                        res.redirect('/logoff?updateerror=true');
+                    });
+            } else {
+                logger.error('Failed to update SSH jey for user with user DN  ' + userDN + ': User DN format invalid.');
+                res.redirect('/logoff?updateerrorinc=true');
+            }
+
+        });
+
     protectedRouter.route('/access-request')
         .get(function (req, res) {
             var app = req.query.app;

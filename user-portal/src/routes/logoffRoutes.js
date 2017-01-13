@@ -51,7 +51,11 @@ var router = function (logger) {
                 message = 'Public key update was unsuccessful.' +
                     '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-danger';
-            }  else if (req.query.updateerrornf) {
+            } else if (req.query.updateerrorinc) {
+                message = 'Public key update was unsuccessful.' +
+                '<p>Your account is still in the registration stage and can not be updated at this time. Please try again in 24 hours. If you still have no success at this time please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to update your NCI federated user account so that your request is routed to the appropriate technical support team. </p>';
+                bg_class = 'bg-danger';
+            } else if (req.query.updateerrornf) {
                 message = 'Public key update was unsuccessful. Please make sure that your account has been registered.' +
                     '<p>If you need assistance please contact the NIH IT Service Desk using the information in the side bar and state that you are trying to complete the NCI Federated User Registration process so that your request is routed to the appropriate technical support team.</p>';
                 bg_class = 'bg-danger';
