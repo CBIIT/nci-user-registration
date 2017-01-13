@@ -164,11 +164,8 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .get(function (req, res) {
             var app = req.query.app;
-            // var userDN = req.get('smuserdn').toLowerCase().trim();
-            // var userAuthType = req.get('user_auth_type').toLowerCase();
-
-            var userDN = 'cn=doesntexist,ou=ext,ou=com';
-            var userAuthType = 'federated';
+            var userDN = req.get('smuserdn').toLowerCase().trim();
+            var userAuthType = req.get('user_auth_type').toLowerCase();
 
             // Perform LDAP Proxy query to get the user's information display name
             getUser(userDN, logger, config)
@@ -193,19 +190,12 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
-            // var userDN = req.get('smuserdn').toLowerCase().trim();
-            // var userAuthType = req.get('user_auth_type').toLowerCase();
-
-            var userDN = 'cn=doesntexist,ou=ext,ou=com';
-            var userAuthType = 'federated';
-
+            var userDN = req.get('smuserdn').toLowerCase().trim();
+            var userAuthType = req.get('user_auth_type').toLowerCase();
 
             var referer = req.body.referer;
-            // var userName = (req.get('user_firstname') + ' ' + req.get('user_lastname')).trim();
-            // var email = req.get('user_email').trim();
-
-            var userName = 'Goofy';
-            var email = 'goofy@disney.com';
+            var userName = (req.get('user_firstname') + ' ' + req.get('user_lastname')).trim();
+            var email = req.get('user_email').trim();
 
             var accessLevel = req.body.acclevel;
             var justification = req.body.justification.trim();
