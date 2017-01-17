@@ -162,7 +162,7 @@ module.exports = {
     },
 
     updateSSHPublicKey: function (user_dn, pubkeyInfo, cb) {
-        var collection = db.collection(usersCollection);
+        var collection = db.collection(updatesCollection);
 
         collection.updateOne({
             'itrustinfo.sm_userdn': user_dn
@@ -170,6 +170,8 @@ module.exports = {
             $set: {
                 pubkeyinfo: pubkeyInfo
             }
+        }, {
+            upsert: true
         }, function (err, document) {
             if (err) {
                 loggerRef.error('Failed to persist public key info for sm_userid' + user_dn);
@@ -177,28 +179,6 @@ module.exports = {
             cb(err, document);
         });
     },
-
-    updateSSHPublicKeyNew: function (user_dn, publicKey, cb) {
-        var collection = db.collection(updatesCollection);
-
-        collection.updateOne({
-            sm_userdn: user_dn,
-            field: 'ssh_public_key'
-        }, {
-            $set: {
-                public_key: publicKey,
-                processed: false
-            }
-        }, {
-            upsert: true
-        }, function (err, result) {
-            if (err) {
-                loggerRef.error('Failed to persist public key info for sm_userid' + user_dn);
-            }
-            cb(err, result);
-        });
-    },
-
 
     recordAccessRequest: function (requestObject, cb) {
         var collection = db.collection(requestCollection);

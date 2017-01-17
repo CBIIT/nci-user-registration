@@ -276,12 +276,12 @@ var router = function (logger, config, db, util) {
         .post(function (req, res) {
 
             var data = req.body.userids.value;
-            var convertedUserIds = [];
+            var convertedUserUpdateIds = [];
             for (var i = 0; i < data.length; i++) {
-                convertedUserIds.push(new objectId(data[i]));
+                convertedUserUpdateIds.push(new objectId(data[i]));
             }
-            logger.info('The following users\' public keys have been reported as processed and will now be flagged: ' + convertedUserIds);
-            db.setPubKeyProcessed(convertedUserIds, function (err, result) {
+            logger.info('The following user updates\' public keys have been reported as processed and will now be flagged: ' + convertedUserUpdateIds);
+            db.setPubKeyProcessed(convertedUserUpdateIds, function (err, result) {
                 logger.info('Flagging result: ' + JSON.stringify(result));
                 res.set('Content-Type', 'text/xml');
                 res.send(js2xmlparser('result', result, parserOptions));

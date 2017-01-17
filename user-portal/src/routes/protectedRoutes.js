@@ -130,41 +130,10 @@ var router = function (logger, config, db, mailer) {
 
     protectedRouter.route('/update')
         .post(function (req, res) {
+            var userDN = req.get('user_dn').trim().toLowerCase();
             var pubkeyInfo = {};
             pubkeyInfo.key = req.body.pubkey.trim();
             pubkeyInfo.processed = false;
-            var user_dn = req.get('user_dn').toLowerCase();
-
-            db.updateSSHPublicKey(user_dn, pubkeyInfo, function (err, document) {
-                if (err) {
-                    logger.error('Failed to update public key of user with user_dn: ' + user_dn);
-                    res.redirect('/logoff?updateerror=true');
-                } else if (document) {
-
-                    if (document.matchedCount === 1) {
-                        logger.info('Updated public key for user_dn: ' + user_dn);
-                        db.logWithDN(user_dn, 'Updated public key: ' + pubkeyInfo.key);
-                        res.redirect('/logoff?updatesuccess=true');
-                    } else if (document.matchedCount === -1) {
-                        logger.error('Failed to update public key of user with user_dn: ' + user_dn + '. Modified count == -1');
-                        res.redirect('/logoff?updateerrornf=true');
-                    } else {
-                        logger.error('Failed to update public key of user with user_dn: ' + user_dn + '. Modified count != 1');
-                        res.redirect('/logoff?updateerror=true');
-                    }
-
-                } else {
-                    logger.error('Failed to update public key of user with user_dn: ' + user_dn + '; unknown reason.');
-                    res.redirect('/logoff?updateerror=true');
-                }
-            });
-
-        });
-
-    protectedRouter.route('/update-new')
-        .post(function (req, res) {
-            var publicKey = req.body.pubkey.trim();
-            var userDN = req.get('user_dn').trim().toLowerCase();
 
             if (userDN.match(config.ldapproxy.dnTestRegex)) {
 
@@ -172,7 +141,7 @@ var router = function (logger, config, db, mailer) {
                     .then(function (user) {
                         // make sure we have the correct user in LDAP Proxy
                         if (userDN === user.dn) {
-                            db.updateSSHPublicKeyNew(userDN, publicKey, function (err, document) {
+                            db.updateSSHPublicKey(userDN, pubkeyInfo, function (err, document) {
                                 if (err) {
                                     logger.error('Failed to update public key of user with user_dn: ' + userDN);
                                     res.redirect('/logoff?updateerror=true');
@@ -180,7 +149,7 @@ var router = function (logger, config, db, mailer) {
 
                                     if (document.matchedCount === 1) {
                                         logger.info('Updated public key for user_dn: ' + userDN);
-                                        db.logWithDN(userDN, 'Updated public key: ' + publicKey);
+                                        db.logWithDN(userDN, 'Updated public key: ' + pubkeyInfo.key);
                                         res.redirect('/logoff?updatesuccess=true');
                                     } else if (document.matchedCount === -1) {
                                         logger.error('Failed to update public key of user with user_dn: ' + userDN + '. Modified count == -1');
@@ -196,7 +165,7 @@ var router = function (logger, config, db, mailer) {
                                 }
                             });
                         } else {
-                            logger.error('Failed to update SSH jey for user with user DN  ' + userDN + ': User not found in LDAP Proxy.');
+                            logger.error('Failed to update SSH key for user with user DN  ' + userDN + ': User not found in LDAP Proxy.');
                             res.redirect('/logoff?updateerrorinc=true');
                         }
                     }).catch((err) => {

@@ -7,6 +7,7 @@ var usersCollection;
 var groupsCollection;
 var appsCollection;
 var requestCollection;
+var updatesCollection;
 var utilRef;
 var configRef;
 
@@ -21,6 +22,7 @@ module.exports = {
         groupsCollection = config.db.groups_collection;
         appsCollection = config.db.apps_collection;
         requestCollection = config.db.request_collection;
+        updatesCollection = config.db.updates_collection;
         MongoClient.connect(config.db.url, function (err, database) {
             if (err) {
                 throw err;
@@ -341,17 +343,17 @@ module.exports = {
     },
 
     getUnprocessedPubKeyUsers: function (cb) {
-        var collection = db.collection(usersCollection);
+        var collection = db.collection(updatesCollection);
         collection.find({
             'pubkeyinfo.processed': false
         }, {
-            'entrustuser': 1,
             'itrustinfo': 1,
-            'pubkeyinfo': 1
+            'pubkeyinfo': 1,
         }).toArray(function (err, results) {
             return cb(err, results);
         });
     },
+
 
     setItrustProcessed: function (userIds, cb) {
         var collection = db.collection(usersCollection);
@@ -391,12 +393,12 @@ module.exports = {
         });
     },
 
-    setPubKeyProcessed: function (userIds, cb) {
-        var collection = db.collection(usersCollection);
+    setPubKeyProcessed: function (userUpdateIds, cb) {
+        var collection = db.collection(updatesCollection);
         var bulk = collection.initializeUnorderedBulkOp();
         bulk.find({
             _id: {
-                $in: userIds
+                $in: userUpdateIds
             }
         }).update({
             $set: {
@@ -407,6 +409,7 @@ module.exports = {
             return cb(err, result.toJSON());
         });
     },
+
 
     userCount: function (cb) {
         var collection = db.collection(usersCollection);
