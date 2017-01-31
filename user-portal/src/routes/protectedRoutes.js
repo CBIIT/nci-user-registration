@@ -218,6 +218,7 @@ var router = function (logger, config, db, mailer) {
     protectedRouter.route('/access-request')
         .post(function (req, res) {
             var app = req.body.app.toLowerCase().trim();
+            var phone = req.body.phone.trim();
             var userDN = req.get('smuserdn').toLowerCase().trim();
             var userAuthType = req.get('user_auth_type').toLowerCase();
 
@@ -232,6 +233,7 @@ var router = function (logger, config, db, mailer) {
             var requestId = uuid.v4();
             requestObject.request_id = requestId;
             requestObject.requested_app = app;
+            requestObject.phone = phone;
             requestObject.user_dn = userDN;
             requestObject.referer = referer;
             requestObject.user_name = userName;
@@ -245,6 +247,7 @@ var router = function (logger, config, db, mailer) {
             var message = '<p>Access was requested for application: <strong>' + app + '</strong></p>' +
                 '<p>Request ID: ' + '<a href="' + config.mail.requestApprovalPrefix + '/' + requestId + '">' + requestId + '</a>' + '</p>' +
                 '<p>User DN: ' + userDN + '</p>' +
+                '<p>Phone: ' + phone + '</p>' +
                 '<p>Referrer Application: ' + referer + '</p>' +
                 '<p>Display Name: ' + userName + '</p>' +
                 '<p>Email: ' + email + '</p>' +
