@@ -9,7 +9,9 @@ module.exports = {
     init: function (logger, config, cb) {
         loggerRef = logger;
         smtpConfig.host = config.mail.host;
-        smtpConfig.secure = config.mail.smtp_starttls_enable;
+        smtpConfig.port = config.mail.port;
+        smtpConfig.secure = config.mail.secure;
+        smtpConfig.ignoreTLS = config.mail.ignoreTLS;
         defaultFromAddress = config.mail.defaultFromAddress;
         transporter = mailer.createTransport(smtpConfig);
         cb();
